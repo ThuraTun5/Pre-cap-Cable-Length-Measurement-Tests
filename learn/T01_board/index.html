@@ -1,0 +1,711 @@
+<title>T01 Board Bring-up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: bench notebook - sticky contents rail on the left (desktop), one reading column, copper accent like PCB traces */
+:root{
+  --bg:#F4F6F4; --surface:#FFFFFF; --sunk:#E8ECE9; --fg:#1C2321; --muted:#56615D; --line:#CBD3CF;
+  --copper:#A8551F; --copper-soft:#F6E6DA; --signal:#1F5FA8; --signal-soft:#E1ECF8;
+  --ok:#2E7D4F; --ok-soft:#E0F2E7; --bad:#B23A32; --bad-soft:#F9E3E1; --warn:#8C6200; --warn-soft:#FBF0D3;
+  --c-power:#D9534F; --c-gnd:#7A8480; --c-input:#1E9A86; --c-strap:#D49A1F; --c-uart:#8467C9; --c-gpio:#C4CCC8;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --c-power:#E87470; --c-gnd:#8E9994; --c-input:#3CC2AC; --c-strap:#E8B54A; --c-uart:#A68DE6; --c-gpio:#4A5652;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --c-power:#E87470; --c-gnd:#8E9994; --c-input:#3CC2AC; --c-strap:#E8B54A; --c-uart:#A68DE6; --c-gpio:#4A5652;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.65;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-inline:20px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:16px;padding-inline:16px}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:14px;line-height:1.4}
+nav.toc .lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-size:13px;margin-bottom:8px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:4px 10px;color:var(--muted);text-decoration:none;margin-left:-2px;border-left:2px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--copper);border-left-color:var(--copper)}
+@media (max-width:900px){nav.toc{position:static}nav.toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border-left:0}nav.toc a{border:1px solid var(--line);border-radius:6px;margin:0}}
+main{min-width:0;max-width:760px}
+header.hero{padding-bottom:18px;border-bottom:2px solid var(--copper);margin-bottom:8px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--copper);font-size:14px;font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,48px);line-height:1.05;margin:6px 0 12px;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.15;margin:56px 0 10px;text-wrap:balance;scroll-margin-top:16px}
+h2 .tag{font-size:15px;font-weight:600;color:var(--copper);letter-spacing:.06em;display:block;text-transform:uppercase}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;margin:26px 0 6px}
+p{margin:0 0 12px}
+.goal{font-size:19px}
+.assume{font-size:14px;color:var(--muted);background:var(--sunk);border-radius:6px;padding:8px 12px;display:inline-block}
+.why{background:var(--signal-soft);border-left:4px solid var(--signal);padding:10px 14px;margin:12px 0}
+.one{background:var(--copper-soft);border-left:4px solid var(--copper);padding:10px 14px;margin:16px 0;font-weight:700}
+.details{border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;font-size:15.5px}
+.details b.h{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.extra{display:inline-block;font-size:12px;font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 7px;vertical-align:middle;margin-left:6px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--sunk);padding:1px 5px;border-radius:4px}
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+figure{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure .sc{overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--fg)}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.codebox{position:relative;margin:14px 0}
+pre{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:13.5px;line-height:1.55;margin:0}
+.copy{position:absolute;top:8px;right:8px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.copy:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.step{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;margin:14px 0}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--copper);color:var(--surface);display:grid;place-items:center;font-family:var(--f-display);font-weight:700}
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0}
+.sim label{font-size:15px;display:block;margin:8px 0 2px}
+.sim input[type=range]{width:100%;accent-color:var(--copper)}
+.readout{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.readout div{flex:1 1 180px;background:var(--sunk);border-radius:8px;padding:8px 12px;font-size:14px}
+.readout b{display:block;font-family:var(--f-mono);font-size:20px;font-variant-numeric:tabular-nums}
+.traps li{margin-bottom:10px}
+.quiz .q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0}
+.quiz .qt{font-weight:700;margin-bottom:8px}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left;font:inherit;font-size:15.5px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.opts button:hover{border-color:var(--copper)}
+.opts button.right{background:var(--ok-soft);border-color:var(--ok)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.numrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.numrow input{font:inherit;width:150px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.btn{font:inherit;font-size:15px;background:var(--copper);color:var(--surface);border:0;border-radius:8px;padding:7px 16px;cursor:pointer}
+.fb{margin-top:10px;font-size:15px;padding:8px 12px;border-radius:8px}
+.fb.ok{background:var(--ok-soft)}.fb.no{background:var(--bad-soft)}
+.err{color:var(--bad);font-size:13px}
+.score{font-family:var(--f-display);font-size:22px;font-weight:600}
+.check label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+.check input{margin-top:6px;accent-color:var(--copper);width:18px;height:18px;flex:none}
+svg .t{font-family:var(--f-body);font-size:12px;fill:currentColor}
+svg .tb{font-family:var(--f-display);font-size:14px;font-weight:600;fill:currentColor}
+svg .tm{font-family:var(--f-mono);font-size:11px;fill:currentColor}
+svg .box{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
+svg .boxc{fill:var(--copper-soft);stroke:var(--copper);stroke-width:1.6}
+svg .ln{stroke:currentColor;stroke-width:1.4;fill:none}
+svg .lnc{stroke:var(--copper);stroke-width:2;fill:none}
+svg .lnb{stroke:var(--bad);stroke-width:2;fill:none}
+svg .pin-power{fill:var(--c-power)} svg .pin-gnd{fill:var(--c-gnd)} svg .pin-input{fill:var(--c-input)}
+svg .pin-strap{fill:var(--c-strap)} svg .pin-uart{fill:var(--c-uart)} svg .pin-gpio{fill:var(--c-gpio)}
+svg .board{fill:var(--sunk);stroke:currentColor;stroke-width:1}
+svg .mod{fill:var(--surface);stroke:currentColor;stroke-width:1}
+svg .copperfill{fill:var(--copper)} svg .badfill{fill:var(--bad)} svg .okfill{fill:var(--ok)}
+svg .lane{fill:var(--sunk)} svg .blk{fill:var(--copper-soft);stroke:var(--copper);stroke-width:1}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">On this page</div>
+  <ol>
+    <li><a href="#map">Map</a></li>
+    <li><a href="#words">Key words</a></li>
+    <li><a href="#pio">1 · PlatformIO</a></li>
+    <li><a href="#board">2 · The board</a></li>
+    <li><a href="#shape">3 · setup() and loop()</a></li>
+    <li><a href="#timing">4 · millis() vs delay()</a></li>
+    <li><a href="#serial">5 · Serial commands</a></li>
+    <li><a href="#rgb">6 · RGB LED</a></li>
+    <li><a href="#wifi">7 · Wi-Fi scan, RSSI</a></li>
+    <li><a href="#power">8 · USB power rule</a></li>
+    <li><a href="#example">Worked example</a></li>
+    <li><a href="#code">Code to try</a></li>
+    <li><a href="#traps">Traps</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+    <li><a href="#checklist">Checklist</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Capstone 2026PUZ1 · Test T01 of 10</div>
+  <h1>ESP32 board bring-up</h1>
+  <p class="goal">After this page you can explain every line of the T01 program, upload it to the Freenove ESP32 board, read what the serial monitor tells you, and say why the board must only be powered from USB for now.</p>
+  <p class="assume">I assumed: you know basic C (variables, <code>if</code>, functions) but not ESP32 details. Goal = understand T01 before you test it.</p>
+</header>
+
+<h2 id="map"><span class="tag">Overview</span>Map of this test</h2>
+<p>T01 has one job: prove that the whole chain works, from your PC to the chip and back, before we connect any other part. The chain has two halves. On the PC you write and build the program. On the board the program runs forever.</p>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 720 250" role="img" aria-label="Flow from writing code on the PC, building and uploading over USB, to the ESP32 running setup once and loop forever, which drives LEDs, serial text and Wi-Fi scan.">
+    <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="currentColor"/></marker></defs>
+    <text class="tb" x="20" y="22">On the PC</text>
+    <text class="tb" x="420" y="22">On the ESP32</text>
+    <line x1="400" y1="10" x2="400" y2="240" stroke="currentColor" stroke-dasharray="4 4" opacity=".4"/>
+    <rect class="box" x="20" y="40" width="110" height="54" rx="6"/><text class="tb" x="75" y="63" text-anchor="middle">Write</text><text class="t" x="75" y="81" text-anchor="middle">main.cpp</text>
+    <rect class="box" x="150" y="40" width="110" height="54" rx="6"/><text class="tb" x="205" y="63" text-anchor="middle">Build</text><text class="t" x="205" y="81" text-anchor="middle">→ firmware.bin</text>
+    <rect class="box" x="280" y="40" width="110" height="54" rx="6"/><text class="tb" x="335" y="63" text-anchor="middle">Upload</text><text class="t" x="335" y="81" text-anchor="middle">USB + CH340</text>
+    <line class="ln" x1="130" y1="67" x2="148" y2="67" marker-end="url(#a1)"/>
+    <line class="ln" x1="260" y1="67" x2="278" y2="67" marker-end="url(#a1)"/>
+    <line class="ln" x1="390" y1="67" x2="428" y2="67" marker-end="url(#a1)"/>
+    <rect class="box" x="430" y="40" width="120" height="54" rx="6"/><text class="tb" x="490" y="63" text-anchor="middle">setup()</text><text class="t" x="490" y="81" text-anchor="middle">runs once</text>
+    <rect class="boxc" x="580" y="40" width="120" height="54" rx="6"/><text class="tb" x="640" y="63" text-anchor="middle">loop()</text><text class="t" x="640" y="81" text-anchor="middle">runs forever</text>
+    <line class="ln" x1="550" y1="67" x2="578" y2="67" marker-end="url(#a1)"/>
+    <path class="lnc" d="M700 52 C 730 52, 730 82, 700 82" marker-end="url(#a1)"/>
+    <text class="t" x="640" y="114" text-anchor="middle" fill="var(--copper)" style="fill:var(--copper)">hard idea: never block</text>
+    <rect class="box" x="430" y="150" width="62" height="70" rx="6"/><text class="t" x="461" y="180" text-anchor="middle">Blue</text><text class="t" x="461" y="196" text-anchor="middle">LED</text>
+    <rect class="box" x="500" y="150" width="62" height="70" rx="6"/><text class="t" x="531" y="180" text-anchor="middle">RGB</text><text class="t" x="531" y="196" text-anchor="middle">LED</text>
+    <rect class="box" x="570" y="150" width="62" height="70" rx="6"/><text class="t" x="601" y="180" text-anchor="middle">Serial</text><text class="t" x="601" y="196" text-anchor="middle">text</text>
+    <rect class="box" x="640" y="150" width="62" height="70" rx="6"/><text class="t" x="671" y="180" text-anchor="middle">Wi-Fi</text><text class="t" x="671" y="196" text-anchor="middle">scan</text>
+    <line class="ln" x1="640" y1="94" x2="461" y2="148" marker-end="url(#a1)"/>
+    <line class="ln" x1="640" y1="94" x2="531" y2="148" marker-end="url(#a1)"/>
+    <line class="ln" x1="640" y1="94" x2="601" y2="148" marker-end="url(#a1)"/>
+    <line class="ln" x1="640" y1="94" x2="671" y2="148" marker-end="url(#a1)"/>
+    <path class="ln" d="M601 220 V238 H335 V96" marker-end="url(#a1)" stroke-dasharray="3 3"/>
+    <text class="t" x="460" y="234">text goes back to PC over the same USB</text>
+  </svg>
+  </div>
+  <figcaption>The 8 sections below follow this chain from left to right. The one hard idea is in section 4: the loop must never stop and wait.</figcaption>
+</figure>
+
+<h2 id="words"><span class="tag">Vocabulary</span>Key words</h2>
+<div class="tbl"><table>
+<thead><tr><th>Word</th><th>Simple meaning</th><th>Unit / symbol</th></tr></thead>
+<tbody>
+<tr><td>PlatformIO</td><td>A VS Code extension that builds and uploads programs for microcontrollers.</td><td>—</td></tr>
+<tr><td><code>platformio.ini</code></td><td>The settings file of a PlatformIO project: which board, which framework, which speeds.</td><td>—</td></tr>
+<tr><td>Framework (Arduino)</td><td>A ready-made library layer that gives easy functions like <code>digitalWrite()</code> and <code>Serial.print()</code>.</td><td>—</td></tr>
+<tr><td>Build / compile</td><td>Turn your C++ text into machine code for the ESP32.</td><td>—</td></tr>
+<tr><td>Firmware</td><td>The finished program file that lives in the chip's flash memory.</td><td><code>firmware.bin</code></td></tr>
+<tr><td>Upload / flash</td><td>Copy the firmware from the PC into the chip over USB.</td><td>—</td></tr>
+<tr><td>CH340</td><td>A small chip on the board that converts USB into the serial signal the ESP32 understands.</td><td>—</td></tr>
+<tr><td>COM port</td><td>The name Windows gives to the board's USB-serial connection.</td><td>e.g. COM5</td></tr>
+<tr><td>Serial monitor</td><td>A PC window that shows text the board sends, and sends your typed text to the board.</td><td>—</td></tr>
+<tr><td>Baud rate</td><td>Speed of the serial link. Both sides must use the same value.</td><td>bit/s (115200)</td></tr>
+<tr><td>GPIO</td><td>General-Purpose Input/Output pin. Your program decides if it reads or drives a voltage.</td><td>0 V or 3.3 V</td></tr>
+<tr><td>Strapping pin</td><td>A pin the chip reads at power-on to decide how to boot. Wrong level → board may not start.</td><td>GPIO 0, 2, 5, 12, 15</td></tr>
+<tr><td>Input-only pin</td><td>A pin that can read but cannot drive a voltage.</td><td>GPIO 34, 35, 36, 39</td></tr>
+<tr><td>WS2812</td><td>An RGB LED with a tiny controller inside. One data wire sets its colour.</td><td>8 bit per colour (0–255)</td></tr>
+<tr><td><code>setup()</code> / <code>loop()</code></td><td>Arduino's two main functions: run once at start / run again and again forever.</td><td>—</td></tr>
+<tr><td><code>millis()</code></td><td>Time since the board started.</td><td>ms, 32-bit unsigned</td></tr>
+<tr><td><code>delay()</code></td><td>Stop the program for some time. Nothing else runs in the meantime.</td><td>ms</td></tr>
+<tr><td>Non-blocking</td><td>Code that never waits. It checks the time and moves on.</td><td>—</td></tr>
+<tr><td><code>constexpr</code></td><td>A named constant, fixed when the program is built.</td><td>—</td></tr>
+<tr><td>Macro (<code>#define</code>)</td><td>A text replacement done <em>before</em> compiling. Every match of the name is replaced.</td><td>—</td></tr>
+<tr><td>SSID</td><td>The name of a Wi-Fi network.</td><td>—</td></tr>
+<tr><td>RSSI</td><td>Received Signal Strength Indicator: how strong a Wi-Fi signal arrives.</td><td>dBm (negative)</td></tr>
+<tr><td>Heap</td><td>The free RAM the program can still use.</td><td>bytes</td></tr>
+</tbody></table></div>
+
+<h2 id="pio"><span class="tag">Section 1</span>PlatformIO and <code>platformio.ini</code></h2>
+<div class="why"><b>Why this matters:</b> every later test is its own small PlatformIO project. If you understand this one file, you understand how all 10 projects are set up.</div>
+<p>VS Code is only a text editor. PlatformIO adds the tools: the compiler for the ESP32, the uploader (<code>esptool</code>), and the serial monitor. It reads <code>platformio.ini</code> to know what to do. That is why you must open the folder that <em>contains</em> this file, not the top project folder.</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre>[env:esp32dev]
+platform = platformio/espressif32 @ 6.13.0   ; pinned: Arduino-ESP32 core 2.0.17
+board = esp32dev
+framework = arduino
+
+monitor_speed = 115200       ; must match Serial.begin() in main.cpp
+monitor_filters = time       ; prefix each line with a timestamp
+upload_speed = 460800        ; safe speed for the board's USB-serial chip</pre></div>
+<div class="tbl"><table>
+<thead><tr><th>Line</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>[env:esp32dev]</code></td><td>Starts one "environment" (one build setup). The name is our choice.</td></tr>
+<tr><td><code>platform = … @ 6.13.0</code></td><td>The ESP32 tool package, <b>pinned</b> to one exact version. Without a version, an update can silently change your build.</td></tr>
+<tr><td><code>board = esp32dev</code></td><td>Generic definition for ESP32-WROOM-32 modules. Our Freenove board uses the WROOM-32E module, so this fits.</td></tr>
+<tr><td><code>framework = arduino</code></td><td>Use the Arduino functions on top of Espressif's system.</td></tr>
+<tr><td><code>monitor_speed = 115200</code></td><td>Serial monitor speed. Must equal <code>Serial.begin(115200)</code> in the code.</td></tr>
+<tr><td><code>monitor_filters = time</code></td><td>Adds the PC time in front of every line you receive.</td></tr>
+<tr><td><code>upload_speed = 460800</code></td><td>How fast the firmware is copied. Lower it (e.g. 115200) if uploads fail.</td></tr>
+</tbody></table></div>
+<p class="one">In one sentence: <code>platformio.ini</code> tells PlatformIO which chip, which tools, and which speeds to use.</p>
+<div class="details"><b class="h">Small details</b>
+Text after <code>;</code> is a comment. The build output goes into a hidden <code>.pio/</code> folder, which git ignores. The first build downloads several hundred MB of tools and takes minutes. Later builds take seconds (ours: about 12 s).</div>
+
+<h2 id="board"><span class="tag">Section 2</span>The Freenove ESP32 WROOM board</h2>
+<div class="why"><b>Why this matters:</b> choosing the wrong pin is the most common way to get a board that "does nothing" or will not boot. Every later test uses this map.</div>
+<p>The board has 40 pins in two rows of 20. Not every GPIO is equal. Some are power or ground. Some are input-only. Some decide how the chip boots. Two pins already have LEDs on the board.</p>
+<figure>
+  <div class="sc">
+  <svg id="pinsvg" viewBox="0 0 720 560" role="img" aria-label="Pin map of the Freenove ESP32 WROOM board, coloured by type: power, ground, input-only, strapping, USB serial and normal GPIO. GPIO 2 has the blue LED and GPIO 16 has the RGB LED."></svg>
+  </div>
+  <figcaption>Pin map from the Freenove pinout PDF, simplified. Left and right rows read top to bottom with the antenna at the top and the USB-C socket at the bottom.</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>Pin group</th><th>Pins</th><th>Rule for our project</th></tr></thead>
+<tbody>
+<tr><td>On-board blue LED</td><td>GPIO 2</td><td>Used in T01 to blink. GPIO 2 is also a strapping pin, so we use it only for this LED.</td></tr>
+<tr><td>On-board RGB LED (WS2812)</td><td>GPIO 16</td><td>Kept as a status light. Not used for anything else.</td></tr>
+<tr><td>USB serial</td><td>GPIO 1 (TX), 3 (RX)</td><td>Never use. They carry the serial monitor text. The TX/RX LEDs flicker when text moves.</td></tr>
+<tr><td>Strapping pins</td><td>GPIO 0, 2, 5, 12, 15</td><td>Avoid for external signals. GPIO 0 is wired to the BOOT button.</td></tr>
+<tr><td>Input-only</td><td>GPIO 34, 35, 36 (VP), 39 (VN)</td><td>Cannot drive anything. Good for reading the encoder later (T4).</td></tr>
+<tr><td>Flash pins</td><td>GPIO 6–11</td><td>Used by the memory chip. This board does not even bring them out.</td></tr>
+</tbody></table></div>
+<p class="one">In one sentence: every pin has a job or a limit, so we pick pins from the pin plan, never at random.</p>
+<div class="details"><b class="h">Small details</b>
+A GPIO pin works with <b>0 V to 3.3 V</b>. More than 3.3 V (for example a 5 V signal) can damage the chip. The two <b>5V</b> pins and four <b>3.3V</b> pins are power pins, not signals. The full draft plan is in <code>docs/PIN_PLAN.md</code>.</div>
+
+<h2 id="shape"><span class="tag">Section 3</span>Program shape: <code>setup()</code> and <code>loop()</code></h2>
+<div class="why"><b>Why this matters:</b> all embedded Arduino programs in this project have this shape, including the final firmware.</div>
+<p>A PC program starts, does its work, and ends. A microcontroller program never ends. Arduino splits it into two functions. <code>setup()</code> runs once after power-on or reset. Then <code>loop()</code> runs again, again and again, thousands of times per second.</p>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 720 300" role="img" aria-label="setup runs once: start serial, set LED pins, set Wi-Fi to station mode, print chip info and scan. Then loop repeats three checks: blink timer, RGB timer, serial command.">
+    <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="currentColor"/></marker></defs>
+    <text class="tb" x="20" y="24">setup() — once</text>
+    <rect class="box" x="20" y="38" width="290" height="34" rx="5"/><text class="tm" x="32" y="60">Serial.begin(115200)</text>
+    <rect class="box" x="20" y="82" width="290" height="34" rx="5"/><text class="tm" x="32" y="104">pinMode(2, OUTPUT); RGB off</text>
+    <rect class="box" x="20" y="126" width="290" height="34" rx="5"/><text class="tm" x="32" y="148">WiFi.mode(WIFI_STA); disconnect()</text>
+    <rect class="box" x="20" y="170" width="290" height="34" rx="5"/><text class="tm" x="32" y="192">printChipInfo(); scanWifi()</text>
+    <rect class="box" x="20" y="214" width="290" height="34" rx="5"/><text class="tm" x="32" y="236">printHelp()</text>
+    <line class="ln" x1="310" y1="231" x2="398" y2="231" marker-end="url(#a2)"/>
+    <text class="tb" x="400" y="24">loop() — forever</text>
+    <rect class="boxc" x="400" y="38" width="300" height="50" rx="5"/><text class="tb" x="412" y="58">Time to toggle blue LED?</text><text class="t" x="412" y="77">now − lastBlinkMs ≥ 500 ms</text>
+    <rect class="boxc" x="400" y="102" width="300" height="50" rx="5"/><text class="tb" x="412" y="122">Time to change RGB colour?</text><text class="t" x="412" y="141">now − lastRgbMs ≥ 1000 ms</text>
+    <rect class="boxc" x="400" y="166" width="300" height="50" rx="5"/><text class="tb" x="412" y="186">A key waiting on serial?</text><text class="t" x="412" y="205">Serial.available() → switch(c)</text>
+    <line class="ln" x1="550" y1="88" x2="550" y2="100" marker-end="url(#a2)"/>
+    <line class="ln" x1="550" y1="152" x2="550" y2="164" marker-end="url(#a2)"/>
+    <path class="ln" d="M700 191 H712 V63 H702" marker-end="url(#a2)"/>
+    <text class="t" x="400" y="240">Each check is "no" most of the time.</text>
+    <text class="t" x="400" y="258">Then loop() ends at once and starts again.</text>
+    <text class="t" x="400" y="276">One pass takes microseconds.</text>
+  </svg>
+  </div>
+  <figcaption>setup() prepares everything once. loop() is three quick questions asked over and over.</figcaption>
+</figure>
+<p>A few C++ points used in the code:</p>
+<ul>
+<li><code>constexpr uint8_t PIN_LED_BLUE = 2;</code> gives a pin number a name. If a pin changes later, you change one line.</li>
+<li><code>uint8_t</code> = number 0–255, <code>uint32_t</code> = number 0–4 294 967 295. Both have no sign.</li>
+<li><code>F("text")</code> keeps fixed text in flash memory instead of RAM. On ESP32 it makes little difference, but it is a good habit from small Arduinos.</li>
+<li><code>Serial.printf("%d", x)</code> prints formatted text, like <code>printf</code> in C.</li>
+</ul>
+<p class="one">In one sentence: <code>setup()</code> prepares the hardware once, and <code>loop()</code> keeps asking "is it time to do something?".</p>
+
+<h2 id="timing"><span class="tag">Section 4 · the hard idea</span>Non-blocking timing: <code>millis()</code> instead of <code>delay()</code></h2>
+<div class="why"><b>Why this matters:</b> later, the same loop must count encoder pulses, send Wi-Fi data and react to the Stop button. If the loop sleeps in <code>delay()</code>, all of that waits. This idea is the base of the whole final firmware.</div>
+<p>The simple way to blink is <code>digitalWrite(HIGH); delay(500); digitalWrite(LOW); delay(500);</code>. It works, but during each <code>delay()</code> the chip does nothing else. A key you type has to wait.</p>
+<p>The non-blocking way is like checking a clock instead of sleeping. Each pass, the loop reads the time and asks: has enough time passed since the last toggle? If yes, toggle and remember the time. If no, move on at once.</p>
+<p style="text-align:center">\[ \text{now} - \text{lastBlinkMs} \;\ge\; T \quad\Rightarrow\quad \text{toggle LED, then } \text{lastBlinkMs} = \text{now} \]</p>
+<p>Here <i>now</i> = <code>millis()</code> in ms, <i>lastBlinkMs</i> = time of the last toggle in ms, and <i>T</i> = <code>BLINK_INTERVAL_MS</code> = 500 ms.</p>
+
+<div class="sim" id="sim">
+  <b>Try it: when does the board notice your key?</b>
+  <label for="iv">Blink interval T = <span id="ivv">500</span> ms</label>
+  <input id="iv" type="range" min="100" max="2000" step="50" value="500">
+  <label for="kp">You press a key at t = <span id="kpv">700</span> ms</label>
+  <input id="kp" type="range" min="0" max="3000" step="10" value="700">
+  <svg id="tl" viewBox="0 0 700 150" role="img" aria-label="Timeline comparing when a key press is noticed with delay versus millis."></svg>
+  <div class="readout">
+    <div>delay() version notices after<b id="r1">—</b></div>
+    <div>millis() version notices after<b id="r2">&lt; 1 ms</b></div>
+  </div>
+</div>
+<p>In the <code>delay()</code> version, the key is only checked once per blink cycle, after both delays. So the wait can be up to <i>2T</i>. In the <code>millis()</code> version, the key is checked in every pass of the loop, so the wait is shorter than 1 ms.</p>
+
+<h3>What happens after 49.7 days? <span class="extra">Extra</span></h3>
+<p><code>millis()</code> is a 32-bit unsigned number. It counts up to its maximum and then starts again at 0 ("overflow").</p>
+<p style="text-align:center">\[ 2^{32}\ \text{ms} = 4\,294\,967\,296\ \text{ms} \approx 49.7\ \text{days} \]</p>
+<p>The subtraction <code>now - last</code> still gives the right answer after overflow, because unsigned subtraction also "wraps around". This is why we always write <code>now - last &gt;= T</code> and never <code>now &gt;= last + T</code>. The worked example below shows the numbers.</p>
+<p class="one">In one sentence: never sleep in the loop. Check the clock, act if it is time, and move on.</p>
+<div class="details"><b class="h">Small details</b>
+<code>setup()</code> still uses <code>delay(500)</code> once. That is fine: it runs only at start, to give the serial monitor time to connect. The Wi-Fi scan in <code>scanWifi()</code> is also blocking (about 3 s), but only when you ask for it with <code>s</code>. The LED pauses during the scan. This is expected.</div>
+
+<h2 id="serial"><span class="tag">Section 5</span>Serial monitor and commands</h2>
+<div class="why"><b>Why this matters:</b> the serial monitor is your window into the chip in every test. Later tests use the same one-letter command idea to start and stop motors.</div>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 720 170" role="img" aria-label="A typed key travels from the serial monitor on the PC over USB to the CH340 chip, then into the ESP32 on GPIO 3, where switch(c) handles it. Replies go back out on GPIO 1.">
+    <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="currentColor"/></marker></defs>
+    <rect class="box" x="10" y="50" width="130" height="70" rx="6"/><text class="tb" x="75" y="80" text-anchor="middle">Serial monitor</text><text class="t" x="75" y="100" text-anchor="middle">you type "s" + Enter</text>
+    <rect class="box" x="190" y="50" width="110" height="70" rx="6"/><text class="tb" x="245" y="80" text-anchor="middle">USB cable</text><text class="t" x="245" y="100" text-anchor="middle">COM5</text>
+    <rect class="box" x="350" y="50" width="110" height="70" rx="6"/><text class="tb" x="405" y="80" text-anchor="middle">CH340</text><text class="t" x="405" y="100" text-anchor="middle">USB ↔ serial</text>
+    <rect class="boxc" x="540" y="50" width="170" height="70" rx="6"/><text class="tb" x="625" y="80" text-anchor="middle">ESP32</text><text class="tm" x="625" y="100" text-anchor="middle">switch (c) { case 's': … }</text>
+    <line class="ln" x1="140" y1="74" x2="188" y2="74" marker-end="url(#a3)"/>
+    <line class="ln" x1="300" y1="74" x2="348" y2="74" marker-end="url(#a3)"/>
+    <line class="ln" x1="460" y1="74" x2="538" y2="74" marker-end="url(#a3)"/>
+    <text class="t" x="499" y="66" text-anchor="middle">GPIO 3 (RX)</text>
+    <line class="ln" x1="538" y1="100" x2="460" y2="100" marker-end="url(#a3)"/>
+    <text class="t" x="499" y="116" text-anchor="middle">GPIO 1 (TX)</text>
+    <line class="ln" x1="348" y1="100" x2="300" y2="100" marker-end="url(#a3)"/>
+    <line class="ln" x1="188" y1="100" x2="140" y2="100" marker-end="url(#a3)"/>
+    <text class="t" x="360" y="150" text-anchor="middle">Both ends must use 115200 baud, or the text turns into garbage.</text>
+  </svg>
+  </div>
+  <figcaption>Your key goes in on RX (GPIO 3), the answer comes back on TX (GPIO 1). That is why we never use these two pins.</figcaption>
+</figure>
+<p><code>handleSerialCommand()</code> runs in every loop pass. First it asks <code>Serial.available()</code>: is at least one character waiting? If not, it returns at once (non-blocking again). If yes, it reads <b>one</b> character with <code>Serial.read()</code> and a <code>switch</code> picks the action.</p>
+<p>When you press Enter, the monitor also sends invisible characters <code>'\r'</code> and <code>'\n'</code> (carriage return, new line). The code ignores them on purpose. Without that, every command would also print "Unknown command".</p>
+<p style="text-align:center">\[ t_{\text{send}} = \frac{N \times 10\ \text{bit}}{115\,200\ \text{bit/s}} \]</p>
+<p>Each character uses 10 bits on the wire: 8 data bits plus a start bit and a stop bit. <span class="extra">Extra</span></p>
+<p class="one">In one sentence: the loop peeks for one character each pass, and a <code>switch</code> turns that letter into an action.</p>
+
+<h2 id="rgb"><span class="tag">Section 6</span>The RGB LED (WS2812 on GPIO 16)</h2>
+<div class="why"><b>Why this matters:</b> later we use this LED as a status light (for example green = running, yellow = paused). T01 checks that it works.</div>
+<p>A normal LED is on or off. The WS2812 has a tiny controller inside. The ESP32 sends it three numbers on one data wire: red, green, blue, each from 0 to 255. The Arduino-ESP32 core has a ready function for this:</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre>neopixelWrite(PIN_LED_RGB, RGB_LEVEL, 0, 0);   // red at level 20 of 255</pre></div>
+<p>We use level 20 of 255, which is about 8 % of full drive per colour. Full brightness is uncomfortable to look at. <code>rgbStep</code> counts 0 → 1 → 2 → 3 → 0 (red, green, blue, off) using <code>% 4</code> (the remainder after dividing by 4).</p>
+<div class="details"><b class="h">Small details — a real bug we hit</b>
+The first build failed with <code>expected unqualified-id before numeric constant</code>. The constant was first called <code>RGB_BRIGHTNESS</code>. The ESP32 core already has <code>#define RGB_BRIGHTNESS 64</code>. A macro replaces text <em>before</em> compiling, so the compiler saw <code>constexpr uint8_t 64 = 20;</code>, which is nonsense. Renaming it to <code>RGB_LEVEL</code> fixed it.</div>
+<p class="one">In one sentence: one function call sets the colour of the on-board RGB LED, using three numbers from 0 to 255.</p>
+
+<h2 id="wifi"><span class="tag">Section 7</span>Wi-Fi scan and RSSI</h2>
+<div class="why"><b>Why this matters:</b> in T6 the ESP32 must connect to the Pi's Wi-Fi. A scan now proves the radio and antenna work, and shows how strong signals are in your lab.</div>
+<p><code>WiFi.mode(WIFI_STA)</code> puts the radio in "station" mode, the mode of a normal device that joins a network. <code>WiFi.disconnect()</code> makes sure it does not try to join anything. <code>WiFi.scanNetworks()</code> listens on all channels for about 3 seconds and returns how many networks it heard. For each one we print the name (SSID), the strength (RSSI) and the channel. <code>WiFi.scanDelete()</code> frees the memory afterwards.</p>
+<p>RSSI is given in <b>dBm</b>: power on a log scale, relative to 1 milliwatt. The numbers are negative because the received power is much smaller than 1 mW. A number closer to 0 is stronger: −45 dBm is much stronger than −75 dBm.</p>
+<p style="text-align:center">\[ P\,[\text{mW}] = 10^{\,\text{dBm}/10} \qquad\text{every } 10\ \text{dB} = \text{factor } 10 \]</p>
+<div class="sim">
+  <b>Try it: what does an RSSI value mean?</b> <span class="extra">Extra</span>
+  <label for="rs">RSSI = <span id="rsv">-60</span> dBm</label>
+  <input id="rs" type="range" min="-95" max="-30" step="1" value="-60">
+  <div class="readout">
+    <div>Received power<b id="rp">—</b></div>
+    <div>Typical quality<b id="rq">—</b></div>
+  </div>
+  <p style="font-size:13px;color:var(--muted);margin:8px 0 0">Quality bands are a common practical guide, not an official standard: better than −50 excellent, −50 to −67 good, −67 to −80 usable, below −80 weak.</p>
+</div>
+<p class="one">In one sentence: the scan proves the radio works, and RSSI tells you how strong each network is (closer to 0 = stronger).</p>
+<div class="details"><b class="h">Small details</b>
+The ESP32 only uses 2.4 GHz Wi-Fi. 5 GHz networks will not appear in the list. That is normal, and it matters later: the Pi's hotspot must use 2.4 GHz.</div>
+
+<h2 id="power"><span class="tag">Section 8</span>The USB power rule</h2>
+<div class="why"><b>Why this matters:</b> this rule protects your laptop's USB port and the board. It applies from T2 on, when the buck converter starts making its own 5 V.</div>
+<p>The board's <b>5V</b> pins are joined to the USB 5 V line inside the board. Good boards put a diode in between. A diode lets current flow only one way. Freenove does not publish this board's schematic, so we cannot check if it has the diode.</p>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 720 230" role="img" aria-label="Without a diode, if the external 5 volt supply is slightly higher than the USB 5 volts, current flows backwards into the PC's USB port.">
+    <defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="var(--bad)"/></marker></defs>
+    <rect class="box" x="20" y="70" width="140" height="70" rx="6"/><text class="tb" x="90" y="100" text-anchor="middle">PC USB port</text><text class="t" x="90" y="120" text-anchor="middle">5.0 V</text>
+    <rect class="box" x="290" y="60" width="160" height="90" rx="6"/><text class="tb" x="370" y="92" text-anchor="middle">Board 5 V line</text><text class="t" x="370" y="112" text-anchor="middle">diode here?</text><text class="t" x="370" y="130" text-anchor="middle">not confirmed</text>
+    <rect class="box" x="570" y="70" width="130" height="70" rx="6"/><text class="tb" x="635" y="100" text-anchor="middle">Buck converter</text><text class="t" x="635" y="120" text-anchor="middle">5.2 V</text>
+    <line class="ln" x1="160" y1="105" x2="290" y2="105"/>
+    <line class="ln" x1="450" y1="105" x2="570" y2="105"/>
+    <path class="lnb" d="M560 175 H170" marker-end="url(#a4)"/>
+    <text class="t" x="365" y="196" text-anchor="middle" style="fill:var(--bad)">without a diode: current flows from the higher 5.2 V into the PC</text>
+    <text class="t" x="365" y="40" text-anchor="middle">Two 5 V sources joined = they fight. The higher one pushes current into the lower one.</text>
+  </svg>
+  </div>
+  <figcaption>Two "5 V" sources are never exactly equal. Joined without a diode, the higher one drives current backwards into the other.</figcaption>
+</figure>
+<p><b>Our rule:</b> during tests, the ESP32 gets power from <b>USB only</b>. Other parts (encoder, level shifter) may use the buck converter's 5 V, as long as all grounds are joined and the buck's 5 V does <b>not</b> go to the ESP32's 5V pin. We decide the final power design at Assembly.</p>
+<p class="one">In one sentence: never connect USB and an external 5 V to the board at the same time until we know it is protected.</p>
+
+<h2 id="example"><span class="tag">Practice</span>Worked example: read the numbers from the code</h2>
+<p><b>Problem.</b> Use the T01 code to answer: (a) the blink frequency of the blue LED, (b) how long one full RGB colour cycle takes, (c) how long it takes to send the line <code>CPU cores      : 2 @ 240 MHz</code> at 115200 baud, (d) whether blinking still works after <code>millis()</code> overflows, using last = 4 294 967 000 ms and now = 204 ms.</p>
+
+<div class="step"><div class="n">a</div><div><p><b>Why:</b> the LED toggles once per interval, but one blink needs two toggles (on, then off).</p>
+<p>\( T_{\text{period}} = 2 \times 500\ \text{ms} = 1000\ \text{ms} = 1\ \text{s} \quad\Rightarrow\quad f = \dfrac{1}{1\ \text{s}} = 1\ \text{Hz} \)</p></div></div>
+
+<div class="step"><div class="n">b</div><div><p><b>Why:</b> <code>rgbStep</code> has 4 states (red, green, blue, off) and changes every 1000 ms.</p>
+<p>\( T_{\text{RGB}} = 4 \times 1000\ \text{ms} = 4\ \text{s} \)</p></div></div>
+
+<div class="step"><div class="n">c</div><div><p><b>Why:</b> count characters, add the line ending, then use 10 bits per character.</p>
+<p>The text has 28 characters (spaces count too). The <code>printf</code> format ends with <code>\n</code> = 1 more, so N = 29.</p>
+<p>\( t = \dfrac{29 \times 10\ \text{bit}}{115\,200\ \text{bit/s}} = 2.52 \times 10^{-3}\ \text{s} \approx 2.5\ \text{ms} \)</p></div></div>
+
+<div class="step"><div class="n">d</div><div><p><b>Why:</b> unsigned 32-bit subtraction works "modulo \(2^{32}\)", so it wraps around the same way the counter does.</p>
+<p>\( (204 - 4\,294\,967\,000) \bmod 2^{32} = 204 + (4\,294\,967\,296 - 4\,294\,967\,000) = 204 + 296 = 500\ \text{ms} \)</p>
+<p>500 ≥ 500, so the LED toggles exactly on time. Blinking keeps working.</p></div></div>
+
+<p><b>Sanity check.</b> (a) 1 Hz matches "on/off every 0.5 s" in the test instructions. (b) 4 s matches "red, green, blue, off, once per second". (c) A few ms for one line is far below what the eye notices, so printing does not slow the program. (d) The true time between the two readings is 296 ms (to the wrap) + 204 ms (after it) = 500 ms. Same answer.</p>
+
+<h2 id="code"><span class="tag">Hands-on</span>Code to read and change</h2>
+<p>This is the heart of <code>main.cpp</code>. The full file is in <code>tests/T01_board/src/main.cpp</code>. It compiled with PlatformIO: <b>SUCCESS</b>, RAM 13.4 %, flash 56.3 %, no warnings.</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre>void loop() {
+  uint32_t now = millis();                       // time since start, in ms
+
+  // Blue LED: act only when 500 ms have passed (non-blocking)
+  if (blinkEnabled &amp;&amp; now - lastBlinkMs &gt;= BLINK_INTERVAL_MS) {
+    lastBlinkMs = now;                           // remember when we acted
+    blueLedOn = !blueLedOn;                      // flip true &lt;-&gt; false
+    digitalWrite(PIN_LED_BLUE, blueLedOn ? HIGH : LOW);
+  }
+
+  // RGB LED: next colour every 1000 ms
+  if (rgbEnabled &amp;&amp; now - lastRgbMs &gt;= RGB_INTERVAL_MS) {
+    lastRgbMs = now;
+    setRgb(rgbStep);                             // 0 red, 1 green, 2 blue, 3 off
+    rgbStep = (rgbStep + 1) % 4;                 // count 0,1,2,3,0,...
+  }
+
+  handleSerialCommand();                         // returns at once if no key
+}</pre></div>
+<h3>Small exercise (optional, after the test passes)</h3>
+<p>Make the blue LED blink at <b>4 Hz</b>. Which value must <code>BLINK_INTERVAL_MS</code> have? <i>Answer: period = 1/4 s = 250 ms, and one toggle is half a period, so 125.</i> Change the line, upload again, and check that the RGB colours still change once per second. They do, because the two timers do not depend on each other.</p>
+<h3>Expected serial output (example)</h3>
+<div class="codebox"><pre>=== T01 ESP32 board bring-up ===
+
+----- Chip information -----
+Chip model     : ESP32-D0WD-V3 (revision 3)
+CPU cores      : 2 @ 240 MHz
+Flash size     : 4 MB
+Free heap (RAM): 2xxxxx bytes
+Wi-Fi MAC      : xx:xx:xx:xx:xx:xx
+SDK version    : v4.4.7-...
+----------------------------
+
+Scanning Wi-Fi (takes ~3 s)...
+Found 6 network(s):
+   1) lab-wifi                          -48 dBm  channel  6
+   ...</pre></div>
+<p style="font-size:14px;color:var(--muted)">Example only. Your chip revision, heap, MAC and networks will be different.</p>
+
+<h2 id="traps"><span class="tag">Watch out</span>Test traps</h2>
+<ul class="traps">
+<li><b>Charge-only USB cable.</b> The ON LED lights, but no COM port appears. Fix: use a data cable. Check: Device Manager shows no new port.</li>
+<li><b>Wrong folder opened in VS Code.</b> PlatformIO shows no Build button or says "not a PlatformIO project". Open <code>tests/T01_board</code> itself, where <code>platformio.ini</code> is.</li>
+<li><b>Serial monitor still open during upload.</b> Upload fails with "could not open port" or "access denied". Only one program can use a COM port at a time.</li>
+<li><b>Baud mismatch.</b> Random symbols like <code>⸮⸮</code> appear. Both <code>monitor_speed</code> and <code>Serial.begin()</code> must say 115200.</li>
+<li><b>"Failed to connect … waiting for packet header".</b> Hold BOOT while it shows <code>Connecting....</code>.</li>
+<li><b>Name clash with a macro.</b> A strange error at a line that looks correct, such as <code>expected unqualified-id before numeric constant</code>. Rename your constant.</li>
+<li><b>Thinking −80 dBm is stronger than −45 dBm.</b> Closer to zero = stronger. 35 dB weaker is about 3000 times less power.</li>
+<li><b>Using <code>delay()</code> in the loop.</b> Commands react late or seem "ignored". Use the <code>millis()</code> pattern.</li>
+<li><b>Using a strapping pin for a signal.</b> The board sometimes does not boot, or boots into download mode. Check the pin plan first.</li>
+<li><b>USB plus external 5 V on the 5V pin.</b> Can back-feed the PC. Not allowed until we verify the board.</li>
+</ul>
+
+<h2 id="quiz"><span class="tag">Test yourself</span>Practice quiz</h2>
+<div class="quiz" id="quizbox"></div>
+<div id="scorebox" class="score" aria-live="polite"></div>
+<div id="reread" style="font-size:15px"></div>
+
+<h2 id="checklist"><span class="tag">Self-check</span>I can…</h2>
+<div class="check">
+<label><input type="checkbox" id="c1"> explain each line of <code>platformio.ini</code> and why the platform version is pinned.</label>
+<label><input type="checkbox" id="c2"> point to GPIO 2, 16, 1, 3 and the input-only pins on the board, and say why each is special.</label>
+<label><input type="checkbox" id="c3"> say what runs in <code>setup()</code> and what runs in <code>loop()</code>.</label>
+<label><input type="checkbox" id="c4"> write the <code>now - last &gt;= interval</code> pattern from memory and explain why it never blocks.</label>
+<label><input type="checkbox" id="c5"> explain why the code ignores <code>'\r'</code> and <code>'\n'</code>.</label>
+<label><input type="checkbox" id="c6"> read an RSSI value and say if the signal is strong or weak.</label>
+<label><input type="checkbox" id="c7"> explain why we must not power the board from USB and the 5V pin together.</label>
+<label><input type="checkbox" id="c8"> build, upload and open the serial monitor without help.</label>
+</div>
+
+<h2 id="sources"><span class="tag">Where this came from</span>Sources</h2>
+<div class="tbl"><table>
+<thead><tr><th>Section</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>1 · PlatformIO</td><td><code>tests/T01_board/platformio.ini</code>; PlatformIO espressif32 releases (7.x still ships Arduino core 2.0.17, so 6.13.0 is pinned)</td></tr>
+<tr><td>2 · Board</td><td>Freenove_ESP32_WROOM_Board_Pinout.pdf (Freenove GitHub); <code>docs/PIN_PLAN.md</code></td></tr>
+<tr><td>3–7 · Code</td><td><code>tests/T01_board/src/main.cpp</code>; build log (SUCCESS, RAM 13.4 %, flash 56.3 %)</td></tr>
+<tr><td>4 · Overflow</td><td><span class="extra">Extra</span> general C/C++ unsigned arithmetic</td></tr>
+<tr><td>5 · Baud math</td><td><span class="extra">Extra</span> standard UART framing (8N1 = 10 bits per character)</td></tr>
+<tr><td>7 · dBm and quality bands</td><td><span class="extra">Extra</span> dBm definition; quality bands are common practice, not a standard</td></tr>
+<tr><td>8 · Power rule</td><td><code>docs/SAFETY.md</code>; esp32.com forum threads on USB + external 5 V (diode depends on the board)</td></tr>
+<tr><td>Traps</td><td><code>tests/T01_board/INSTRUCTIONS.md</code> troubleshooting table; the real RGB_BRIGHTNESS build error</td></tr>
+</tbody></table></div>
+</main>
+</div>
+
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, text) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  // ---------- copy buttons ----------
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var pre = b.parentNode.querySelector('pre');
+      var txt = pre.innerText;
+      var done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(done, function () { selectText(pre); b.textContent = 'Press Ctrl+C'; });
+      } else { selectText(pre); b.textContent = 'Press Ctrl+C'; }
+    });
+  });
+  function selectText(node) { var r = document.createRange(); r.selectNodeContents(node); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+
+  // ---------- pin map ----------
+  var left = [['3V3','power'],['EN','gpio'],['36 VP','input'],['39 VN','input'],['34','input'],['35','input'],['32','gpio'],['33','gpio'],['25','gpio'],['26','gpio'],['27','gpio'],['14','gpio'],['12','strap'],['GND','gnd'],['13','gpio'],['3.3V','power'],['3.3V','power'],['3.3V','power'],['5V','power'],['5V','power']];
+  var right = [['GND','gnd'],['23','gpio'],['22','gpio'],['1 TX','uart'],['3 RX','uart'],['21','gpio'],['GND','gnd'],['19','gpio'],['18','gpio'],['5','strap'],['17','gpio'],['16 RGB','gpio'],['4','gpio'],['0 BOOT','strap'],['2 LED','strap'],['15','strap'],['GND','gnd'],['GND','gnd'],['GND','gnd'],['GND','gnd']];
+  var svg = document.getElementById('pinsvg');
+  var top = 30, step = 24;
+  svg.appendChild(el('rect', { 'class': 'board', x: 250, y: 10, width: 220, height: top + 20 * step + 10, rx: 10 }));
+  svg.appendChild(el('rect', { 'class': 'mod', x: 290, y: 22, width: 140, height: 150, rx: 4 }));
+  svg.appendChild(el('text', { 'class': 't', x: 360, y: 92, 'text-anchor': 'middle' }, 'ESP32-WROOM-32E'));
+  svg.appendChild(el('text', { 'class': 't', x: 360, y: 108, 'text-anchor': 'middle' }, 'antenna at top'));
+  svg.appendChild(el('rect', { 'class': 'mod', x: 330, y: top + 20 * step - 22, width: 60, height: 26, rx: 4 }));
+  svg.appendChild(el('text', { 'class': 't', x: 360, y: top + 20 * step - 4, 'text-anchor': 'middle' }, 'USB-C'));
+  function row(list, side) {
+    list.forEach(function (p, i) {
+      var y = top + i * step;
+      var cx = side === 'L' ? 262 : 458;
+      var c = el('circle', { 'class': 'pin-' + p[1], cx: cx, cy: y, r: 7, stroke: 'currentColor', 'stroke-width': .6 });
+      svg.appendChild(c);
+      var lx = side === 'L' ? 240 : 480;
+      var lbl = el('text', { 'class': 'tm', x: lx, y: y + 4, 'text-anchor': side === 'L' ? 'end' : 'start' }, p[0]);
+      svg.appendChild(lbl);
+      if (p[0] === '16 RGB' || p[0] === '2 LED') {
+        svg.appendChild(el('circle', { cx: cx, cy: y, r: 11, fill: 'none', stroke: 'var(--copper)', 'stroke-width': 2 }));
+      }
+    });
+  }
+  row(left, 'L'); row(right, 'R');
+  var legend = [['power','Power (3.3 V / 5 V)'],['gnd','Ground'],['input','Input only'],['strap','Strapping pin'],['uart','USB serial: never use'],['gpio','Normal GPIO']];
+  legend.forEach(function (l, i) {
+    var x = 20 + (i % 3) * 230, y = top + 20 * step + 40 + Math.floor(i / 3) * 24;
+    svg.appendChild(el('circle', { 'class': 'pin-' + l[0], cx: x, cy: y - 4, r: 7, stroke: 'currentColor', 'stroke-width': .6 }));
+    svg.appendChild(el('text', { 'class': 't', x: x + 14, y: y }, l[1]));
+  });
+  svg.appendChild(el('circle', { cx: 20 + 0, cy: top + 20 * step + 40 + 48 - 4, r: 9, fill: 'none', stroke: 'var(--copper)', 'stroke-width': 2 }));
+  svg.appendChild(el('text', { 'class': 't', x: 34, y: top + 20 * step + 40 + 48 }, 'Copper ring = on-board LED (GPIO 2 blue, GPIO 16 RGB)'));
+
+  // ---------- delay vs millis timeline ----------
+  var iv = document.getElementById('iv'), kp = document.getElementById('kp');
+  var tl = document.getElementById('tl');
+  function drawTL() {
+    var T = +iv.value, k = +kp.value, span = 3000, x0 = 110, w = 570;
+    document.getElementById('ivv').textContent = T;
+    document.getElementById('kpv').textContent = k;
+    while (tl.firstChild) tl.removeChild(tl.firstChild);
+    var X = function (t) { return x0 + t / span * w; };
+    tl.appendChild(el('text', { 'class': 't', x: 0, y: 44 }, 'delay()'));
+    tl.appendChild(el('text', { 'class': 't', x: 0, y: 94 }, 'millis()'));
+    tl.appendChild(el('rect', { 'class': 'lane', x: x0, y: 28, width: w, height: 24 }));
+    tl.appendChild(el('rect', { 'class': 'lane', x: x0, y: 78, width: w, height: 24 }));
+    // delay version: blocks of length T, a key check every 2T (after both delays)
+    for (var t = 0; t < span; t += T) {
+      tl.appendChild(el('rect', { 'class': 'blk', x: X(t) + 1, y: 30, width: Math.max(1, X(Math.min(t + T, span)) - X(t) - 2), height: 20 }));
+    }
+    for (var c = 2 * T; c <= span; c += 2 * T) {
+      tl.appendChild(el('line', { x1: X(c), x2: X(c), y1: 24, y2: 56, stroke: 'currentColor', 'stroke-width': 1.5 }));
+    }
+    // millis version: checks constantly (drawn as dense ticks)
+    for (var m = 0; m < span; m += 20) {
+      tl.appendChild(el('line', { x1: X(m), x2: X(m), y1: 82, y2: 98, stroke: 'currentColor', 'stroke-width': .5, opacity: .5 }));
+    }
+    // key press marker
+    tl.appendChild(el('line', { x1: X(k), x2: X(k), y1: 16, y2: 110, stroke: 'var(--bad)', 'stroke-width': 2 }));
+    tl.appendChild(el('text', { 'class': 't', x: Math.min(X(k) + 4, 640), y: 14, style: 'fill:var(--bad)' }, 'key'));
+    // axis
+    for (var a = 0; a <= span; a += 500) {
+      tl.appendChild(el('text', { 'class': 'tm', x: X(a), y: 128, 'text-anchor': 'middle' }, a + ''));
+    }
+    tl.appendChild(el('text', { 'class': 't', x: x0 + w, y: 145, 'text-anchor': 'end' }, 'time [ms]  ·  dark line = key check'));
+    var next = Math.ceil((k + 0.0001) / (2 * T)) * 2 * T;
+    var wait = next - k;
+    document.getElementById('r1').textContent = wait + ' ms';
+    if (next <= span) {
+      tl.appendChild(el('circle', { cx: X(next), cy: 40, r: 5, 'class': 'badfill' }));
+    }
+    tl.appendChild(el('circle', { cx: X(k) + 3, cy: 90, r: 5, 'class': 'okfill' }));
+  }
+  iv.addEventListener('input', drawTL); kp.addEventListener('input', drawTL); drawTL();
+
+  // ---------- RSSI ----------
+  var rs = document.getElementById('rs');
+  function fmtPower(mw) {
+    var units = [[1, 'mW'], [1e-3, 'µW'], [1e-6, 'nW'], [1e-9, 'pW'], [1e-12, 'fW']];
+    for (var i = 0; i < units.length; i++) {
+      if (mw >= units[i][0]) return (mw / units[i][0]).toPrecision(3) + ' ' + units[i][1];
+    }
+    return mw.toExponential(2) + ' mW';
+  }
+  function drawRS() {
+    var d = +rs.value;
+    document.getElementById('rsv').textContent = d;
+    document.getElementById('rp').textContent = fmtPower(Math.pow(10, d / 10));
+    var q = d > -50 ? 'Excellent' : d >= -67 ? 'Good' : d >= -80 ? 'Usable' : 'Weak';
+    document.getElementById('rq').textContent = q;
+  }
+  rs.addEventListener('input', drawRS); drawRS();
+
+  // ---------- quiz ----------
+  var Q = [
+    { t: 'Which GPIO can only be used as an input?', o: ['GPIO 2', 'GPIO 16', 'GPIO 34', 'GPIO 25'], a: 2,
+      e: 'GPIO 34, 35, 36 and 39 have no output driver. GPIO 2 is tempting because it is "special", but it is a strapping pin that CAN drive (it drives the blue LED).', s: 'board' },
+    { t: 'Why does loop() use "if (now - lastBlinkMs >= BLINK_INTERVAL_MS)" instead of delay(500)?', o: ['delay() does not exist on the ESP32', 'So the loop never stops and can still read serial commands', 'Because millis() makes the LED brighter', 'To save flash memory'], a: 1,
+      e: 'delay() exists and works, but it blocks: nothing else runs while it waits. The millis() check returns at once when it is not time yet.', s: 'timing' },
+    { t: 'Network A has RSSI −45 dBm, network B has −75 dBm. How many times more power does A receive than B?', num: 1000, tol: 0.02, unit: 'times',
+      e: 'The difference is 30 dB. 10^(30/10) = 10^3 = 1000. The trap is reading −75 as the "bigger" number. In dBm, closer to 0 is stronger.', s: 'wifi' },
+    { t: 'At 115200 baud, how many milliseconds does it take to send 23 characters? (Use 10 bits per character.)', num: 1.997, tol: 0.03, unit: 'ms',
+      e: '23 × 10 = 230 bits. 230 / 115200 = 0.001997 s ≈ 2.0 ms. Remember to convert seconds to milliseconds.', s: 'serial' },
+    { t: 'Upload fails with "could not open port COM5: access denied". What is the most likely cause?', o: ['The baud rate is wrong', 'The serial monitor is still open and using COM5', 'The board is broken', 'Wi-Fi is turned off'], a: 1,
+      e: 'Only one program can use a COM port at a time. A wrong baud rate gives garbage text in the monitor, but it does not block the upload.', s: 'traps' },
+    { t: 'The board is on USB. May you also connect the buck converter\'s 5 V output to the board\'s 5V pin?', o: ['Yes, both are 5 V so nothing happens', 'Yes, but only at 12 V input', 'No, not until we confirm the board has a protection diode', 'No, because the 5V pin is input-only'], a: 2,
+      e: 'Two "5 V" sources are never exactly equal. Without a diode the higher one pushes current backwards, for example into the PC\'s USB port.', s: 'power' },
+    { t: 'The build fails at "constexpr uint8_t RGB_BRIGHTNESS = 20;" with "expected unqualified-id before numeric constant". Why?', o: ['uint8_t cannot hold the number 20', 'The ESP32 core already has a macro RGB_BRIGHTNESS, so the name is replaced by 64 before compiling', 'constexpr is not allowed in Arduino code', 'The RGB LED is not connected'], a: 1,
+      e: 'A #define macro replaces text before the compiler runs. The compiler then sees "constexpr uint8_t 64 = 20;", which is not valid C++. uint8_t holds 0–255, so 20 is fine.', s: 'rgb' },
+    { t: 'After how many days does millis() overflow (start again at 0)?', num: 49.7, tol: 0.005, unit: 'days',
+      e: '2^32 ms = 4 294 967 296 ms. Divide by 1000 × 60 × 60 × 24 = 86 400 000 ms per day → 49.71 days.', s: 'timing' }
+  ];
+  var box = document.getElementById('quizbox'), results = new Array(Q.length);
+  var names = { board: '2 · The board', timing: '4 · millis() vs delay()', wifi: '7 · Wi-Fi scan, RSSI', serial: '5 · Serial commands', traps: 'Test traps', power: '8 · USB power rule', rgb: '6 · RGB LED' };
+  Q.forEach(function (q, i) {
+    var d = document.createElement('div'); d.className = 'q';
+    var t = document.createElement('div'); t.className = 'qt'; t.textContent = (i + 1) + '. ' + q.t; d.appendChild(t);
+    var fb = document.createElement('div'); fb.setAttribute('aria-live', 'polite');
+    if (q.o) {
+      var o = document.createElement('div'); o.className = 'opts';
+      q.o.forEach(function (txt, j) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = txt;
+        b.addEventListener('click', function () {
+          if (results[i] !== undefined) return;
+          var ok = j === q.a; results[i] = ok;
+          b.classList.add(ok ? 'right' : 'wrong');
+          if (!ok) o.children[q.a].classList.add('right');
+          fb.className = 'fb ' + (ok ? 'ok' : 'no');
+          fb.textContent = (ok ? 'Correct. ' : 'Not quite. ') + q.e;
+          score();
+        });
+        o.appendChild(b);
+      });
+      d.appendChild(o);
+    } else {
+      var r = document.createElement('div'); r.className = 'numrow';
+      var inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.id = 'qn' + i; inp.setAttribute('aria-label', 'Your answer in ' + q.unit);
+      var u = document.createElement('span'); u.textContent = q.unit;
+      var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn'; b2.textContent = 'Check';
+      var er = document.createElement('div'); er.className = 'err';
+      inp.addEventListener('input', function () { er.textContent = ''; });
+      b2.addEventListener('click', function () {
+        if (results[i] !== undefined) return;
+        var v = parseFloat(inp.value.replace(',', '.').replace(/\s/g, ''));
+        if (isNaN(v)) { er.textContent = 'Enter a number first.'; return; }
+        var ok = Math.abs(v - q.num) <= Math.abs(q.num) * q.tol; results[i] = ok;
+        fb.className = 'fb ' + (ok ? 'ok' : 'no');
+        fb.textContent = (ok ? 'Correct. ' : 'Not quite. The answer is ' + q.num + ' ' + q.unit + '. ') + q.e;
+        score();
+      });
+      r.appendChild(inp); r.appendChild(u); r.appendChild(b2); d.appendChild(r); d.appendChild(er);
+    }
+    d.appendChild(fb); box.appendChild(d);
+  });
+  function score() {
+    var done = results.filter(function (x) { return x !== undefined; }).length;
+    var right = results.filter(function (x) { return x === true; }).length;
+    document.getElementById('scorebox').textContent = 'Score: ' + right + ' / ' + Q.length + (done < Q.length ? '  (' + (Q.length - done) + ' left)' : '');
+    if (done === Q.length) {
+      var miss = []; results.forEach(function (x, i) { if (!x && miss.indexOf(Q[i].s) < 0) miss.push(Q[i].s); });
+      var rr = document.getElementById('reread');
+      while (rr.firstChild) rr.removeChild(rr.firstChild);
+      if (!miss.length) { rr.textContent = 'All correct. You are ready to run the T01 test.'; return; }
+      rr.appendChild(document.createTextNode('Re-read: '));
+      miss.forEach(function (s, k) {
+        var a = document.createElement('a'); a.href = '#' + s; a.textContent = names[s];
+        a.style.color = 'var(--copper)'; rr.appendChild(a);
+        if (k < miss.length - 1) rr.appendChild(document.createTextNode(', '));
+      });
+    }
+  }
+
+  // ---------- checklist memory (per viewer, optional) ----------
+  document.querySelectorAll('.check input').forEach(function (c) {
+    try { c.checked = localStorage.getItem('t01-' + c.id) === '1'; } catch (e) {}
+    c.addEventListener('change', function () { try { localStorage.setItem('t01-' + c.id, c.checked ? '1' : '0'); } catch (e) {} });
+  });
+})();
+</script>
