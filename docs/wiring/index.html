@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: bench atlas - stage tabs across the top, one large schematic per stage, wire list beside/below; copper accent, wire colours carry meaning */
+/* Layout: bench atlas - stage tabs across the top, one large wiring drawing per stage, wire list below; copper accent, wire colours carry meaning */
 :root{
   --bg:#F3F5F3; --surface:#FFFFFF; --sunk:#E7EBE8; --fg:#1C2321; --muted:#5A6561; --line:#C9D1CD;
   --copper:#A8551F; --copper-soft:#F6E6DA; --ok:#2E7D4F; --ok-soft:#E0F2E7; --warn:#8C6200; --warn-soft:#FBF0D3; --bad:#B23A32; --bad-soft:#F9E3E1;
@@ -36,7 +36,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16
 h1{font-family:var(--f-display);font-weight:700;font-size:clamp(32px,5vw,46px);line-height:1.05;margin:4px 0 10px;text-wrap:balance}
 h2{font-family:var(--f-display);font-weight:600;font-size:26px;margin:34px 0 8px;text-wrap:balance}
 h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:18px 0 6px}
-p{margin:0 0 10px;max-width:75ch}
+p{margin:0 0 10px;max-width:78ch}
 .banner{background:var(--warn-soft);border:1px solid var(--warn);border-radius:10px;padding:12px 16px;margin:16px 0;max-width:900px}
 .banner b{color:var(--warn)}
 .legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:10px 0 4px;font-size:14px}
@@ -53,14 +53,13 @@ p{margin:0 0 10px;max-width:75ch}
 .pill.go{background:var(--ok-soft);color:var(--ok)}
 .pill.draft{background:var(--warn-soft);color:var(--warn)}
 .diagram{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;margin:10px 0}
-.diagram svg{display:block;min-width:720px;width:100%;height:auto;color:var(--fg)}
+.diagram svg{display:block;min-width:760px;width:100%;height:auto;color:var(--fg)}
 .cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;margin-top:6px}
 @media (max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}}
 .tbl{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:14.5px}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-family:var(--f-display);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-tr.row{cursor:default}
 tr.row.hl td{background:var(--copper-soft)}
 td.n{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .chip{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
@@ -72,7 +71,6 @@ td.n{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-nu
 .box li{margin:3px 0}
 code{font-family:var(--f-mono);font-size:.88em;background:var(--sunk);padding:1px 5px;border-radius:4px}
 .basics{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.basics .box{background:var(--surface)}
 .src li{margin:4px 0;font-size:14.5px}
 a{color:var(--copper)}
 svg .bodyb{fill:var(--surface);stroke:currentColor;stroke-width:1.3}
@@ -81,17 +79,16 @@ svg .stub{stroke:currentColor;stroke-width:1.2}
 svg .ttl{font-family:var(--f-display);font-weight:600;font-size:15px;fill:currentColor}
 svg .sub{font-family:var(--f-body);font-size:11.5px;fill:var(--muted)}
 svg .pl{font-family:var(--f-mono);font-size:11.5px;fill:currentColor}
-svg .pn{font-family:var(--f-mono);font-size:10px;fill:var(--muted)}
-svg .tagt{font-family:var(--f-mono);font-size:11px;font-weight:600;fill:currentColor}
+svg .pn{font-family:var(--f-mono);font-size:10.5px;fill:var(--muted)}
+svg .barl{font-family:var(--f-mono);font-size:11px;font-weight:600}
 svg .wire{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;transition:opacity .15s,stroke-width .15s}
 svg .wire.thick{stroke-width:6}
 svg .wire.dash{stroke-dasharray:6 4}
 svg .hit{fill:none;stroke:transparent;stroke-width:14;cursor:pointer}
-svg.dim .wire:not(.hl),svg.dim .tag:not(.hl){opacity:.18}
-svg .wire.hl{stroke-width:4.2}
-svg .tag.hl rect{stroke-width:2.6}
-svg .dot{fill:currentColor}
-svg .nc{stroke:var(--bad);stroke-width:1.6}
+svg.dim .wire:not(.hl),svg.dim .bar:not(.hl),svg.dim .vp:not(.hl){opacity:.18}
+svg .wire.hl{stroke-width:4.4}
+svg .bar.hl{stroke-width:2.5}
+svg .dot{stroke:none}
 svg .wl{font-family:var(--f-body);font-size:11.5px;fill:var(--muted)}
 svg .blk{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
 svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
@@ -101,44 +98,44 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
 <div class="wrap">
   <div class="eyebrow">Capstone 2026PUZ1 · ESP32 side</div>
   <h1>Cable Jig Wiring Atlas</h1>
-  <p>Every wiring step of the project, one stage per test. <b>Hover or tap a row in a wire list</b> to light up that wire in the drawing. Hover a wire in the drawing to find its row.</p>
+  <p>One wiring drawing per test. Every connection is drawn as a real wire from pin to pin, or from a pin to a breadboard rail. <b>Hover or tap a row</b> in a wire list to light up that wire. Hover a wire to find its row.</p>
 
-  <div class="banner"><b>Only T1 is ready to wire now.</b> T2–T8 are <b>drafts</b>: we confirm each one with fresh research inside its own test, and the pins can still change. Please don't wire ahead. Each draft lists what still has to be checked.</div>
+  <div class="banner"><b>Only T1 is ready to wire now.</b> T2–T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
 
   <div class="legend" aria-label="Wire colour legend">
-    <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black wire)</span>
+    <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black)</span>
     <span><i class="sw" style="border-color:var(--n-v33)"></i>3.3 V (yellow)</span>
     <span><i class="sw" style="border-color:var(--n-v5)"></i>5 V (red)</span>
-    <span><i class="sw" style="border-color:var(--n-vm)"></i>12–24 V motor supply (orange)</span>
+    <span><i class="sw" style="border-color:var(--n-vm)"></i>12–24 V motor power (orange)</span>
     <span><i class="sw" style="border-color:var(--n-encA)"></i>Encoder A</span>
     <span><i class="sw" style="border-color:var(--n-encB)"></i>Encoder B</span>
-    <span><i class="sw" style="border-color:var(--n-encX)"></i>Encoder X (index)</span>
+    <span><i class="sw" style="border-color:var(--n-encX)"></i>Encoder X</span>
     <span><i class="sw" style="border-color:var(--n-uart)"></i>UART</span>
     <span><i class="sw" style="border-color:var(--n-step)"></i>STEP</span>
     <span><i class="sw" style="border-color:var(--n-dir)"></i>DIR</span>
     <span><i class="sw" style="border-color:var(--n-en)"></i>EN</span>
   </div>
-  <p style="font-size:14px;color:var(--muted)">How to read the drawings: a <b>name tag</b> such as <code>GND</code> or <code>3V3</code> means "connect to that rail". All tags with the same name are connected together, normally through a breadboard rail. A <b>dot</b> = wires joined. A small <b>hop</b> (arc) = wires cross but are <b>not</b> connected. A red <b>×</b> = pin left unconnected.</p>
+  <p style="font-size:14px;color:var(--muted)">A <b>thick bar</b> is one breadboard rail: everything that touches it is connected. A <b>dot</b> means wires are joined there. A small <b>arc</b> means one wire jumps over another without touching (only where crossing can't be avoided).</p>
 
   <div class="tabs" role="tablist" id="tabs"></div>
   <div id="panels"></div>
 
   <h2>Breadboard basics for this project</h2>
   <div class="basics">
-    <div class="box"><h3>Two rails = two tags</h3><p>Use one long rail as <b>3V3</b> (fed from the ESP32 3V3 pin) and the other as <b>GND</b>. Mark them with tape. From T7 on, the motor supply <b>VM</b> gets its own separate rail. Never put VM on the 3V3 or 5V rail.</p></div>
-    <div class="box"><h3>Chip orientation</h3><p>The 74LVC245 straddles the centre gap of the breadboard. The <b>notch</b> (or dot) marks the top: pin 1 is top-left, and pins count down the left side (1–10), then up the right side (11–20).</p></div>
-    <div class="box"><h3>Jumper wires slip</h3><p>Push every jumper fully in, and tape the encoder cable down so it can't pull out. A loose encoder wire shows up as jumping or missing counts in T4.</p></div>
+    <div class="box"><h3>Rails</h3><p>The thick bars in the drawings are the long rails of the breadboard. Mark them with tape: <b>3V3</b> (yellow) and <b>GND</b> (black). From T7 on, motor power never goes on these rails.</p></div>
+    <div class="box"><h3>Chip orientation</h3><p>The 74LVC245 sits across the centre gap of the breadboard. The <b>notch</b> marks the top. Pin 1 is top-left; pins count down the left side (1–10), then up the right side (11–20).</p></div>
+    <div class="box"><h3>Many GND pins = one ground</h3><p>The ESP32 has 7 GND pins and four 3.3 V pins, all joined inside the board. In T7 and T8 several wires use different GND / 3.3 V pins so that no wires cross. They're all the same ground or the same 3.3 V.</p></div>
     <div class="box"><h3>Power order (motor tests)</h3><p><b>On:</b> ESP32 USB first, then the motor supply. <b>Off:</b> motor supply first. Never plug or unplug a motor while the supply is on.</p></div>
   </div>
 
   <h2>Sources</h2>
   <ul class="src">
-    <li>Freenove ESP32 WROOM pinout PDF (pins, LEDs, strapping pins): <a href="https://github.com/Freenove/Freenove_ESP32_WROOM_Board/blob/main/Datasheet/Freenove_ESP32_WROOM_Board_Pinout.pdf">github.com/Freenove</a></li>
-    <li>Same Sky (CUI) AMT10 datasheet: connector order B, 5V, A, X, G; 3.6–5.5 V; CMOS outputs, 2 mA; DIP switches all OFF = 2048 PPR; output high ≥ VDD − 0.8 V: <a href="https://cdn.automationdirect.com/static/manuals/surestepmanual/amt10datasheet.pdf">AMT10 datasheet PDF</a></li>
+    <li>Freenove ESP32 WROOM pinout (pins, 7× GND, 3V3 + 3× 3.3V, LEDs, strapping pins): <a href="https://github.com/Freenove/Freenove_ESP32_WROOM_Board/blob/main/Datasheet/Freenove_ESP32_WROOM_Board_Pinout.pdf">github.com/Freenove</a></li>
+    <li>Same Sky (CUI) AMT10 datasheet: connector order B, 5V, A, X, G; 3.6–5.5 V; CMOS outputs, 2 mA; DIP switches all OFF = 2048 PPR: <a href="https://cdn.automationdirect.com/static/manuals/surestepmanual/amt10datasheet.pdf">AMT10 datasheet PDF</a></li>
     <li>74LVC245A: inputs tolerate 5.5 V at VCC 1.2–3.6 V; DIR high = A→B; OE active-low; unused inputs must not float: <a href="https://nexperia.com/group/74lvc245a-74lvch245a">Nexperia 74LVC245A</a>, <a href="https://www.ti.com/document-viewer/SN74LVC245A/datasheet/layout">TI SN74LVC245A layout guidance</a></li>
-    <li>TMC2209 pin functions (EN: GND = on; MS1/MS2 = UART address bits, pulled down; VIO 3.3–5 V; VM 5.5–28 V): <a href="https://learn.watterott.com/silentstepstick/pinconfig/tmc2209/">Watterott TMC2209 pin config</a></li>
-    <li>Single-wire UART with a 1 kΩ resistor on TX, RX direct to PDN_UART; check whether the module already has a resistor: <a href="https://forum.arduino.cc/t/tmc2209-and-esp32-uart-wiring/1362812">Arduino forum: TMC2209 + ESP32 UART</a>, <a href="https://klipper.discourse.group/t/tmc2209-v1-3-confusion-and-more-confusion/16896">Klipper forum: TMC2209 V1.3 confusion</a>, <a href="https://github.com/bigtreetech/BIGTREETECH-TMC2209-V1.2/issues/16">BTT TMC2209 issue #16</a></li>
-    <li>Motor lead colours (diagram 2: black A+, green A−, red B+, blue B−) and LM2596S module specs: the project's own <code>Stepper Motor/</code> and <code>DC-DC Buck Converter/</code> folders.</li>
+    <li>TMC2209 pins (EN: GND = on; MS1/MS2 = UART address bits; VIO 3.3–5 V; VM 5.5–28 V): <a href="https://learn.watterott.com/silentstepstick/pinconfig/tmc2209/">Watterott TMC2209 pin config</a></li>
+    <li>Single-wire UART, RX direct + TX through 1 kΩ: <a href="https://forum.arduino.cc/t/tmc2209-and-esp32-uart-wiring/1362812">Arduino forum</a>, <a href="https://klipper.discourse.group/t/tmc2209-v1-3-confusion-and-more-confusion/16896">Klipper forum</a>, <a href="https://github.com/bigtreetech/BIGTREETECH-TMC2209-V1.2/issues/16">BTT issue #16</a></li>
+    <li>Motor lead colours (black A+, green A−, red B+, blue B−) and LM2596S specs: the project's <code>Stepper Motor/</code> and <code>DC-DC Buck Converter/</code> folders.</li>
   </ul>
 </div>
 
@@ -158,33 +155,27 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     usb: ['var(--n-usb)', 'USB cable'], probe: ['var(--n-probe)', 'Meter lead'],
     cg: ['var(--n-cg)', 'Motor green'], ck: ['var(--n-ck)', 'Motor black'], cr: ['var(--n-cr)', 'Motor red'], cb: ['var(--n-cb)', 'Motor blue']
   };
-  var TAGNET = { 'GND': 'gnd', '3V3': 'v33', '5V': 'v5', 'VM': 'vm', 'UART': 'uart', 'EN': 'en', 'STEP1': 'step', 'STEP2': 'step', 'DIR1': 'dir', 'DIR2': 'dir' };
   var PITCH = 22, TOP = 34;
 
-  // ------------------------------------------------------------------ stage data
-  function dipPins() {
-    var L = [['1','1 DIR'],['2','2 A1'],['3','3 A2'],['4','4 A3'],['5','5 A4'],['6','6 A5'],['7','7 A6'],['8','8 A7'],['9','9 A8'],['10','10 GND']];
-    var R = [['20','20 VCC'],['19','19 OE'],['18','18 B1'],['17','17 B2'],['16','16 B3'],['15','15 B4'],['14','14 B5'],['13','13 B6'],['12','12 B7'],['11','11 B8']];
-    return { L: L, R: R };
-  }
-  var D = dipPins();
+  var DIPL = [['1','1 DIR'],['2','2 A1'],['3','3 A2'],['4','4 A3'],['5','5 A4'],['6','6 A5'],['7','7 A6'],['8','8 A7'],['9','9 A8'],['10','10 GND']];
+  var DIPR = [['20','20 VCC'],['19','19 OE'],['18','18 B1'],['17','17 B2'],['16','16 B3'],['15','15 B4'],['14','14 B5'],['13','13 B6'],['12','12 B7'],['11','11 B8']];
   var drvL = [['en','EN'],['ms1','MS1'],['ms2','MS2'],['pdn1','PDN'],['pdn2','PDN'],['clk','CLK'],['step','STEP'],['dir','DIR']];
   var drvR = [['vm','VM'],['gnd1','GND'],['a2','A2'],['a1','A1'],['b1','B1'],['b2','B2'],['vdd','VDD'],['gnd2','GND']];
   var motL = [['a2','Green (A−)'],['a1','Black (A+)'],['b1','Red (B+)'],['b2','Blue (B−)']];
 
   var STAGES = [
-  { id: 'ov', tab: 'Overview', title: 'Whole system (draft)', status: 'draft', statusText: 'Draft · big picture',
-    purpose: 'How all the parts connect at the end. Each line is built and tested in its own stage first.', overview: true,
+  { id: 'ov', tab: 'Overview', title: 'Whole system (draft)', status: 'draft', statusText: 'Draft · big picture', overview: true,
+    purpose: 'How the parts connect at the end. Each link is built and tested on its own first.',
     rows: [
       ['PC', 'ESP32 USB-C', 'usb', 'Power + programming + serial monitor during all tests'],
       ['AMT102-V A / B / X (5 V)', '74LVC245 → GPIO34 / 35 / 39 (3.3 V)', 'encA', 'T3 + T4'],
-      ['ESP32 5V pin', 'Encoder +5V', 'v5', 'T4: encoder needs only ~6 mA, taken from USB power'],
-      ['ESP32 GPIO4 / GPIO17', 'TMC2209 PDN_UART (both drivers)', 'uart', 'T7 + T8: settings and current over UART'],
-      ['ESP32 GPIO25/26, 27/14', 'STEP / DIR of driver 1, driver 2', 'step', 'T7 + T8'],
-      ['ESP32 GPIO13', 'EN of both drivers', 'en', 'One pin switches both drivers on/off'],
-      ['Supply 12–24 V → fuse', 'VM of both drivers', 'vm', 'T7 + T8. Motor power never touches the ESP32'],
+      ['ESP32 5V pin', 'Encoder 5V', 'v5', 'Encoder needs only ~6 mA'],
+      ['ESP32 GPIO4 / GPIO17', 'TMC2209 PDN (both drivers)', 'uart', 'Settings + current over UART'],
+      ['ESP32 GPIO25/26 and 27/14', 'STEP / DIR of driver 1 and driver 2', 'step', ''],
+      ['ESP32 GPIO13', 'EN of both drivers', 'en', 'One pin switches both drivers'],
+      ['Supply 12–24 V → fuse', 'VM of both drivers', 'vm', 'Motor power never touches the ESP32'],
       ['Buck converter 5 V', 'ESP32 power at the end (no USB)', 'v5', 'Decided at Assembly; tested alone in T2']
-    ], checks: [], todo: ['E-stop, touchscreen and motor 3 have reserved pins (see docs/PIN_PLAN.md) but no wiring yet.'] },
+    ], checks: [], todo: ['E-stop, touchscreen and motor 3 have reserved pins (docs/PIN_PLAN.md) but no wiring yet.'] },
 
   { id: 't1', tab: 'T1 Board', title: 'T1 · ESP32 board bring-up', status: 'go', statusText: 'Ready · wire now',
     purpose: 'Only the USB cable. Proves the board, cable, driver and PlatformIO work.', vb: [760, 150],
@@ -193,12 +184,11 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       { id: 'esp', x: 440, y: 40, w: 230, title: 'Freenove ESP32', sub: 'nothing on any pin', L: [['usb', 'USB-C socket']] }
     ],
     wires: [{ id: 'w1', a: 'pc:usb', b: 'esp:usb', net: 'usb', cls: 'thick' }],
-    rows: [['w1', 'PC USB port', 'ESP32 USB-C', 'usb', 'Must be a data cable (charge-only cables show no COM port).']],
-    checks: ['Nothing is connected to any pin.', 'Board on a non-conductive surface (not metal, not black foam).', 'Use a data USB-C cable.'],
-    todo: [] },
+    rows: [['w1', 'PC USB port', 'ESP32 USB-C', 'usb', 'Must be a data cable (a charge-only cable shows no COM port).']],
+    checks: ['Nothing is connected to any pin.', 'Board on a non-conductive surface (not metal, not black foam).', 'Use a data USB-C cable.'], todo: [] },
 
   { id: 't2', tab: 'T2 Buck', title: 'T2 · Buck converter → 5.0 V', status: 'draft', statusText: 'Draft',
-    purpose: 'Set the LM2596S output to 5.0 V with the multimeter, with nothing else connected to it.', vb: [790, 160],
+    purpose: 'Set the LM2596S output to 5.0 V with the multimeter. Nothing else is connected to the output.', vb: [790, 160],
     comps: [
       { id: 'psu', x: 30, y: 40, w: 160, title: 'Bench supply', sub: '12 V (or 24 V)', R: [['p', '+ (red)'], ['n', '− (black)']] },
       { id: 'f1', kind: 'part', x: 250, y: 62, w: 80, title: 'F1 fuse 1–2 A', L: [['a', '']], R: [['b', '']] },
@@ -221,179 +211,185 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     todo: ['Which direction of the screw lowers the voltage (differs between modules).', 'Fuse value (1 A or 2 A).', 'Optional load test with a resistor.'] },
 
   { id: 't3', tab: 'T3 Shifter', title: 'T3 · 74LVC245 level shifter', status: 'draft', statusText: 'Draft',
-    purpose: 'Prove the chip turns a 5 V input into a 3.3 V output, using the ESP32 5V pin as the test signal.', vb: [790, 330],
+    purpose: 'Prove the chip turns a 5 V input into a 3.3 V output. The ESP32 5V pin is used as the 5 V test signal.', vb: [800, 412],
+    bars: [
+      { id: 'r3', net: 'v33', x1: 205, x2: 790, y: 28, label: '3V3 rail (fed by ESP32 3V3)' },
+      { id: 'rg', net: 'gnd', x1: 195, x2: 790, y: 382, label: 'GND rail (fed by ESP32 GND)' }
+    ],
     comps: [
-      { id: 'esp', x: 30, y: 40, w: 170, title: 'ESP32 (on USB)', R: [['3v3', '3V3 (left row)'], ['5v', '5V (left row)'], ['gnd', 'GND (left row)']] },
-      { id: 'u1', kind: 'dip', x: 330, y: 40, w: 160, title: 'SN74LVC245AN', L: D.L, R: D.R },
-      { id: 'dmm', x: 640, y: 100, w: 120, title: 'Multimeter', sub: 'DC volts', L: [['v', 'V'], ['com', 'COM']] },
-      { id: 'c1', kind: 'part', x: 600, y: 262, w: 60, title: 'C1 100 nF', L: [['a', '']], R: [['b', '']] }
+      { id: 'esp', x: 20, y: 120, w: 160, title: 'ESP32 (on USB)', R: [['3v3', '3V3 (left row)'], ['5v', '5V (left row)'], ['gnd', 'GND (left row)']] },
+      { id: 'u1', kind: 'dip', x: 360, y: 80, w: 160, title: 'SN74LVC245AN', L: DIPL, R: DIPR },
+      { id: 'dmm', x: 600, y: 170, w: 110, title: 'Multimeter', sub: 'DC volts', L: [['v', 'V'], ['com', 'COM']] }
     ],
+    vparts: [{ id: 'c1', kind: 'cap', x: 730, y1: 28, y2: 136, label: 'C1 100 nF', side: 'L' }],
     wires: [
-      { id: 'w1', a: 'esp:5v', b: 'u1:2', net: 'v5' },
-      { id: 'w2', a: 'u1:18', b: 'dmm:v', net: 'probe', via: [[580, 118], [580, 134]], cls: 'dash' }
+      { id: 'w3v', a: 'esp:3v3', b: [225, 28], net: 'v33', via: [[225, 154]] },
+      { id: 'wg', a: 'esp:gnd', b: [212, 382], net: 'gnd', via: [[212, 198]] },
+      { id: 'w5', a: 'esp:5v', b: 'u1:2', net: 'v5', via: [[300, 176], [300, 136]] },
+      { id: 'wdir', a: 'u1:1', b: [325, 28], net: 'v33', via: [[325, 114]] },
+      { id: 'wcomb', a: 'u1:3', b: [335, 158], net: 'gnd', nodot: true }, { id: 'wcomb', a: 'u1:4', b: [335, 180], net: 'gnd' },
+      { id: 'wcomb', a: 'u1:5', b: [335, 202], net: 'gnd' }, { id: 'wcomb', a: 'u1:6', b: [335, 224], net: 'gnd' },
+      { id: 'wcomb', a: 'u1:7', b: [335, 246], net: 'gnd' }, { id: 'wcomb', a: 'u1:8', b: [335, 268], net: 'gnd' },
+      { id: 'wcomb', a: 'u1:9', b: [335, 290], net: 'gnd' }, { id: 'wcomb', a: 'u1:10', b: [335, 312], net: 'gnd' },
+      { id: 'wcomb', a: [335, 158], b: [335, 382], net: 'gnd', nodotA: true },
+      { id: 'wvcc', a: 'u1:20', b: [552, 28], net: 'v33', via: [[552, 114]] },
+      { id: 'woe', a: 'u1:19', b: [770, 382], net: 'gnd', via: [[770, 136]] },
+      { id: 'wpr', a: 'u1:18', b: 'dmm:v', net: 'probe', via: [[570, 158], [570, 204]], cls: 'dash' },
+      { id: 'wcom', a: 'dmm:com', b: [578, 382], net: 'gnd', via: [[578, 226]] }
     ],
-    tags: [
-      ['t1', 'esp:3v3', '3V3'], ['t2', 'esp:gnd', 'GND'], ['t3', 'u1:1', '3V3'], ['t4', 'u1:20', '3V3'], ['t5', 'u1:19', 'GND'],
-      ['t6', 'u1:3', 'GND'], ['t6', 'u1:4', 'GND'], ['t6', 'u1:5', 'GND'], ['t6', 'u1:6', 'GND'], ['t6', 'u1:7', 'GND'], ['t6', 'u1:8', 'GND'], ['t6', 'u1:9', 'GND'],
-      ['t7', 'u1:10', 'GND'], ['t8', 'dmm:com', 'GND'], ['t9', 'c1:a', '3V3'], ['t9', 'c1:b', 'GND']
-    ],
-    nc: ['u1:17', 'u1:16', 'u1:15', 'u1:14', 'u1:13', 'u1:12', 'u1:11'],
     rows: [
-      ['t1', 'ESP32 3V3', '3V3 rail', 'v33', 'Feeds the chip. 3.3 V, never 5 V.'],
-      ['t2', 'ESP32 GND', 'GND rail', 'gnd', ''],
-      ['t4', 'Pin 20 VCC', '3V3 rail', 'v33', 'Chip power.'],
-      ['t7', 'Pin 10 GND', 'GND rail', 'gnd', ''],
-      ['t3', 'Pin 1 DIR', '3V3 rail', 'v33', 'HIGH = signals flow A → B.'],
-      ['t5', 'Pin 19 OE', 'GND rail', 'gnd', 'LOW = outputs switched on.'],
-      ['t9', 'C1 100 nF', 'Pin 20 ↔ pin 19', 'v33', 'Right at the chip. Keeps its supply steady.'],
-      ['t6', 'Pins 3–9 (A2–A8)', 'GND rail', 'gnd', 'Unused inputs must never float.'],
-      ['w1', 'ESP32 5V', 'Pin 2 (A1)', 'v5', 'Test jumper = 5 V test input.'],
-      ['w2', 'Pin 18 (B1)', 'Meter V', 'probe', 'Expect ≈3.3 V. Move the jumper to GND → ≈0 V.'],
-      ['t8', 'Meter COM', 'GND rail', 'gnd', '']
+      ['w3v', 'ESP32 3V3', '3V3 rail', 'v33', 'The chip runs on 3.3 V, never 5 V.'],
+      ['wg', 'ESP32 GND', 'GND rail', 'gnd', ''],
+      ['wvcc', 'Pin 20 (VCC)', '3V3 rail', 'v33', 'Chip power.'],
+      ['wdir', 'Pin 1 (DIR)', '3V3 rail', 'v33', 'HIGH = signals flow from A to B.'],
+      ['woe', 'Pin 19 (OE)', 'GND rail', 'gnd', 'LOW = outputs switched on.'],
+      ['c1', 'C1 100 nF', '3V3 rail ↔ OE wire (GND)', 'v33', 'Keeps the chip supply steady. Place it close to the chip.'],
+      ['wcomb', 'Pin 10 (GND) + pins 3–9', 'GND rail', 'gnd', 'Pin 10 is the chip ground. Pins 3–9 are unused inputs: TI says they must not float, so they go to GND too.'],
+      ['w5', 'ESP32 5V', 'Pin 2 (A1)', 'v5', 'Test jumper: a 5 V input.'],
+      ['wpr', 'Pin 18 (B1)', 'Meter V', 'probe', 'Expect ≈3.3 V. Move the jumper from 5V to GND → ≈0 V.'],
+      ['wcom', 'Meter COM', 'GND rail', 'gnd', '']
     ],
-    checks: ['Notch at the top, pin 1 top-left.', 'Pin 20 goes to 3V3, NOT 5V.', 'USB unplugged while wiring.', 'Pins 11–17 (B2–B8) stay empty.'],
-    todo: ['Confirm pin numbers against the TI datasheet (SCAS218).', 'OE: tie to GND directly, or use a pull-up plus a GPIO?'] },
+    checks: ['Notch at the top, pin 1 top-left.', 'Pin 20 goes to 3V3, NOT 5V.', 'USB unplugged while wiring.', 'Pins 11–17 (B2–B8) stay empty: they are outputs.'],
+    todo: ['Confirm pin numbers against the TI datasheet (SCAS218).', 'OE: tie to GND directly, or pull-up + GPIO?'] },
 
   { id: 't4', tab: 'T4 Encoder', title: 'T4 · AMT102-V encoder → ESP32', status: 'draft', statusText: 'Draft',
-    purpose: 'Encoder signals (5 V) pass through the 74LVC245 into the input-only pins 34 / 35 / 39. The encoder gets 5 V from the ESP32 5V pin (USB powered).', vb: [840, 330],
+    purpose: 'Encoder signals (5 V) go through the 74LVC245 to the input-only pins 34 / 35 / 39 (3.3 V). The encoder takes 5 V from the ESP32 5V pin. Chip power comes straight from the ESP32 3V3 pin.', vb: [900, 430],
+    bars: [{ id: 'rg', net: 'gnd', x1: 170, x2: 690, y: 402, label: 'GND rail' }],
     comps: [
-      { id: 'enc', x: 30, y: 70, w: 130, title: 'AMT102-V', sub: 'header: B 5V A X G', R: [['b', 'B'], ['5v', '5V'], ['a', 'A'], ['x', 'X (index)'], ['g', 'G (GND)']] },
-      { id: 'u1', kind: 'dip', x: 330, y: 40, w: 160, title: 'SN74LVC245AN', L: D.L, R: D.R },
-      { id: 'esp', x: 650, y: 84, w: 170, title: 'ESP32 (on USB)', L: [['g35', 'GPIO35 (left row)'], ['g34', 'GPIO34 (left row)'], ['g39', 'GPIO39 / VN'], ['3v3', '3V3'], ['5v', '5V'], ['gnd', 'GND']] },
-      { id: 'c1', kind: 'part', x: 590, y: 270, w: 60, title: 'C1 100 nF', L: [['a', '']], R: [['b', '']] }
+      { id: 'enc', x: 20, y: 130, w: 130, title: 'AMT102-V', sub: 'header: B 5V A X G', R: [['b', 'B'], ['5v', '5V'], ['a', 'A'], ['x', 'X (index)'], ['g', 'G (GND)']] },
+      { id: 'u1', kind: 'dip', x: 360, y: 90, w: 160, title: 'SN74LVC245AN', L: DIPL, R: DIPR },
+      { id: 'esp', x: 700, y: 68, w: 180, title: 'ESP32 (on USB)', L: [['5v', '5V (left row)'], ['3v3', '3V3 (left row)'], ['gnda', 'GND (right row)'], ['g35', 'GPIO35'], ['g34', 'GPIO34'], ['g39', 'GPIO39 / VN'], ['gndb', 'GND (left row)']] }
     ],
+    vparts: [{ id: 'c1', kind: 'cap', x: 600, y1: 124, y2: 146, label: 'C1 100 nF', side: 'T' }],
     wires: [
-      { id: 'wb', a: 'enc:b', b: 'u1:2', net: 'encB', via: [[235, 104], [235, 96]] },
-      { id: 'wa', a: 'enc:a', b: 'u1:3', net: 'encA', via: [[245, 148], [245, 118]] },
-      { id: 'wx', a: 'enc:x', b: 'u1:4', net: 'encX', via: [[255, 170], [255, 140]] },
+      { id: 'wb', a: 'enc:b', b: 'u1:2', net: 'encB', via: [[250, 164], [250, 146]] },
+      { id: 'wa', a: 'enc:a', b: 'u1:3', net: 'encA', via: [[270, 208], [270, 168]] },
+      { id: 'wx', a: 'enc:x', b: 'u1:4', net: 'encX', via: [[290, 230], [290, 190]] },
+      { id: 'w5', a: 'esp:5v', b: 'enc:5v', net: 'v5', via: [[672, 102], [672, 14], [185, 14], [185, 186]] },
+      { id: 'wg', a: 'enc:g', b: [180, 402], net: 'gnd', via: [[180, 252]] },
+      { id: 'wvcc', a: 'u1:20', b: 'esp:3v3', net: 'v33' },
+      { id: 'wdir', a: [560, 124], b: 'u1:1', net: 'v33', via: [[560, 60], [325, 60], [325, 124]] },
+      { id: 'woe', a: 'u1:19', b: 'esp:gnda', net: 'gnd' },
+      { id: 'wcomb', a: 'u1:5', b: [335, 212], net: 'gnd', nodot: true }, { id: 'wcomb', a: 'u1:6', b: [335, 234], net: 'gnd' },
+      { id: 'wcomb', a: 'u1:7', b: [335, 256], net: 'gnd' }, { id: 'wcomb', a: 'u1:8', b: [335, 278], net: 'gnd' },
+      { id: 'wcomb', a: 'u1:9', b: [335, 300], net: 'gnd' }, { id: 'wcomb', a: 'u1:10', b: [335, 322], net: 'gnd' },
+      { id: 'wcomb', a: [335, 212], b: [335, 402], net: 'gnd', nodotA: true },
       { id: 'wb2', a: 'u1:18', b: 'esp:g35', net: 'encB' },
       { id: 'wa2', a: 'u1:17', b: 'esp:g34', net: 'encA' },
-      { id: 'wx2', a: 'u1:16', b: 'esp:g39', net: 'encX' }
+      { id: 'wx2', a: 'u1:16', b: 'esp:g39', net: 'encX' },
+      { id: 'wge', a: 'esp:gndb', b: [676, 402], net: 'gnd', via: [[676, 234]] }
     ],
-    tags: [
-      ['t5v', 'enc:5v', '5V'], ['tg', 'enc:g', 'GND'], ['t3', 'u1:1', '3V3'], ['t4', 'u1:20', '3V3'], ['t5', 'u1:19', 'GND'],
-      ['t6', 'u1:5', 'GND'], ['t6', 'u1:6', 'GND'], ['t6', 'u1:7', 'GND'], ['t6', 'u1:8', 'GND'], ['t6', 'u1:9', 'GND'], ['t7', 'u1:10', 'GND'],
-      ['te3', 'esp:3v3', '3V3'], ['te5', 'esp:5v', '5V'], ['teg', 'esp:gnd', 'GND'], ['t9', 'c1:a', '3V3'], ['t9', 'c1:b', 'GND']
-    ],
-    nc: ['u1:15', 'u1:14', 'u1:13', 'u1:12', 'u1:11'],
     rows: [
-      ['te5', 'ESP32 5V', '5V rail', 'v5', 'Only the encoder uses this rail.'],
-      ['t5v', 'Encoder 5V', '5V rail', 'v5', ''],
-      ['tg', 'Encoder G', 'GND rail', 'gnd', ''],
-      ['wa', 'Encoder A', 'Pin 3 (A2)', 'encA', ''],
-      ['wb', 'Encoder B', 'Pin 2 (A1)', 'encB', 'Order chosen so no wires cross.'],
-      ['wx', 'Encoder X', 'Pin 4 (A3)', 'encX', 'Index: 1 pulse per turn.'],
+      ['w5', 'ESP32 5V', 'Encoder 5V', 'v5', 'Encoder power, about 6 mA from USB.'],
+      ['wg', 'Encoder G', 'GND rail', 'gnd', ''],
+      ['wge', 'ESP32 GND (left row)', 'GND rail', 'gnd', 'Feeds the GND rail.'],
+      ['wa', 'Encoder A', 'Pin 3 (A2)', 'encA', '5 V side.'],
+      ['wb', 'Encoder B', 'Pin 2 (A1)', 'encB', 'This order avoids crossing wires.'],
+      ['wx', 'Encoder X', 'Pin 4 (A3)', 'encX', 'Index: one pulse per turn.'],
       ['wa2', 'Pin 17 (B2)', 'GPIO34', 'encA', '3.3 V side.'],
       ['wb2', 'Pin 18 (B1)', 'GPIO35', 'encB', ''],
       ['wx2', 'Pin 16 (B3)', 'GPIO39 (VN)', 'encX', ''],
-      ['t3', 'Chip power + DIR / OE', 'as in T3', 'v33', 'Pins 20, 1 → 3V3; pins 10, 19 → GND; C1.'],
-      ['t6', 'Pins 5–9 (A4–A8)', 'GND rail', 'gnd', 'Still tied to GND.']
+      ['wvcc', 'Pin 20 (VCC)', 'ESP32 3V3', 'v33', 'Chip power, straight from the ESP32.'],
+      ['wdir', 'Pin 1 (DIR)', 'VCC wire (3.3 V)', 'v33', 'Branches off the VCC wire, over the chip.'],
+      ['woe', 'Pin 19 (OE)', 'ESP32 GND (right row)', 'gnd', 'Any ESP32 GND pin is the same ground.'],
+      ['c1', 'C1 100 nF', 'VCC wire ↔ OE wire', 'v33', 'Across pins 20 and 19, right at the chip.'],
+      ['wcomb', 'Pin 10 (GND) + pins 5–9', 'GND rail', 'gnd', 'Chip ground + unused inputs A4–A8.']
     ],
     checks: ['Read the B / 5V / A / X / G labels printed on the encoder before connecting.', 'No encoder wire goes straight to the ESP32.', 'Encoder DIP switches all OFF = 2048 PPR.', 'Tape the encoder cable down.'],
-    todo: ['Final choice of GPIO for A / B / X (draft: 34 / 35 / 39).', 'Use the index X for zeroing? (options come in T5).', 'The datasheet warns that stepper magnets can disturb the index pulse. Check the distance in the jig.'] },
+    todo: ['Final GPIO for A / B / X (draft 34 / 35 / 39).', 'Use the index X for zeroing? (options in T5).', 'The datasheet warns that stepper magnets can disturb the index pulse. Check the distance in the jig.'] },
 
   { id: 't7', tab: 'T7 Driver', title: 'T7 · One TMC2209 + one motor', status: 'draft', statusText: 'Draft · most risk',
-    purpose: 'One driver over UART. First read its chip ID with no motor movement, then spin slowly.', vb: [920, 440],
+    purpose: 'One driver over UART. First read the chip ID with the motor not moving, then spin slowly. No wire crosses another.', vb: [930, 490],
     comps: [
-      { id: 'esp', x: 30, y: 40, w: 180, title: 'ESP32 (on USB)', R: [['g13', 'GPIO13 → EN'], ['_1', ''], ['_2', ''], ['g4', 'GPIO4 (RX)'], ['g17', 'GPIO17 (TX)'], ['_3', ''], ['g25', 'GPIO25 → STEP'], ['g26', 'GPIO26 → DIR'], ['3v3', '3V3'], ['gnd', 'GND']] },
-      { id: 'r2', kind: 'part', x: 290, y: 18, w: 70, title: 'R2 10 kΩ', L: [['a', '']], R: [['b', '']] },
-      { id: 'r1', kind: 'part', x: 290, y: 150, w: 70, title: 'R1 1 kΩ', L: [['a', '']], R: [['b', '']] },
-      { id: 'drv', x: 440, y: 40, w: 170, title: 'TMC2209 V1.3 #1', sub: 'UART address 0', L: drvL, R: drvR },
-      { id: 'mot', x: 740, y: 84, w: 160, title: 'Motor 1', sub: 'pairs ≈ 4 Ω', L: motL },
-      { id: 'psu', x: 30, y: 330, w: 160, title: 'Motor supply', sub: '12–24 V', R: [['p', '+'], ['n', '−']] },
-      { id: 'f1', kind: 'part', x: 250, y: 352, w: 80, title: 'F1 fuse', L: [['a', '']], R: [['b', '']] },
-      { id: 'c2', kind: 'part', x: 480, y: 352, w: 80, title: 'C2 100 µF ≥35 V', L: [['a', '+']], R: [['b', '−']] }
+      { id: 'esp', x: 20, y: 58, w: 200, title: 'ESP32 (on USB)', R: [['3v3a', '3V3 (left row, top)'], ['_1', ''], ['g13', 'GPIO13 → EN'], ['gnd1', 'GND (right row)'], ['gnd2', 'GND (right row)'], ['g4', 'GPIO4 (RX)'], ['g17', 'GPIO17 (TX)'], ['gnd3', 'GND (right row)'], ['g25', 'GPIO25 → STEP'], ['g26', 'GPIO26 → DIR'], ['gnd4', 'GND (left row)'], ['3v3b', '3.3V (left row, bottom)']] },
+      { id: 'r1', kind: 'part', x: 270, y: 212, w: 66, title: 'R1 1 kΩ', L: [['a', '']], R: [['b', '']], tin: true },
+      { id: 'drv', x: 440, y: 102, w: 170, title: 'TMC2209 V1.3 #1', sub: 'UART address 0', L: drvL, R: drvR },
+      { id: 'mot', x: 760, y: 146, w: 150, title: 'Motor 1', sub: 'pairs ≈ 4 Ω', L: motL },
+      { id: 'f1', kind: 'part', x: 675, y: 48, w: 50, title: 'F1 fuse', L: [['a', '']], R: [['b', '']], ttop: true },
+      { id: 'psu', x: 750, y: 26, w: 150, title: 'Motor supply', sub: '12–24 V', L: [['p', '+'], ['n', '−']] }
+    ],
+    vparts: [
+      { id: 'r2', kind: 'res', x: 300, y1: 92, y2: 136, label: 'R2 10 kΩ', side: 'R' },
+      { id: 'c2', kind: 'cap', x: 640, y1: 136, y2: 158, label: 'C2 100 µF', polar: true, lx: 648, ly: 173 }
     ],
     wires: [
+      { id: 'w3a', a: 'esp:3v3a', b: [300, 92], net: 'v33', nodot: true },
       { id: 'wen', a: 'esp:g13', b: 'drv:en', net: 'en' },
-      { id: 'wpu', a: 'r2:b', b: [392, 74], net: 'en', via: [[392, 30]] },
+      { id: 'wms', a: 'esp:gnd1', b: 'drv:ms1', net: 'gnd' }, { id: 'wms', a: 'esp:gnd2', b: 'drv:ms2', net: 'gnd' },
       { id: 'wrx', a: 'esp:g4', b: 'drv:pdn1', net: 'uart' },
       { id: 'wtx', a: 'esp:g17', b: 'r1:a', net: 'uart' },
-      { id: 'wtx2', a: 'r1:b', b: [400, 140], net: 'uart', via: [[400, 162]] },
+      { id: 'wtx', a: 'r1:b', b: [372, 202], net: 'uart', via: [[372, 224]] },
+      { id: 'wclk', a: 'esp:gnd3', b: 'drv:clk', net: 'gnd' },
       { id: 'wst', a: 'esp:g25', b: 'drv:step', net: 'step' },
       { id: 'wdi', a: 'esp:g26', b: 'drv:dir', net: 'dir' },
+      { id: 'wlg', a: 'esp:gnd4', b: 'drv:gnd2', net: 'gnd', via: [[260, 312], [260, 450], [635, 450], [635, 290]] },
+      { id: 'wvdd', a: 'esp:3v3b', b: 'drv:vdd', net: 'v33', via: [[245, 334], [245, 470], [650, 470], [650, 268]] },
+      { id: 'wvm', a: 'drv:vm', b: 'f1:a', net: 'vm', via: [[660, 136], [660, 60]] },
+      { id: 'wvm', a: 'f1:b', b: 'psu:p', net: 'vm' },
+      { id: 'wpg', a: 'drv:gnd1', b: 'psu:n', net: 'gnd', via: [[700, 158], [700, 82]] },
       { id: 'wm', a: 'drv:a2', b: 'mot:a2', net: 'cg' }, { id: 'wm', a: 'drv:a1', b: 'mot:a1', net: 'ck' },
-      { id: 'wm', a: 'drv:b1', b: 'mot:b1', net: 'cr' }, { id: 'wm', a: 'drv:b2', b: 'mot:b2', net: 'cb' },
-      { id: 'wf', a: 'psu:p', b: 'f1:a', net: 'vm' }
+      { id: 'wm', a: 'drv:b1', b: 'mot:b1', net: 'cr' }, { id: 'wm', a: 'drv:b2', b: 'mot:b2', net: 'cb' }
     ],
-    dots: [[392, 74], [400, 140]],
-    tags: [
-      ['tpu', 'r2:a', '3V3'], ['tms', 'drv:ms1', 'GND'], ['tms', 'drv:ms2', 'GND'], ['tclk', 'drv:clk', 'GND'],
-      ['tvm', 'drv:vm', 'VM'], ['tpg', 'drv:gnd1', 'GND'], ['tvdd', 'drv:vdd', '3V3'], ['tlg', 'drv:gnd2', 'GND'],
-      ['te3', 'esp:3v3', '3V3'], ['teg', 'esp:gnd', 'GND'], ['tvm', 'f1:b', 'VM'], ['tpg', 'psu:n', 'GND'],
-      ['tc2', 'c2:a', 'VM'], ['tc2', 'c2:b', 'GND']
-    ],
-    nc: ['drv:pdn2'],
     rows: [
-      ['te3', 'ESP32 3V3 / GND', '3V3 rail / GND rail', 'v33', ''],
-      ['tvdd', 'Driver VDD', '3V3 rail', 'v33', 'Logic power: 3.3 V from the ESP32.'],
-      ['tlg', 'Driver GND (logic side)', 'GND rail', 'gnd', ''],
+      ['wvdd', 'ESP32 3.3V (bottom)', 'Driver VDD', 'v33', 'Driver logic power, 3.3 V.'],
+      ['wlg', 'ESP32 GND (left row)', 'Driver GND (logic side)', 'gnd', 'Common ground between ESP32 and driver.'],
       ['wen', 'GPIO13', 'Driver EN', 'en', 'LOW = motor on, HIGH = off.'],
-      ['wpu', 'R2 10 kΩ', 'EN ↔ 3V3', 'en', 'Keeps the driver OFF while the ESP32 boots.'],
-      ['tms', 'MS1, MS2', 'GND rail', 'gnd', 'UART address 0.'],
-      ['tclk', 'CLK', 'GND rail', 'gnd', 'Use the internal clock (to confirm).'],
-      ['wrx', 'GPIO4 (RX)', 'PDN (pin 4)', 'uart', 'Direct.'],
-      ['wtx', 'GPIO17 (TX)', 'R1 1 kΩ → PDN', 'uart', 'TX through 1 kΩ, joined to the RX wire.'],
+      ['r2', 'R2 10 kΩ', 'ESP32 3V3 (top) ↔ EN wire', 'en', 'Keeps the driver OFF while the ESP32 boots.'],
+      ['wms', 'ESP32 GND ×2', 'MS1, MS2', 'gnd', 'Both LOW = UART address 0.'],
+      ['wclk', 'ESP32 GND', 'CLK', 'gnd', 'Use the internal clock (to confirm).'],
+      ['wrx', 'GPIO4 (RX)', 'PDN (4th pin)', 'uart', 'Direct.'],
+      ['wtx', 'GPIO17 (TX)', 'R1 1 kΩ → RX wire', 'uart', 'TX goes through 1 kΩ and joins the RX wire.'],
       ['wst', 'GPIO25', 'STEP', 'step', ''],
       ['wdi', 'GPIO26', 'DIR', 'dir', ''],
-      ['wf', 'Supply +', 'Fuse → VM rail', 'vm', 'Separate VM rail.'],
-      ['tvm', 'Driver VM', 'VM rail', 'vm', '12–24 V. Never on 3V3 / 5V.'],
-      ['tpg', 'Driver GND (power side), supply −', 'GND rail', 'gnd', 'Common ground with the ESP32.'],
-      ['tc2', 'C2 100 µF', 'VM (+) ↔ GND (−)', 'vm', 'Close to the driver. Stripe = minus.'],
-      ['wm', 'A1 A2 B1 B2', 'Motor black, green, red, blue', 'ck', 'Check the pairs with the meter first (≈4 Ω).']
+      ['wvm', 'Supply + → fuse F1', 'Driver VM', 'vm', '12–24 V. Never near the 3.3 V / 5 V wires.'],
+      ['wpg', 'Driver GND (power side)', 'Supply −', 'gnd', 'Motor current returns here.'],
+      ['c2', 'C2 100 µF ≥35 V', 'VM wire (+) ↔ GND wire (−)', 'vm', 'Right at the driver. Stripe = minus.'],
+      ['wm', 'A2 A1 B1 B2', 'Motor green, black, red, blue', 'ck', 'Check the pairs with the meter first (≈4 Ω).']
     ],
-    checks: ['Motor supply OFF and motor connected BEFORE switching on. Never unplug a motor while VM is on.', 'Capacitor polarity: stripe to GND.', 'Measure the coil pairs: ≈4 Ω within a pair, open between pairs.', 'Power on: USB first, then VM. Power off: VM first.', 'Heatsink on; keep fingers off.'],
-    todo: ['Are the two PDN pins joined on this module? Is there already a 1 kΩ resistor on board? (multimeter check)', 'CLK to GND or open?', 'Current: set over UART to ≈0.7–1.0 A (R_SENSE value of this module).', 'Fuse value.', 'Your motor cable colours may differ from the datasheet. Trust the meter.'] },
+    checks: ['Motor connected BEFORE the supply is switched on. Never unplug a motor while VM is on.', 'Capacitor polarity: stripe to GND.', 'Coil pairs: ≈4 Ω within a pair, open between pairs.', 'Power on: USB first, then VM. Power off: VM first.', 'Heatsink on; keep fingers off.'],
+    todo: ['Meter check: are the two driver GND pins joined on the module (0 Ω)? That link joins motor ground and ESP32 ground.', 'Are the two PDN pins joined? Is there already a 1 kΩ on the module?', 'CLK to GND or open?', 'Motor current over UART ≈0.7–1.0 A (R_SENSE of this module).', 'Fuse value.'] },
 
-  { id: 't8', tab: 'T8 Two drivers', title: 'T8 · Two drivers, synchronised', status: 'draft', statusText: 'Draft',
-    purpose: 'Driver 2 shares EN, UART, 3V3 and GND with driver 1. Only STEP / DIR and the address differ. Drawn with name tags because many wires are shared.', vb: [940, 590],
+  { id: 't8', tab: 'T8 Two drivers', title: 'T8 · Add driver 2 (synchronised)', status: 'draft', statusText: 'Draft',
+    purpose: 'Driver 1 stays wired exactly as in T7 (shown here only by the pins driver 2 shares). Driver 2 shares EN, UART, VM and motor GND with driver 1, and gets its own STEP / DIR and address 1.', vb: [930, 600],
     comps: [
-      { id: 'esp', x: 30, y: 40, w: 190, title: 'ESP32 (on USB)', R: [['g13', 'GPIO13'], ['g4', 'GPIO4 (RX)'], ['g17', 'GPIO17 (TX)'], ['g25', 'GPIO25'], ['g26', 'GPIO26'], ['g27', 'GPIO27'], ['g14', 'GPIO14'], ['3v3', '3V3'], ['gnd', 'GND']] },
-      { id: 'r1', kind: 'part', x: 300, y: 106, w: 70, title: 'R1 1 kΩ', L: [['a', '']], R: [['b', '']] },
-      { id: 'r2', kind: 'part', x: 70, y: 330, w: 70, title: 'R2 10 kΩ', L: [['a', '']], R: [['b', '']] },
-      { id: 'd1', x: 470, y: 40, w: 170, title: 'TMC2209 #1', sub: 'address 0', L: drvL, R: drvR },
-      { id: 'm1', x: 770, y: 84, w: 150, title: 'Motor 1', L: motL },
-      { id: 'd2', x: 470, y: 300, w: 170, title: 'TMC2209 #2', sub: 'address 1', L: drvL, R: drvR },
-      { id: 'm2', x: 770, y: 344, w: 150, title: 'Motor 2', L: motL },
-      { id: 'psu', x: 30, y: 420, w: 160, title: 'Motor supply', sub: '12–24 V', R: [['p', '+'], ['n', '−']] },
-      { id: 'f1', kind: 'part', x: 250, y: 442, w: 80, title: 'F1 fuse', L: [['a', '']], R: [['b', '']] },
-      { id: 'c2', kind: 'part', x: 90, y: 536, w: 80, title: 'C2 100 µF (drv 1)', L: [['a', '+']], R: [['b', '−']] },
-      { id: 'c3', kind: 'part', x: 320, y: 536, w: 80, title: 'C3 100 µF (drv 2)', L: [['a', '+']], R: [['b', '−']] }
+      { id: 'd1', x: 440, y: 102, w: 170, title: 'Driver 1 (as in T7)', L: [['en', 'EN'], ['_1', ''], ['_2', ''], ['pdn1', 'PDN']], R: [['vm', 'VM'], ['gnd1', 'GND']] },
+      { id: 'esp', x: 20, y: 322, w: 200, title: 'ESP32 (on USB)', R: [['3v3a', '3.3V (left row)'], ['gnd1', 'GND (right row)'], ['_1', ''], ['_2', ''], ['gnd2', 'GND (right row)'], ['g27', 'GPIO27 → STEP 2'], ['g14', 'GPIO14 → DIR 2'], ['gnd3', 'GND (right row)'], ['3v3b', '3.3V (left row)']] },
+      { id: 'd2', x: 440, y: 300, w: 170, title: 'TMC2209 #2', sub: 'UART address 1', L: drvL, R: drvR },
+      { id: 'm2', x: 760, y: 344, w: 150, title: 'Motor 2', sub: 'pairs ≈ 4 Ω', L: motL }
     ],
+    vparts: [{ id: 'c3', kind: 'cap', x: 630, y1: 334, y2: 356, label: 'C3 100 µF', polar: true, lx: 662, ly: 373 }],
     wires: [
-      { id: 'wtx', a: 'esp:g17', b: 'r1:a', net: 'uart' },
-      { id: 'wm1', a: 'd1:a2', b: 'm1:a2', net: 'cg' }, { id: 'wm1', a: 'd1:a1', b: 'm1:a1', net: 'ck' },
-      { id: 'wm1', a: 'd1:b1', b: 'm1:b1', net: 'cr' }, { id: 'wm1', a: 'd1:b2', b: 'm1:b2', net: 'cb' },
-      { id: 'wm2', a: 'd2:a2', b: 'm2:a2', net: 'cg' }, { id: 'wm2', a: 'd2:a1', b: 'm2:a1', net: 'ck' },
-      { id: 'wm2', a: 'd2:b1', b: 'm2:b1', net: 'cr' }, { id: 'wm2', a: 'd2:b2', b: 'm2:b2', net: 'cb' },
-      { id: 'wf', a: 'psu:p', b: 'f1:a', net: 'vm' }
+      { id: 'wen', a: 'd1:en', b: 'd2:en', net: 'en', via: [[410, 136], [410, 334]] },
+      { id: 'wua', a: 'd1:pdn1', b: 'd2:pdn1', net: 'uart', via: [[395, 202], [395, 400]] },
+      { id: 'wms1', a: 'esp:3v3a', b: 'd2:ms1', net: 'v33' },
+      { id: 'wms2', a: 'esp:gnd1', b: 'd2:ms2', net: 'gnd' },
+      { id: 'wclk', a: 'esp:gnd2', b: 'd2:clk', net: 'gnd' },
+      { id: 'wst', a: 'esp:g27', b: 'd2:step', net: 'step' },
+      { id: 'wdi', a: 'esp:g14', b: 'd2:dir', net: 'dir' },
+      { id: 'wlg', a: 'esp:gnd3', b: 'd2:gnd2', net: 'gnd', via: [[260, 510], [260, 560], [635, 560], [635, 488]] },
+      { id: 'wvdd', a: 'esp:3v3b', b: 'd2:vdd', net: 'v33', via: [[245, 532], [245, 580], [650, 580], [650, 466]] },
+      { id: 'wvm', a: 'd1:vm', b: 'd2:vm', net: 'vm', via: [[655, 136], [655, 334]] },
+      { id: 'wpg', a: 'd1:gnd1', b: 'd2:gnd1', net: 'gnd', via: [[640, 158], [640, 356]] },
+      { id: 'wm', a: 'd2:a2', b: 'm2:a2', net: 'cg' }, { id: 'wm', a: 'd2:a1', b: 'm2:a1', net: 'ck' },
+      { id: 'wm', a: 'd2:b1', b: 'm2:b1', net: 'cr' }, { id: 'wm', a: 'd2:b2', b: 'm2:b2', net: 'cb' }
     ],
-    tags: [
-      ['ten', 'esp:g13', 'EN'], ['tua', 'esp:g4', 'UART'], ['tua', 'r1:b', 'UART'], ['ts1', 'esp:g25', 'STEP1'], ['td1', 'esp:g26', 'DIR1'],
-      ['ts2', 'esp:g27', 'STEP2'], ['td2', 'esp:g14', 'DIR2'], ['tpw', 'esp:3v3', '3V3'], ['tgn', 'esp:gnd', 'GND'],
-      ['tpu', 'r2:a', 'EN'], ['tpu', 'r2:b', '3V3'],
-      ['ten', 'd1:en', 'EN'], ['tad1', 'd1:ms1', 'GND'], ['tad1', 'd1:ms2', 'GND'], ['tua', 'd1:pdn1', 'UART'], ['tgn', 'd1:clk', 'GND'],
-      ['ts1', 'd1:step', 'STEP1'], ['td1', 'd1:dir', 'DIR1'], ['tvm', 'd1:vm', 'VM'], ['tgn', 'd1:gnd1', 'GND'], ['tpw', 'd1:vdd', '3V3'], ['tgn', 'd1:gnd2', 'GND'],
-      ['ten', 'd2:en', 'EN'], ['tad2', 'd2:ms1', '3V3'], ['tad2', 'd2:ms2', 'GND'], ['tua', 'd2:pdn1', 'UART'], ['tgn', 'd2:clk', 'GND'],
-      ['ts2', 'd2:step', 'STEP2'], ['td2', 'd2:dir', 'DIR2'], ['tvm', 'd2:vm', 'VM'], ['tgn', 'd2:gnd1', 'GND'], ['tpw', 'd2:vdd', '3V3'], ['tgn', 'd2:gnd2', 'GND'],
-      ['tvm', 'f1:b', 'VM'], ['tgn', 'psu:n', 'GND'], ['tcap', 'c2:a', 'VM'], ['tcap', 'c2:b', 'GND'], ['tcap', 'c3:a', 'VM'], ['tcap', 'c3:b', 'GND']
-    ],
-    nc: ['d1:pdn2', 'd2:pdn2'],
     rows: [
-      ['ten', 'GPIO13', 'EN of driver 1 AND driver 2', 'en', 'One pin enables both.'],
-      ['tpu', 'R2 10 kΩ', 'EN ↔ 3V3', 'en', 'Both drivers stay off during boot.'],
-      ['tua', 'GPIO4 + (GPIO17 via R1)', 'PDN of driver 1 AND driver 2', 'uart', 'One shared UART wire.'],
-      ['tad1', 'Driver 1: MS1, MS2', 'GND, GND', 'gnd', 'Address 0.'],
-      ['tad2', 'Driver 2: MS1 → 3V3, MS2 → GND', '3V3, GND', 'v33', 'Address 1. This is the only wiring difference.'],
-      ['ts1', 'GPIO25 / GPIO26', 'Driver 1 STEP / DIR', 'step', ''],
-      ['ts2', 'GPIO27 / GPIO14', 'Driver 2 STEP / DIR', 'step', 'Motor 2 direction is flipped in software (motors face each other).'],
-      ['tpw', 'ESP32 3V3', 'VDD of both drivers', 'v33', ''],
-      ['tvm', 'Fuse → VM rail', 'VM of both drivers', 'vm', ''],
-      ['tcap', 'C2, C3', 'One 100 µF per driver', 'vm', 'Each close to its own driver.'],
-      ['tgn', 'All GND', 'GND rail', 'gnd', 'ESP32, both drivers (both GND pins), supply −.']
+      ['wen', 'Driver 1 EN', 'Driver 2 EN', 'en', 'Same EN signal (GPIO13) for both.'],
+      ['wua', 'Driver 1 PDN', 'Driver 2 PDN', 'uart', 'Same UART wire for both; the address tells them apart.'],
+      ['wms1', 'ESP32 3.3V', 'Driver 2 MS1', 'v33', 'MS1 HIGH → address 1. The ONLY wiring difference to driver 1.'],
+      ['wms2', 'ESP32 GND', 'Driver 2 MS2', 'gnd', ''],
+      ['wclk', 'ESP32 GND', 'Driver 2 CLK', 'gnd', 'As in T7 (to confirm).'],
+      ['wst', 'GPIO27', 'Driver 2 STEP', 'step', ''],
+      ['wdi', 'GPIO14', 'Driver 2 DIR', 'dir', 'Direction flipped in software (the motors face each other).'],
+      ['wvdd', 'ESP32 3.3V', 'Driver 2 VDD', 'v33', ''],
+      ['wlg', 'ESP32 GND', 'Driver 2 GND (logic side)', 'gnd', ''],
+      ['wvm', 'Driver 1 VM', 'Driver 2 VM', 'vm', 'Motor power shared from the fuse.'],
+      ['wpg', 'Driver 1 GND (power)', 'Driver 2 GND (power)', 'gnd', 'Motor ground shared.'],
+      ['c3', 'C3 100 µF ≥35 V', 'VM ↔ GND at driver 2', 'vm', 'Each driver gets its own capacitor.'],
+      ['wm', 'A2 A1 B1 B2', 'Motor 2 green, black, red, blue', 'ck', 'Check the pairs first.']
     ],
-    checks: ['All T7 checks, for both drivers.', 'Driver 2 MS1 really goes to 3V3 (otherwise both answer to address 0).', 'Both motors free to turn, nothing clamped yet.'],
-    todo: ['Shared EN, or one EN pin per driver?', 'Confirm both addresses answer over UART before any motion.', 'Current setting for both.'] }
+    checks: ['All T7 checks, for both drivers.', 'Driver 2 MS1 really goes to 3.3 V (otherwise both answer to address 0).', 'Both motors free to turn, nothing clamped yet.'],
+    todo: ['Shared EN, or one EN pin per driver?', 'Confirm both addresses answer over UART before any motion.', 'At Assembly, all GND / 3.3 V moves onto rails (the ESP32 runs out of GND pins).'] }
   ];
 
   // ------------------------------------------------------------------ geometry
@@ -403,32 +399,29 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     return TOP + n * PITCH + (c.sub ? 24 : 10);
   }
   function pinInfo(st, ref) {
-    var s = ref.split(':'), c = st._c[s[0]];
-    var off = c.kind === 'part' ? 12 : TOP;
-    var i;
-    if (c.L) for (i = 0; i < c.L.length; i++) if (c.L[i][0] === s[1]) return { x: c.x - 12, y: c.y + off + i * PITCH, side: 'L', bx: c.x };
-    if (c.R) for (i = 0; i < c.R.length; i++) if (c.R[i][0] === s[1]) return { x: c.x + c.w + 12, y: c.y + off + i * PITCH, side: 'R', bx: c.x + c.w };
+    var s = ref.split(':'), c = st._c[s[0]], off = c.kind === 'part' ? 12 : TOP, i;
+    if (!c) throw new Error('comp ' + ref);
+    if (c.L) for (i = 0; i < c.L.length; i++) if (c.L[i][0] === s[1]) return { x: c.x - 12, y: c.y + off + i * PITCH, side: 'L' };
+    if (c.R) for (i = 0; i < c.R.length; i++) if (c.R[i][0] === s[1]) return { x: c.x + c.w + 12, y: c.y + off + i * PITCH, side: 'R' };
     throw new Error('pin ' + ref);
   }
-  function pt(st, p) { return Array.isArray(p) ? { x: p[0], y: p[1] } : pinInfo(st, p); }
+  function pt(st, p) { return Array.isArray(p) ? { x: p[0], y: p[1], raw: true } : pinInfo(st, p); }
 
   // ------------------------------------------------------------------ drawing
   function drawComp(svg, c) {
     var h = compH(c), g = el('g', {});
     if (c.kind === 'part') {
       g.appendChild(el('rect', { 'class': 'bodyb', x: c.x, y: c.y, width: c.w, height: h, rx: 4 }));
-      g.appendChild(el('text', { 'class': 'pl', x: c.x + c.w / 2, y: c.y - 6, 'text-anchor': 'middle' }, c.title));
+      g.appendChild(el('text', { 'class': 'pl', x: c.x + c.w / 2, y: c.tin ? c.y + 16 : c.ttop ? c.y - 6 : c.y + h + 15, 'text-anchor': 'middle' }, c.title));
       g.appendChild(el('line', { 'class': 'stub', x1: c.x - 12, y1: c.y + 12, x2: c.x, y2: c.y + 12 }));
       g.appendChild(el('line', { 'class': 'stub', x1: c.x + c.w, y1: c.y + 12, x2: c.x + c.w + 12, y2: c.y + 12 }));
-      if (c.L[0][1]) g.appendChild(el('text', { 'class': 'pn', x: c.x + 6, y: c.y + 16 }, c.L[0][1]));
-      if (c.R[0][1]) g.appendChild(el('text', { 'class': 'pn', x: c.x + c.w - 6, y: c.y + 16, 'text-anchor': 'end' }, c.R[0][1]));
       svg.appendChild(g); return;
     }
     var dip = c.kind === 'dip';
     g.appendChild(el('rect', { 'class': dip ? 'bodyd' : 'bodyb', x: c.x, y: c.y, width: c.w, height: h, rx: dip ? 3 : 8 }));
     if (dip) {
       g.appendChild(el('path', { d: 'M' + (c.x + c.w / 2 - 10) + ' ' + c.y + ' a10 10 0 0 0 20 0', fill: 'var(--bg)', stroke: 'currentColor', 'stroke-width': 1.3 }));
-      g.appendChild(el('text', { 'class': 'sub', x: c.x + c.w / 2, y: c.y + h - 8, 'text-anchor': 'middle' }, c.title));
+      g.appendChild(el('text', { 'class': 'sub', x: c.x + c.w / 2, y: c.y + h - 8, 'text-anchor': 'middle' }, c.title + ' (notch = top)'));
     } else {
       g.appendChild(el('text', { 'class': 'ttl', x: c.x + 10, y: c.y + 21 }, c.title));
       if (c.sub) g.appendChild(el('text', { 'class': 'sub', x: c.x + 10, y: c.y + h - 9 }, c.sub));
@@ -446,11 +439,39 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     svg.appendChild(g);
   }
 
-  function segs(points) {
-    var s = [];
-    for (var i = 0; i < points.length - 1; i++) s.push([points[i], points[i + 1]]);
-    return s;
+  function drawBar(svg, b) {
+    var col = NET[b.net][0], g = el('g', { 'class': 'bar', 'data-id': b.id, style: 'cursor:pointer' });
+    g.appendChild(el('rect', { x: b.x1, y: b.y - 6, width: b.x2 - b.x1, height: 12, rx: 3, fill: col, opacity: .22, stroke: col, 'stroke-width': 1.4 }));
+    g.appendChild(el('line', { x1: b.x1 + 3, y1: b.y, x2: b.x2 - 3, y2: b.y, stroke: col, 'stroke-width': 3 }));
+    var tx = b.x2 - 8, ty = b.y > 200 ? b.y + 20 : b.y - 10;
+    g.appendChild(el('text', { 'class': 'barl', x: tx, y: ty, 'text-anchor': 'end', fill: col }, b.label));
+    svg.appendChild(g);
   }
+
+  function drawVPart(svg, v) {
+    var mid = (v.y1 + v.y2) / 2, g = el('g', { 'class': 'vp', 'data-id': v.id, style: 'cursor:pointer' });
+    var s = { stroke: 'currentColor', 'stroke-width': 1.6 };
+    if (v.kind === 'res') {
+      g.appendChild(el('line', Object.assign({ x1: v.x, y1: v.y1, x2: v.x, y2: mid - 12 }, s)));
+      g.appendChild(el('rect', { x: v.x - 6, y: mid - 12, width: 12, height: 24, rx: 2, fill: 'var(--surface)', stroke: 'currentColor', 'stroke-width': 1.6 }));
+      g.appendChild(el('line', Object.assign({ x1: v.x, y1: mid + 12, x2: v.x, y2: v.y2 }, s)));
+    } else {
+      g.appendChild(el('line', Object.assign({ x1: v.x, y1: v.y1, x2: v.x, y2: mid - 3 }, s)));
+      g.appendChild(el('line', { x1: v.x - 8, y1: mid - 3, x2: v.x + 8, y2: mid - 3, stroke: 'currentColor', 'stroke-width': 2.4 }));
+      g.appendChild(el('line', { x1: v.x - 8, y1: mid + 3, x2: v.x + 8, y2: mid + 3, stroke: 'currentColor', 'stroke-width': 2.4 }));
+      g.appendChild(el('line', Object.assign({ x1: v.x, y1: mid + 3, x2: v.x, y2: v.y2 }, s)));
+      if (v.polar) g.appendChild(el('text', { 'class': 'pn', x: v.x + 11, y: mid - 2 }, '+'));
+    }
+    var lx = v.lx !== undefined ? v.lx : v.side === 'L' ? v.x - 12 : v.side === 'R' ? v.x + 12 : v.x;
+    var ly = v.ly !== undefined ? v.ly : v.side === 'T' ? v.y1 - 7 : mid + 4;
+    var anc = v.lx !== undefined ? 'start' : v.side === 'L' ? 'end' : v.side === 'R' ? 'start' : 'middle';
+    g.appendChild(el('text', { 'class': 'pl', x: lx, y: ly, 'text-anchor': anc }, v.label));
+    g.appendChild(el('circle', { 'class': 'dot', cx: v.x, cy: v.y1, r: 3.6, fill: 'currentColor' }));
+    g.appendChild(el('circle', { 'class': 'dot', cx: v.x, cy: v.y2, r: 3.6, fill: 'currentColor' }));
+    svg.appendChild(g);
+  }
+
+  function segs(points) { var s = []; for (var i = 0; i < points.length - 1; i++) s.push([points[i], points[i + 1]]); return s; }
   function pathWithHops(points, others) {
     var d = 'M' + points[0].x + ' ' + points[0].y;
     for (var i = 0; i < points.length - 1; i++) {
@@ -475,41 +496,31 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   function drawStage(st, svg) {
     st._c = {};
     st.comps.forEach(function (c) { st._c[c.id] = c; });
+    (st.bars || []).forEach(function (b) { drawBar(svg, b); });
     st.comps.forEach(function (c) { drawComp(svg, c); });
     var built = (st.wires || []).map(function (w) {
       var A = pt(st, w.a), B = pt(st, w.b), pts = [A];
       if (w.via) w.via.forEach(function (v) { pts.push({ x: v[0], y: v[1] }); });
       pts.push(B);
-      return { w: w, pts: pts };
+      return { w: w, pts: pts, A: A, B: B };
     });
+    var dots = [];
     built.forEach(function (bw, k) {
       var others = [];
       built.forEach(function (o, j) { if (j !== k && o.w.net !== bw.w.net) others = others.concat(segs(o.pts)); });
-      var d = pathWithHops(bw.pts, others);
+      var d = pathWithHops(bw.pts, others), col = NET[bw.w.net][0];
       var g = el('g', { 'data-id': bw.w.id });
-      var p = el('path', { 'class': 'wire ' + (bw.w.cls || ''), d: d, stroke: NET[bw.w.net][0], 'data-id': bw.w.id });
-      g.appendChild(el('path', { 'class': 'hit', d: d, 'data-id': bw.w.id }));
-      g.appendChild(p);
+      g.appendChild(el('path', { 'class': 'hit', d: d }));
+      g.appendChild(el('path', { 'class': 'wire ' + (bw.w.cls || ''), d: d, stroke: col, 'data-id': bw.w.id }));
       svg.appendChild(g);
+      if (bw.A.raw && !bw.w.nodotA && !bw.w.nodot) dots.push([bw.A.x, bw.A.y, col, bw.w.id]);
+      if (bw.B.raw && !bw.w.nodot) dots.push([bw.B.x, bw.B.y, col, bw.w.id]);
     });
-    (st.dots || []).forEach(function (q) { svg.appendChild(el('circle', { 'class': 'dot', cx: q[0], cy: q[1], r: 3.6 })); });
-    (st.tags || []).forEach(function (t) {
-      var P = pinInfo(st, t[1]), name = t[2], net = TAGNET[name], col = NET[net][0];
-      var w = 12 + name.length * 7.2, dir = P.side === 'L' ? -1 : 1;
-      var x0 = P.x, x1 = P.x + dir * 14, rx = dir > 0 ? x1 : x1 - w;
-      var g = el('g', { 'class': 'tag', 'data-id': t[0], style: 'cursor:pointer' });
-      g.appendChild(el('line', { x1: x0, y1: P.y, x2: x1, y2: P.y, stroke: col, 'stroke-width': 2.6, 'class': 'wire', 'data-id': t[0] }));
-      g.appendChild(el('rect', { x: rx, y: P.y - 8, width: w, height: 16, rx: 8, fill: 'var(--surface)', stroke: col, 'stroke-width': 1.6 }));
-      g.appendChild(el('text', { 'class': 'tagt', x: rx + w / 2, y: P.y + 4, 'text-anchor': 'middle' }, name));
-      svg.appendChild(g);
-    });
-    (st.nc || []).forEach(function (r) {
-      var P = pinInfo(st, r), s = 4;
-      svg.appendChild(el('path', { 'class': 'nc', d: 'M' + (P.x - s) + ' ' + (P.y - s) + 'L' + (P.x + s) + ' ' + (P.y + s) + 'M' + (P.x - s) + ' ' + (P.y + s) + 'L' + (P.x + s) + ' ' + (P.y - s) }));
-    });
+    (st.vparts || []).forEach(function (v) { drawVPart(svg, v); });
+    dots.forEach(function (q) { svg.appendChild(el('circle', { 'class': 'dot wire', cx: q[0], cy: q[1], r: 3.8, fill: q[2], 'data-id': q[3] })); });
   }
 
-  // ------------------------------------------------------------------ overview (hand placed blocks)
+  // ------------------------------------------------------------------ overview
   function drawOverview(svg) {
     function box(x, y, w, h, t, s, dashed) {
       svg.appendChild(el('rect', { 'class': dashed ? 'blkd' : 'blk', x: x, y: y, width: w, height: h, rx: 8 }));
@@ -517,36 +528,32 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       if (s) svg.appendChild(el('text', { 'class': 'sub', x: x + w / 2, y: y + h / 2 + 15, 'text-anchor': 'middle' }, s));
     }
     function line(d, net, cls) { svg.appendChild(el('path', { 'class': 'wire ' + (cls || ''), d: d, stroke: NET[net][0] })); }
-    function lbl(x, y, t, anchor) { svg.appendChild(el('text', { 'class': 'wl', x: x, y: y, 'text-anchor': anchor || 'middle' }, t)); }
-    box(30, 30, 140, 50, 'PC', 'USB, tests only');
-    box(330, 140, 200, 120, 'ESP32', 'Freenove WROOM-32E');
-    box(30, 330, 150, 56, 'AMT102-V', 'encoder, 5 V');
-    box(250, 330, 150, 56, '74LVC245', '5 V → 3.3 V');
-    box(640, 110, 150, 56, 'TMC2209 #1', 'addr 0');
-    box(640, 210, 150, 56, 'TMC2209 #2', 'addr 1');
-    box(830, 110, 60, 56, 'M1', '');
-    box(830, 210, 60, 56, 'M2', '');
-    box(640, 330, 150, 56, 'Supply 12–24 V', 'via fuse F1');
-    box(330, 30, 200, 50, 'Buck 5 V', 'final ESP32 power (later)', true);
-    box(600, 20, 290, 50, 'Reserved: E-stop · touchscreen · M3', '', true);
-    line('M170 55 H250 V200 H328', 'usb', 'thick'); lbl(210, 48, 'USB: 5 V + data');
-    line('M180 350 H248', 'encA'); line('M180 362 H248', 'encB'); line('M180 374 H248', 'encX'); lbl(214, 322, 'A B X (5 V)');
-    line('M400 350 H440 V262', 'encA'); line('M400 362 H452 V262', 'encB'); line('M400 374 H464 V262', 'encX'); lbl(520, 300, 'GPIO34 / 35 / 39 (3.3 V)', 'start');
-    line('M360 262 V300 H105 V328', 'v5', 'dash'); lbl(230, 294, 'ESP32 5V → encoder');
-    line('M530 160 H600 V138 H638', 'uart'); line('M530 160 H600 V238 H638', 'uart'); lbl(560, 152, 'UART', 'start');
-    line('M530 190 H612 V150 H638', 'step'); line('M530 190 H612 V250 H638', 'step'); lbl(545, 205, 'STEP/DIR', 'start');
-    line('M530 230 H588 V126 H638', 'en'); line('M588 230 V226 H638', 'en'); lbl(545, 245, 'EN (shared)', 'start');
-    line('M790 138 H828', 'ck'); line('M790 238 H828', 'ck');
-    line('M715 328 V268', 'vm'); line('M760 328 V300 H800 V150 H790', 'vm'); lbl(730, 312, 'VM', 'start');
-    line('M430 82 V138', 'v5', 'dash');
+    function lbl(x, y, t) { svg.appendChild(el('text', { 'class': 'wl', x: x, y: y, 'text-anchor': 'middle' }, t)); }
+    box(20, 150, 140, 70, 'AMT102-V', 'encoder (5 V)');
+    box(210, 150, 140, 70, '74LVC245', '5 V → 3.3 V');
+    box(400, 130, 170, 110, 'ESP32', 'Freenove WROOM-32E');
+    box(620, 130, 150, 110, 'TMC2209 ×2', 'drivers');
+    box(820, 130, 100, 110, 'Motors', 'M1 + M2');
+    box(400, 20, 170, 50, 'PC', 'USB (tests only)');
+    box(620, 20, 150, 50, 'Supply 12–24 V', 'through fuse F1');
+    box(210, 20, 140, 50, 'Buck 5 V', 'final ESP32 power', true);
+    box(400, 280, 370, 40, 'Reserved: E-stop · touchscreen · motor 3', '', true);
+    line('M160 172 H208', 'encA'); line('M160 185 H208', 'encB'); line('M160 198 H208', 'encX'); lbl(184, 162, 'A B X');
+    line('M350 172 H398', 'encA'); line('M350 185 H398', 'encB'); line('M350 198 H398', 'encX'); lbl(374, 162, '3.3 V');
+    line('M485 70 V128', 'usb', 'thick');
+    line('M695 70 V128', 'vm'); lbl(720, 104, 'VM');
+    line('M570 152 H618', 'uart'); lbl(594, 146, 'UART');
+    line('M570 176 H618', 'step'); lbl(594, 170, 'STEP');
+    line('M570 200 H618', 'dir'); lbl(594, 194, 'DIR');
+    line('M570 224 H618', 'en'); lbl(594, 218, 'EN');
+    line('M770 165 H818', 'ck'); line('M770 205 H818', 'ck'); lbl(794, 158, 'coils');
+    line('M280 70 V100 H440 V128', 'v5', 'dash'); lbl(360, 94, 'later');
+    line('M430 240 V262 H90 V222', 'v5', 'dash'); lbl(260, 256, 'ESP32 5V → encoder');
   }
 
   // ------------------------------------------------------------------ build page
   var tabs = document.getElementById('tabs'), panels = document.getElementById('panels');
-  function colorChip(net) {
-    var n = NET[net];
-    return '<span class="chip"><i class="sw" style="border-color:' + n[0] + '"></i>' + n[1] + '</span>';
-  }
+  function colorChip(net) { var n = NET[net]; return '<span class="chip"><i class="sw" style="border-color:' + n[0] + '"></i>' + n[1] + '</span>'; }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 
   STAGES.forEach(function (st, idx) {
@@ -554,11 +561,10 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     b.type = 'button'; b.setAttribute('role', 'tab'); b.id = 'tab-' + st.id; b.textContent = st.tab;
     b.setAttribute('aria-controls', 'panel-' + st.id); b.setAttribute('aria-selected', idx === 1 ? 'true' : 'false');
     tabs.appendChild(b);
-
     var p = document.createElement('section');
     p.className = 'panel'; p.id = 'panel-' + st.id; p.setAttribute('role', 'tabpanel'); p.setAttribute('aria-labelledby', b.id);
     p.hidden = idx !== 1;
-    var vb = st.overview ? [920, 410] : st.vb;
+    var vb = st.overview ? [940, 340] : st.vb;
     var html = '<div class="phead"><h2>' + esc(st.title) + '</h2><span class="pill ' + (st.status === 'go' ? 'go' : 'draft') + '">' + esc(st.statusText) + '</span></div>';
     html += '<p>' + esc(st.purpose) + '</p>';
     html += '<div class="diagram"><svg viewBox="0 0 ' + vb[0] + ' ' + vb[1] + '" role="img" aria-label="' + esc(st.title) + ' wiring diagram"></svg></div>';
@@ -573,17 +579,13 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     html += '</div></div>';
     p.innerHTML = html;
     panels.appendChild(p);
-
     var svg = p.querySelector('svg');
     if (st.overview) drawOverview(svg); else drawStage(st, svg);
 
     function light(id, on) {
       if (!id) return;
       svg.classList.toggle('dim', on);
-      svg.querySelectorAll('[data-id="' + id + '"]').forEach(function (e) {
-        e.classList.toggle('hl', on);
-        if (e.classList.contains('tag')) e.classList.toggle('hl', on);
-      });
+      svg.querySelectorAll('[data-id="' + id + '"]').forEach(function (e) { e.classList.toggle('hl', on); });
       p.querySelectorAll('tr.row[data-id="' + id + '"]').forEach(function (r) { r.classList.toggle('hl', on); });
     }
     p.querySelectorAll('tr.row').forEach(function (r) {
