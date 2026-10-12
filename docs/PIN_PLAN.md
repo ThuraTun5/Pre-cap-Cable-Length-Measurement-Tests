@@ -35,3 +35,14 @@ Source: [Freenove_ESP32_WROOM_Board_Pinout.pdf](https://github.com/Freenove/Free
 | **Reserved:** E-stop input | 36 (VP) | later | external pull-up needed |
 | **Reserved:** Touchscreen (SPI) | 18, 19, 23, 5, 21, 22 | later | VSPI pins kept free |
 | Spare | 0, 12, 15 | — | strapping, use with care |
+
+## Draft wiring details (see the interactive [wiring atlas](wiring/index.html))
+| Item | Draft connection |
+|---|---|
+| 74LVC245 channels | Encoder B → A1 (pin 2) → B1 (pin 18) → GPIO35 · Encoder A → A2 (pin 3) → B2 (pin 17) → GPIO34 · Encoder X → A3 (pin 4) → B3 (pin 16) → GPIO39. Order chosen so no wires cross. |
+| 74LVC245 control | VCC (20) and DIR (1) → 3V3 · GND (10) and OE (19) → GND · unused A4–A8 (5–9) → GND · 100 nF across pins 20/19 |
+| Encoder power | ESP32 5V pin (USB powered, encoder draws about 6 mA) |
+| TMC2209 UART | GPIO4 (RX) directly to PDN; GPIO17 (TX) through R1 1 kΩ to the same PDN node (check the module's two PDN pins in T7) |
+| TMC2209 addresses | Driver 1: MS1 = GND, MS2 = GND → 0 · Driver 2: MS1 = 3V3, MS2 = GND → 1 |
+| EN | GPIO13 → EN of both drivers, plus R2 10 kΩ pull-up to 3V3 (drivers OFF during boot) |
+| Motor coils | A1 black (A+), A2 green (A−), B1 red (B+), B2 blue (B−). Check the pairs with a meter first |

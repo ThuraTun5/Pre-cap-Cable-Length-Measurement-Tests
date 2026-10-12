@@ -12,7 +12,7 @@ the ESP32.
 ## Folder layout
 | Folder | Contents |
 |---|---|
-| `docs/` | [Safety rules](docs/SAFETY.md), [plan & status](docs/PROJECT_PLAN.md), [pin plan](docs/PIN_PLAN.md), [sources](docs/SOURCES.md) |
+| `docs/` | [Safety rules](docs/SAFETY.md), [plan & status](docs/PROJECT_PLAN.md), [pin plan](docs/PIN_PLAN.md), [wiring atlas](docs/wiring/index.html), [sources](docs/SOURCES.md) |
 | `tests/` | One small PlatformIO project per component test (T01, T02, ...) |
 | `learn/` | Study pages for each test |
 | `firmware/` | The final assembled program (Assembly phase) |

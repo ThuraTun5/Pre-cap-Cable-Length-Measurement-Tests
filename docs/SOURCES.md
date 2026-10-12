@@ -24,6 +24,19 @@ community discussions second.
   can translate 5 V → 3.3 V: <https://nexperia.com/group/74lvc245a-74lvch245a>
   (TI SN74LVC245A datasheet to be checked in T3.)
 
+## Wiring atlas (docs/wiring) — draft wiring for T2–T8
+- Same Sky/CUI AMT10 datasheet: connector order B, 5V, A, X, G; 3.6–5.5 V; CMOS outputs, 2 mA;
+  output high ≥ VDD − 0.8 V; DIP switches all OFF = 2048 PPR; stepper magnets can disturb the index:
+  <https://cdn.automationdirect.com/static/manuals/surestepmanual/amt10datasheet.pdf>
+- TI SN74LVC245A layout guidance (unused inputs must not float; OE pull-up advice):
+  <https://www.ti.com/document-viewer/SN74LVC245A/datasheet/layout>
+- TMC2209 pin functions (EN GND = on; MS1/MS2 = UART address bits, pulled down; VIO 3.3–5 V):
+  <https://learn.watterott.com/silentstepstick/pinconfig/tmc2209/>
+- TMC2209 single-wire UART with ESP32 (RX direct, TX via 1 kΩ; the module may already have a resistor):
+  <https://forum.arduino.cc/t/tmc2209-and-esp32-uart-wiring/1362812>,
+  <https://klipper.discourse.group/t/tmc2209-v1-3-confusion-and-more-confusion/16896>,
+  <https://github.com/bigtreetech/BIGTREETECH-TMC2209-V1.2/issues/16>
+
 ## Fuse (shopping)
 - Inline 5×20 mm fuse holders + glass fuse assortment (0.1–20 A, incl. 1 A, 2 A, 3 A):
   <https://www.amazon.co.jp/dp/B098JVN9V1>
