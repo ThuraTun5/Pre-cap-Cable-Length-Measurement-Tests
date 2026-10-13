@@ -100,7 +100,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   <h1>Cable Jig Wiring Atlas</h1>
   <p>One wiring drawing per test. Every connection is drawn as a real wire from pin to pin, or from a pin to a breadboard rail. <b>Hover or tap a row</b> in a wire list to light up that wire. Hover a wire to find its row.</p>
 
-  <div class="banner"><b>T1, T2 and T3 are ready to wire.</b> T4–T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
+  <div class="banner"><b>T1–T4 are ready to wire.</b> T7–T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
 
   <div class="legend" aria-label="Wire colour legend">
     <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black)</span>
@@ -327,7 +327,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     checks: ['USB unplugged while wiring.', 'Pin 20 to the ESP32 3V3 pin, NOT 5V.', 'No B pin goes to 5V. Only A1–A3 may touch the 5V rail.', 'Pins 11–15 (B4–B8) stay empty.'],
     todo: [] },
 
-  { id: 't4', tab: 'T4 Encoder', title: 'T4 · AMT102-V encoder → ESP32', status: 'draft', statusText: 'Draft',
+  { id: 't4', tab: 'T4 Encoder', title: 'T4 · AMT102-V encoder → ESP32', status: 'go', statusText: 'Ready · wire now',
     purpose: 'Encoder signals (5 V) go through the 74LVC245 to the pins 34 / 35 / 32 (3.3 V). The encoder takes 5 V from the ESP32 5V pin. Chip power comes straight from the ESP32 3V3 pin.', vb: [900, 430],
     bars: [{ id: 'rg', net: 'gnd', x1: 170, x2: 690, y: 402, label: 'GND rail' }],
     comps: [
@@ -370,8 +370,8 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['c1', 'C1 100 nF', 'VCC wire ↔ OE wire', 'v33', 'Across pins 20 and 19, right at the chip.'],
       ['wcomb', 'Pin 10 (GND) + pins 5–9', 'GND rail', 'gnd', 'Chip ground + unused inputs A4–A8.']
     ],
-    checks: ['Read the B / 5V / A / X / G labels printed on the encoder before connecting.', 'No encoder wire goes straight to the ESP32.', 'Encoder DIP switches all OFF = 2048 PPR.', 'Tape the encoder cable down.'],
-    todo: ['Use the index X for zeroing? (options in T5).', 'The datasheet warns that stepper magnets can disturb the index pulse. Check the distance in the jig.'] },
+    checks: ['Read the B / 5V / A / X / G labels printed on the encoder before connecting.', 'Encoder 5V and G not swapped.', 'No encoder signal wire goes straight to the ESP32.', 'Encoder DIP switches all OFF = 2048 PPR.', 'No 100 nF yet? Use the 100 µF across legs 20/19 (stripe → 19) for now.', 'Tape the encoder cable down.'],
+    todo: ['Index X for zeroing: options come in T5.', 'The datasheet warns that stepper magnets can disturb the index pulse.'] },
 
   { id: 't7', tab: 'T7 Driver', title: 'T7 · One TMC2209 + one motor', status: 'draft', statusText: 'Draft · most risk',
     purpose: 'One driver over UART. First read the chip ID with the motor not moving, then spin slowly. No wire crosses another.', vb: [930, 490],

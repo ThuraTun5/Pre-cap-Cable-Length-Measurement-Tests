@@ -14,8 +14,8 @@ safety) → 3. Build (one small PlatformIO project) → 4. Verify (compile, logi
 | T0 | Setup: folders, git, PlatformIO, safety rules | Delivered |
 | T1 | ESP32 board bring-up (USB only) | Signed off by user 2026-10-13 (no test results reported) |
 | T2 | Buck converter set to 5.0 V + ESP32 as load | Signed off by user 2026-10-13 (no test results reported) |
-| T3 | 74LVC245 level shifter (meter + ESP32 reads 3 channels) | Delivered — user testing now |
-| T4 | AMT102-V encoder → counts, degrees | Not started |
+| T3 | 74LVC245 level shifter (meter + ESP32 reads 3 channels) | Passed 2026-10-13: B1 = 3.3 V with 5 V in; ESP32 read HIGH/LOW on GPIO35 (one-channel check) |
+| T4 | AMT102-V encoder → counts, degrees, index check (8192/turn) | Delivered (code compiled, study page ready) — waiting for your hardware test |
 | T5 | Encoder → mm (GT2 20T, 40 mm/turn) + first calibration | Not started |
 | T6 | Wi-Fi link + data format document | Not started |
 | T7 | One TMC2209 + one motor (UART, current limit) | Not started |

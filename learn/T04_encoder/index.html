@@ -1,0 +1,440 @@
+<title>T04 Encoder Counting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: bench notebook - sticky contents rail (desktop), one reading column, copper accent; same family as the earlier test pages */
+:root{
+  --bg:#F4F6F4; --surface:#FFFFFF; --sunk:#E8ECE9; --fg:#1C2321; --muted:#56615D; --line:#CBD3CF;
+  --copper:#A8551F; --copper-soft:#F6E6DA; --signal:#1F5FA8; --signal-soft:#E1ECF8;
+  --ok:#2E7D4F; --ok-soft:#E0F2E7; --bad:#B23A32; --bad-soft:#F9E3E1; --warn:#8C6200; --warn-soft:#FBF0D3;
+  --v12:#E06A00; --v5:#D7322C; --gnd:#1F2421; --ind:#1F5FA8;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.65;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-inline:20px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:16px;padding-inline:16px}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:14px;line-height:1.4}
+nav.toc .lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-size:13px;margin-bottom:8px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:4px 10px;color:var(--muted);text-decoration:none;margin-left:-2px;border-left:2px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--copper);border-left-color:var(--copper)}
+@media (max-width:900px){nav.toc{position:static}nav.toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border-left:0}nav.toc a{border:1px solid var(--line);border-radius:6px;margin:0}}
+main{min-width:0;max-width:760px}
+header.hero{padding-bottom:18px;border-bottom:2px solid var(--copper);margin-bottom:8px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--copper);font-size:14px;font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,48px);line-height:1.05;margin:6px 0 12px;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.15;margin:56px 0 10px;text-wrap:balance;scroll-margin-top:16px}
+h2 .tag{font-size:15px;font-weight:600;color:var(--copper);letter-spacing:.06em;display:block;text-transform:uppercase}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;margin:26px 0 6px}
+p{margin:0 0 12px}
+.goal{font-size:19px}
+.assume{font-size:14px;color:var(--muted);background:var(--sunk);border-radius:6px;padding:8px 12px;display:inline-block}
+.why{background:var(--signal-soft);border-left:4px solid var(--signal);padding:10px 14px;margin:12px 0}
+.one{background:var(--copper-soft);border-left:4px solid var(--copper);padding:10px 14px;margin:16px 0;font-weight:700}
+.details{border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;font-size:15.5px}
+.details b.h{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.extra{display:inline-block;font-size:12px;font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 7px;vertical-align:middle;margin-left:6px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--sunk);padding:1px 5px;border-radius:4px}
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+figure{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure .sc{overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--fg)}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.codebox{position:relative;margin:14px 0}
+pre{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:13.5px;line-height:1.55;margin:0}
+.copy{position:absolute;top:8px;right:8px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.copy:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.step{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;margin:14px 0}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--copper);color:var(--surface);display:grid;place-items:center;font-family:var(--f-display);font-weight:700}
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0}
+.sim label{font-size:15px;display:block;margin:8px 0 2px}
+.sim input[type=range]{width:100%;accent-color:var(--copper)}
+.readout{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.readout div{flex:1 1 150px;background:var(--sunk);border-radius:8px;padding:8px 12px;font-size:14px}
+.readout b{display:block;font-family:var(--f-mono);font-size:19px;font-variant-numeric:tabular-nums}
+.readout .bad b{color:var(--bad)}
+.traps li{margin-bottom:10px}
+.quiz .q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0}
+.quiz .qt{font-weight:700;margin-bottom:8px}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left;font:inherit;font-size:15.5px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.opts button:hover{border-color:var(--copper)}
+.opts button.right{background:var(--ok-soft);border-color:var(--ok)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.numrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.numrow input{font:inherit;width:150px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.btn{font:inherit;font-size:15px;background:var(--copper);color:var(--surface);border:0;border-radius:8px;padding:7px 16px;cursor:pointer}
+.fb{margin-top:10px;font-size:15px;padding:8px 12px;border-radius:8px}
+.fb.ok{background:var(--ok-soft)}.fb.no{background:var(--bad-soft)}
+.err{color:var(--bad);font-size:13px}
+.score{font-family:var(--f-display);font-size:22px;font-weight:600}
+.check label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+.check input{margin-top:6px;accent-color:var(--copper);width:18px;height:18px;flex:none}
+svg .t{font-family:var(--f-body);font-size:12px;fill:currentColor}
+svg .tb{font-family:var(--f-display);font-size:14px;font-weight:600;fill:currentColor}
+svg .tm{font-family:var(--f-mono);font-size:11px;fill:currentColor}
+svg .box{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
+svg .boxc{fill:var(--copper-soft);stroke:var(--copper);stroke-width:1.6}
+svg .ln{stroke:currentColor;stroke-width:1.4;fill:none}
+svg .w12{stroke:var(--v12);stroke-width:2.6;fill:none}
+svg .w5{stroke:var(--v5);stroke-width:2.6;fill:none}
+svg .wg{stroke:var(--gnd);stroke-width:2.2;fill:none}
+svg .wi{stroke:var(--ind);stroke-width:2.6;fill:none}
+svg .wc{stroke:var(--copper);stroke-width:2;fill:none}
+svg .grid{stroke:var(--line);stroke-width:1}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+<style>
+:root{ --chA:#1D63D6; --chB:#0E9488; --chX:#8B5A2B; }
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){ --chA:#74A9FF; --chB:#4FD6C6; --chX:#D19A62; }}
+:root[data-theme="dark"]{ --chA:#74A9FF; --chB:#4FD6C6; --chX:#D19A62; }
+svg .wa{stroke:var(--chA);stroke-width:2.6;fill:none}
+svg .wb{stroke:var(--chB);stroke-width:2.6;fill:none}
+svg .wx{stroke:var(--chX);stroke-width:2.6;fill:none}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.btn2{font:inherit;font-size:15px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 14px;cursor:pointer}
+.btn2:hover{border-color:var(--copper)}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">On this page</div>
+  <ol>
+    <li><a href="#map">Map</a></li>
+    <li><a href="#words">Key words</a></li>
+    <li><a href="#quad">1 · A and B signals</a></li>
+    <li><a href="#x4">2 · Counting ×4</a></li>
+    <li><a href="#pcnt">3 · Hardware counter</a></li>
+    <li><a href="#filter">4 · Glitch filter</a></li>
+    <li><a href="#overflow">5 · 16-bit overflow</a></li>
+    <li><a href="#index">6 · Index check</a></li>
+    <li><a href="#print">7 · Printing</a></li>
+    <li><a href="#example">Worked example</a></li>
+    <li><a href="#traps">Traps</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+    <li><a href="#checklist">Checklist</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Capstone 2026PUZ1 · Test T04 of 10</div>
+  <h1>Encoder counting</h1>
+  <p class="goal">After this page you can explain how two square waves tell both distance and direction, why one turn is 8192 counts, why the ESP32 counts in hardware, and how the index pulse proves that no counts are lost.</p>
+  <p class="assume">I assumed: you did T01–T03. Goal = understand T04 while you test it. Simple words first, details in the boxes.</p>
+</header>
+
+<h2 id="map"><span class="tag">Overview</span>Map of this test</h2>
+<figure><div class="sc">
+<svg viewBox="0 0 720 200" role="img" aria-label="The encoder sends A, B and X signals through the level shifter to the ESP32. A and B go into the hardware pulse counter, X goes to an interrupt. The program turns counts into degrees and checks 8192 counts per turn.">
+  <defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="currentColor"/></marker></defs>
+  <rect class="box" x="10" y="50" width="120" height="90" rx="6"/><text class="tb" x="70" y="80" text-anchor="middle">AMT102</text><text class="t" x="70" y="100" text-anchor="middle">2048 pulses</text><text class="t" x="70" y="116" text-anchor="middle">per turn</text>
+  <rect class="box" x="180" y="50" width="110" height="90" rx="6"/><text class="tb" x="235" y="90" text-anchor="middle">74LVC245</text><text class="t" x="235" y="108" text-anchor="middle">5 V → 3.3 V</text>
+  <rect class="boxc" x="350" y="30" width="170" height="60" rx="6"/><text class="tb" x="435" y="56" text-anchor="middle">Pulse counter</text><text class="t" x="435" y="74" text-anchor="middle">hardware, counts A + B</text>
+  <rect class="box" x="350" y="110" width="170" height="50" rx="6"/><text class="tb" x="435" y="132" text-anchor="middle">Interrupt</text><text class="t" x="435" y="148" text-anchor="middle">index X, once per turn</text>
+  <rect class="box" x="570" y="50" width="140" height="90" rx="6"/><text class="tb" x="640" y="80" text-anchor="middle">Program</text><text class="t" x="640" y="100" text-anchor="middle">count → degrees</text><text class="t" x="640" y="116" text-anchor="middle">8192 per turn?</text>
+  <line class="wa" x1="130" y1="78" x2="178" y2="78"/><line class="wb" x1="130" y1="94" x2="178" y2="94"/><line class="wx" x1="130" y1="110" x2="178" y2="110"/>
+  <path class="wa" d="M290 78 H330 V56 H348" marker-end="url(#m1)"/><path class="wb" d="M290 94 H338 V66 H348" marker-end="url(#m1)"/>
+  <path class="wx" d="M290 110 H330 V135 H348" marker-end="url(#m1)"/>
+  <line class="ln" x1="520" y1="60" x2="568" y2="80" marker-end="url(#m1)"/><line class="ln" x1="520" y1="135" x2="568" y2="112" marker-end="url(#m1)"/>
+  <text class="t" x="435" y="190" text-anchor="middle" style="fill:var(--copper)">hard idea: the order of A and B edges gives the direction</text>
+</svg></div>
+<figcaption>A and B are counted by a hardware block inside the ESP32. The index X arrives once per turn and is used to check the count.</figcaption></figure>
+
+<h2 id="words"><span class="tag">Vocabulary</span>Key words</h2>
+<div class="tbl"><table>
+<thead><tr><th>Word</th><th>Simple meaning</th><th>Symbol / unit</th></tr></thead>
+<tbody>
+<tr><td>Incremental encoder</td><td>A sensor that sends pulses while it turns. It tells you <i>how much</i> it moved, not where it is after power-on.</td><td>—</td></tr>
+<tr><td>Quadrature</td><td>Two square waves (A and B) shifted by a quarter period (90°).</td><td>A, B</td></tr>
+<tr><td>PPR</td><td>Pulses per revolution on one channel. Set by the DIP switches.</td><td>2048</td></tr>
+<tr><td>CPR / counts</td><td>Counts per revolution when every edge of A and B is counted: PPR × 4.</td><td>8192</td></tr>
+<tr><td>Edge</td><td>The moment a signal changes: LOW→HIGH (rising) or HIGH→LOW (falling).</td><td>—</td></tr>
+<tr><td>Index (X)</td><td>One extra pulse per turn, always at the same angle.</td><td>X</td></tr>
+<tr><td>PCNT</td><td>Pulse Counter: a hardware block in the ESP32 that counts edges without using the CPU.</td><td>—</td></tr>
+<tr><td>Glitch filter</td><td>Ignores pulses that are too short to be real.</td><td>clock ticks (80 MHz)</td></tr>
+<tr><td>Overflow</td><td>A counter goes past its biggest value.</td><td>16-bit: ±32767</td></tr>
+<tr><td>Interrupt</td><td>A signal that makes the CPU stop for a moment and run a short function.</td><td>ISR</td></tr>
+<tr><td>Resolution</td><td>The smallest step the encoder can see.</td><td>0.044° per count</td></tr>
+</tbody></table></div>
+
+<h2 id="quad"><span class="tag">Section 1 · the hard idea</span>Two signals give distance and direction</h2>
+<div class="why"><b>Why this matters:</b> the slider is pushed both ways by hand. One signal alone could count pulses, but it couldn't tell forward from backward.</div>
+<p>Inside the encoder, a pattern on a disc produces two square waves, A and B. They have the same shape, but B is shifted by a quarter period. Look at which signal changes <b>first</b>:</p>
+<ul>
+<li>A changes before B → turning one way (count goes <b>up</b>).</li>
+<li>B changes before A → turning the other way (count goes <b>down</b>).</li>
+</ul>
+<p>The encoder datasheet says: "A leads B for CCW rotation (viewed from front)". Which way is "+" for our slider we decide in T5.</p>
+<div class="sim">
+  <b>Try it: turn the shaft one step at a time</b>
+  <svg id="qsvg" viewBox="0 0 680 170" role="img" aria-label="A and B square waves with a cursor at the current shaft position."></svg>
+  <div class="btnrow"><button type="button" class="btn2" id="qminus">◀ turn back one step</button><button type="button" class="btn2" id="qplus">turn forward one step ▶</button><button type="button" class="btn2" id="qauto">▶▶ keep turning</button></div>
+  <div class="readout"><div>A, B now<b id="qab">—</b></div><div>Last step<b id="qdir">—</b></div><div>Count<b id="qc">0</b></div><div>Angle (real encoder)<b id="qdeg">0.000°</b></div></div>
+</div>
+<p class="one">In one sentence: A and B are the same wave shifted by a quarter, and which one changes first tells the direction.</p>
+
+<h2 id="x4"><span class="tag">Section 2</span>Why one turn is 8192 counts</h2>
+<p>The DIP switches are all OFF, so the encoder gives 2048 pulses per turn on A (and 2048 on B). Each pulse has a rising and a falling edge, on both A and B. That's <b>4 edges per pulse</b>, and we count every one ("full quadrature"):</p>
+<p style="text-align:center">\[ \text{counts per turn} = 2048 \times 4 = 8192 \qquad \text{one count} = \frac{360^\circ}{8192} = 0.044^\circ \]</p>
+<p>In the program, the angle is simply:</p>
+<p style="text-align:center">\[ \theta = \text{count} \times \frac{360^\circ}{8192} \]</p>
+<p class="one">In one sentence: counting all four edges gives 4 × 2048 = 8192 counts per turn, which is 0.044° per count.</p>
+<div class="details"><b class="h">Small details</b>
+The encoder datasheet lists all resolutions "pre-quadrature", so the final count is always PPR × 4. In T5 we turn counts into mm: the 20-tooth pulley moves 40 mm per turn, so one count ≈ 0.0049 mm. <span class="extra">Preview of T5</span></div>
+
+<h2 id="pcnt"><span class="tag">Section 3</span>Why the ESP32 counts in hardware</h2>
+<div class="why"><b>Why this matters:</b> if counts are lost, the measured cable length is wrong, and nobody notices.</div>
+<p>A fast hand moves the slider at about 0.5 m/s. That is 12.5 turns per second, or <b>about 100 000 counts per second</b>. If the program had to run code for every edge (an "interrupt" per edge), the CPU would be busy most of the time. When Wi-Fi also needs the CPU, edges would be missed.</p>
+<p>The ESP32 has a <b>pulse counter (PCNT)</b>: a small piece of hardware that watches A and B and counts up or down by itself. The CPU just reads the result whenever it wants. Our code sets it up with the ESP32Encoder library:</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre>ESP32Encoder::useInternalWeakPullResistors = puType::none;  // the 74LVC245 drives the lines
+encoder.attachFullQuad(PIN_ENC_A, PIN_ENC_B);   // count all 4 edges: 8192 per turn
+encoder.setFilter(PCNT_FILTER);                 // ignore pulses shorter than 1.25 us
+encoder.clearCount();                           // start at 0</pre></div>
+<div class="sim">
+  <b>Try it: how fast does the count change?</b>
+  <label for="spd">Slider speed = <span id="spdv">0.50</span> m/s</label>
+  <input id="spd" type="range" min="0.05" max="2" step="0.05" value="0.5">
+  <div class="readout"><div>Turns per second<b id="rt">—</b></div><div>Counts per second<b id="rc">—</b></div><div>Time between edges<b id="re">—</b></div><div>16-bit counter wraps every<b id="rw">—</b></div></div>
+</div>
+<p class="one">In one sentence: a hardware counter counts every edge without the CPU, so Wi-Fi or printing can never make it miss one.</p>
+
+<h2 id="filter"><span class="tag">Section 4</span>The glitch filter</h2>
+<p>Electrical noise (for example from the motors later) can make a tiny spike on a wire. The PCNT can ignore pulses shorter than a set time, counted in ticks of its 80 MHz clock:</p>
+<p style="text-align:center">\[ t_{filter} = \frac{100\ \text{ticks}}{80\ \text{MHz}} = 1.25\ \mu\text{s} \]</p>
+<p>Real edges at 0.5 m/s are about 10 µs apart, so they easily pass. A noise spike of a few nanoseconds is thrown away. The filter must stay well below the real edge spacing: at the maximum value of 1023 ticks (12.8 µs) it would already eat real counts at 0.5 m/s.</p>
+<p class="one">In one sentence: the filter removes spikes shorter than 1.25 µs, while real edges are about 10 µs apart.</p>
+
+<h2 id="overflow"><span class="tag">Section 5</span>The 16-bit counter and overflow</h2>
+<p>The hardware counter is only 16 bits: it can count from −32768 to +32767. That's only 4 turns (32767 ÷ 8192 ≈ 4). Our slider needs about 25 turns for 1000 mm.</p>
+<p>The library solves this: each time the hardware counter reaches ±32767, a short interrupt adds 32767 to a big 64-bit variable and sets the hardware back to 0. <code>getCount()</code> returns big variable + hardware counter. For us it is just one big number that never overflows.</p>
+<p class="one">In one sentence: the small hardware counter is extended in software, so <code>getCount()</code> works for any distance.</p>
+
+<h2 id="index"><span class="tag">Section 6</span>The index pulse proves no counts are lost</h2>
+<div class="why"><b>Why this matters:</b> it is our built-in quality check for the whole chain: encoder, wires, chip and counter.</div>
+<p>The X signal gives one short pulse per turn, always at the same angle. The program uses an <b>interrupt</b> on GPIO32: at the exact moment of the index, it stores the current count. In <code>loop()</code> it compares this with the count at the previous index:</p>
+<p style="text-align:center">\[ \Delta = \text{count}_{\text{index now}} - \text{count}_{\text{index before}} \;=\; \pm 8192 \quad\text{(one full turn)} \]</p>
+<p>If even one edge was lost or doubled, Δ is not 8192 and the program prints <code>CHECK: not one full turn</code>. Turn fast for many turns: if every index still says 8192, the counting is perfect.</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre>void ARDUINO_ISR_ATTR onIndex() {       // runs at the index pulse
+  indexCount   = encoder.getCount();    // remember the count at this exact moment
+  indexPending = true;                  // loop() prints it (no printing inside an interrupt)
+}</pre></div>
+<p class="one">In one sentence: the count between two index pulses must be exactly 8192, so the index is a free self-test.</p>
+<div class="details"><b class="h">Small details</b>
+If you reverse direction right at the index, Δ can be a few counts different. That's why the program accepts ±4 counts, and why "same spot again" can appear. The encoder datasheet warns that a stepper motor's magnet can disturb the index. If you test on a motor shaft and A/B counting works but index lines look odd, that may be the cause.</div>
+
+<h2 id="print"><span class="tag">Section 7</span>Why the program prints at most 10 times per second</h2>
+<p>You wanted the screen to update only when the value changes. But turning by hand changes the count thousands of times per second, and printing every change would flood the serial link (and the screen). So the program checks every 100 ms: <b>if</b> the count changed, it prints one line. Still turning → about 10 lines per second. Not turning → nothing. The counting itself is not slowed down: the hardware keeps counting.</p>
+<p class="one">In one sentence: the counter is always exact; only the printing is limited to 10 lines per second.</p>
+
+<h2 id="example"><span class="tag">Practice</span>Worked example: read the numbers</h2>
+<p><b>Problem.</b> After <code>z</code> (zero), you turn the shaft 3 full turns and then a quarter turn more, all in the "+" direction. (a) What count do you expect? (b) What angle does the program print? (c) Has the 16-bit hardware counter overflowed? (d) What would Δ at the next index be?</p>
+<div class="step"><div class="n">a</div><div><p><b>Why:</b> one turn = 8192 counts, a quarter turn = 8192 / 4.</p><p>\( 3 \times 8192 + 2048 = 26\,624 \) counts</p></div></div>
+<div class="step"><div class="n">b</div><div><p><b>Why:</b> angle = count × 360° / 8192.</p><p>\( 26\,624 \times \dfrac{360^\circ}{8192} = 1170^\circ \) (= 3 × 360° + 90°). Turns = 3.250.</p></div></div>
+<div class="step"><div class="n">c</div><div><p><b>Why:</b> compare with the 16-bit limit.</p><p>26 624 &lt; 32 767 → not yet. One more turn (34 816) would pass the limit, and the library would quietly carry it over.</p></div></div>
+<div class="step"><div class="n">d</div><div><p><b>Why:</b> between two index pulses there is exactly one turn.</p><p>Δ = +8192 → <code>OK (one full turn)</code>.</p></div></div>
+<p><b>Sanity check.</b> Units: counts × degrees/count = degrees ✓. 1170° is a bit more than 3 × 360°, which matches "3¼ turns" ✓.</p>
+
+<h2 id="traps"><span class="tag">Watch out</span>Test traps</h2>
+<ul class="traps">
+<li><b>Encoder 5V and G swapped.</b> Can destroy the encoder. Read the labels on the housing.</li>
+<li><b>An encoder signal wired straight to the ESP32.</b> 5 V on an ESP32 pin. Only 5V and G go to the ESP32 directly.</li>
+<li><b>Count only jitters ±1.</b> One of A/B is missing: with a single signal the counter just goes up and down by one.</li>
+<li><b>Count goes the "wrong" way.</b> Not a fault: A and B order sets the sign. We choose the sign for the slider in T5.</li>
+<li><b>Using a 20 ms debounce like in T3.</b> That would throw away real encoder edges. Encoders need the µs hardware filter, not a ms debounce.</li>
+<li><b>Filter set to the maximum (1023).</b> 12.8 µs is longer than the real edge spacing at a fast hand speed: you would lose counts.</li>
+<li><b>Index lines missing on a stepper motor shaft.</b> Can be the motor magnet (datasheet note), not your wiring, if A/B work.</li>
+<li><b>Printing inside the interrupt.</b> Never do that. The interrupt only stores the count; <code>loop()</code> prints.</li>
+</ul>
+
+<h2 id="quiz"><span class="tag">Test yourself</span>Practice quiz</h2>
+<div class="quiz" id="quizbox"></div>
+<div id="scorebox" class="score" aria-live="polite"></div>
+<div id="reread" style="font-size:15px"></div>
+
+<h2 id="checklist"><span class="tag">Self-check</span>I can…</h2>
+<div class="check">
+<label><input type="checkbox" id="c1"> explain how A and B tell the direction.</label>
+<label><input type="checkbox" id="c2"> calculate 8192 counts per turn and 0.044° per count.</label>
+<label><input type="checkbox" id="c3"> say why the ESP32 counts in hardware (PCNT) and not with an interrupt per edge.</label>
+<label><input type="checkbox" id="c4"> explain what the 1.25 µs glitch filter does and why it must stay short.</label>
+<label><input type="checkbox" id="c5"> explain how the index pulse checks that no counts are lost.</label>
+<label><input type="checkbox" id="c6"> turn a count into degrees and turns.</label>
+</div>
+
+<h2 id="sources"><span class="tag">Where this came from</span>Sources</h2>
+<div class="tbl"><table>
+<thead><tr><th>Section</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>1–2, 6 · A leads B for CCW, PPR pre-quadrature, ×4, index once per turn, magnet note, DIP all OFF = 2048</td><td>Same Sky / CUI AMT10 datasheet</td></tr>
+<tr><td>3–5 · attachFullQuad, setFilter (max 1023, default 250), 16-bit limits and 64-bit carry, critical sections</td><td>ESP32Encoder 0.11.8 source code (madhephaestus), checked in this project</td></tr>
+<tr><td>4 · 80 MHz filter clock</td><td>ESP32 PCNT (APB clock) <span class="extra">Extra</span></td></tr>
+<tr><td>Code</td><td><code>tests/T04_encoder/src/main.cpp</code> (builds clean, static check passed)</td></tr>
+</tbody></table></div>
+</main>
+</div>
+
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; return e; }
+
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var pre = b.parentNode.querySelector('pre'), txt = pre.innerText;
+      var sel = function () { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Press Ctrl+C'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); }, sel);
+      else sel();
+    });
+  });
+
+  // ---------- quadrature stepper ----------
+  // Gray-code sequence for the forward direction: (A,B) = 00 -> 10 -> 11 -> 01 -> 00
+  var SEQ = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  var pos = 0, count = 0, lastDir = '—', timer = null, q = document.getElementById('qsvg');
+  var STATES = 16, x0 = 70, w = 590;
+  function stateAt(i) { return SEQ[((i % 4) + 4) % 4]; }
+  function drawQ() {
+    while (q.firstChild) q.removeChild(q.firstChild);
+    var sw = w / STATES, view = Math.floor(pos / STATES) * STATES;
+    [['A', 0, 'wa', 60], ['B', 1, 'wb', 130]].forEach(function (ch) {
+      var base = ch[3], d = '';
+      for (var i = 0; i < STATES; i++) {
+        var v = stateAt(view + i)[ch[1]], y = base - v * 34, x = x0 + i * sw;
+        d += (i === 0 ? 'M' : 'L') + x + ' ' + y + ' L' + (x + sw) + ' ' + y;
+      }
+      q.appendChild(el('path', { d: d, 'class': ch[2] }));
+      q.appendChild(el('text', { 'class': 'tb', x: 20, y: base - 10 }, ch[0]));
+    });
+    var cx = x0 + (pos - view + 0.5) * sw;
+    q.appendChild(el('rect', { x: cx - sw / 2, y: 14, width: sw, height: 124, fill: 'var(--copper)', opacity: 0.18 }));
+    q.appendChild(el('line', { x1: cx, x2: cx, y1: 14, y2: 138, stroke: 'var(--copper)', 'stroke-width': 2 }));
+    q.appendChild(el('text', { 'class': 't', x: x0 + w, y: 160, 'text-anchor': 'end', style: 'fill:var(--muted)' }, 'each column = one count; 4 counts = one full A/B pulse'));
+    var s = stateAt(pos);
+    document.getElementById('qab').textContent = 'A=' + s[0] + '  B=' + s[1];
+    document.getElementById('qdir').textContent = lastDir;
+    document.getElementById('qc').textContent = count;
+    document.getElementById('qdeg').textContent = (count * 360 / 8192).toFixed(3) + '°';
+  }
+  function step(dir) {
+    var before = stateAt(pos); pos += dir; count += dir; var after = stateAt(pos);
+    var who = before[0] !== after[0] ? 'A changed' : 'B changed';
+    lastDir = (dir > 0 ? '+1 (' : '−1 (') + who + ')';
+    drawQ();
+  }
+  document.getElementById('qplus').addEventListener('click', function () { step(1); });
+  document.getElementById('qminus').addEventListener('click', function () { if (pos > 0) step(-1); else { pos += 16; step(-1); } });
+  document.getElementById('qauto').addEventListener('click', function (e) {
+    if (timer) { clearInterval(timer); timer = null; e.target.textContent = '▶▶ keep turning'; return; }
+    e.target.textContent = '■ stop'; timer = setInterval(function () { step(1); }, 350);
+  });
+  drawQ();
+
+  // ---------- speed ----------
+  var spd = document.getElementById('spd');
+  function speed() {
+    var v = +spd.value; document.getElementById('spdv').textContent = v.toFixed(2);
+    var tps = v * 1000 / 40, cps = tps * 8192;
+    document.getElementById('rt').textContent = tps.toFixed(1);
+    document.getElementById('rc').textContent = Math.round(cps).toLocaleString('en-US');
+    document.getElementById('re').textContent = (1e6 / cps).toFixed(2) + ' µs';
+    document.getElementById('rw').textContent = (32767 / cps).toFixed(2) + ' s';
+  }
+  spd.addEventListener('input', speed); speed();
+
+  // ---------- quiz ----------
+  var Q = [
+    { t: 'How does the encoder tell the direction?', o: ['Signal A is stronger in one direction', 'By which of A or B changes first', 'By the index pulse', 'By the speed of the pulses'], a: 1,
+      e: 'A and B are shifted by a quarter period. Which one changes first gives the direction. The index only marks one spot per turn.', s: 'quad' },
+    { t: 'The DIP switches are set to 1024 PPR instead of 2048. How many counts per turn (full quadrature)?', num: 4096, tol: 0.001, unit: 'counts',
+      e: '1024 × 4 = 4096. Full quadrature always counts 4 edges per pulse.', s: 'x4' },
+    { t: 'The count is 6144 (after zero, 2048 PPR). What angle is that in degrees?', num: 270, tol: 0.001, unit: '°',
+      e: '6144 × 360 / 8192 = 270°. That is three quarters of a turn.', s: 'x4' },
+    { t: 'Why does the ESP32 count the encoder in hardware (PCNT)?', o: ['Because software can\'t do maths with big numbers', 'Because at ~100 000 counts per second an interrupt per edge would keep the CPU busy and miss edges when Wi-Fi runs', 'Because the hardware counter has 64 bits', 'Because GPIO34 can\'t make interrupts'], a: 1,
+      e: 'The PCNT counts every edge by itself. The hardware counter is only 16 bits; the 64 bits come from the library.', s: 'pcnt' },
+    { t: 'Someone sets the glitch filter to the maximum, 1023 ticks (12.8 µs). What happens at a fast hand speed (edges ~10 µs apart)?', o: ['Nothing, a bigger filter is always better', 'Real edges get filtered out, and counts are lost', 'The counter overflows sooner', 'The index stops working'], a: 1,
+      e: 'The filter ignores pulses shorter than its time. If it is longer than the real edge spacing, real counts disappear.', s: 'filter' },
+    { t: 'An INDEX line says "8190 counts since last index … CHECK". What does it mean (you turned steadily in one direction)?', o: ['Everything is fine', '2 counts were lost between the two index pulses: look for a loose A/B wire or noise', 'The encoder is set to 2047 PPR', 'The 16-bit counter overflowed'], a: 1,
+      e: 'One full turn must be exactly 8192. Overflow is handled by the library and does not change the total.', s: 'index' },
+    { t: 'Why does the program print at most 10 lines per second?', o: ['The encoder only updates 10 times per second', 'To avoid flooding the screen; the hardware still counts every edge', 'Because the serial port can\'t go faster', 'To save power'], a: 1,
+      e: 'Only the printing is limited. The PCNT keeps counting every single edge.', s: 'print' }
+  ];
+  var names = { quad: '1 · A and B', x4: '2 · Counting ×4', pcnt: '3 · Hardware counter', filter: '4 · Glitch filter', index: '6 · Index check', print: '7 · Printing' };
+  var box = document.getElementById('quizbox'), results = new Array(Q.length);
+  Q.forEach(function (q, i) {
+    var d = document.createElement('div'); d.className = 'q';
+    var t = document.createElement('div'); t.className = 'qt'; t.textContent = (i + 1) + '. ' + q.t; d.appendChild(t);
+    var fb = document.createElement('div'); fb.setAttribute('aria-live', 'polite');
+    if (q.o) {
+      var o = document.createElement('div'); o.className = 'opts';
+      q.o.forEach(function (txt, j) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = txt;
+        b.addEventListener('click', function () {
+          if (results[i] !== undefined) return;
+          var ok = j === q.a; results[i] = ok;
+          b.classList.add(ok ? 'right' : 'wrong'); if (!ok) o.children[q.a].classList.add('right');
+          fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. ') + q.e; score();
+        });
+        o.appendChild(b);
+      });
+      d.appendChild(o);
+    } else {
+      var r = document.createElement('div'); r.className = 'numrow';
+      var inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.id = 'qn' + i; inp.setAttribute('aria-label', 'Your answer in ' + q.unit);
+      var u = document.createElement('span'); u.textContent = q.unit;
+      var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn'; b2.textContent = 'Check';
+      var er = document.createElement('div'); er.className = 'err';
+      inp.addEventListener('input', function () { er.textContent = ''; });
+      b2.addEventListener('click', function () {
+        if (results[i] !== undefined) return;
+        var v = parseFloat(inp.value.replace(',', '.').replace(/\s/g, ''));
+        if (isNaN(v)) { er.textContent = 'Enter a number first.'; return; }
+        var ok = Math.abs(v - q.num) <= Math.max(Math.abs(q.num) * q.tol, 0.01); results[i] = ok;
+        fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. The answer is ' + q.num + ' ' + q.unit + '. ') + q.e; score();
+      });
+      r.appendChild(inp); r.appendChild(u); r.appendChild(b2); d.appendChild(r); d.appendChild(er);
+    }
+    d.appendChild(fb); box.appendChild(d);
+  });
+  function score() {
+    var done = results.filter(function (x) { return x !== undefined; }).length, right = results.filter(function (x) { return x === true; }).length;
+    document.getElementById('scorebox').textContent = 'Score: ' + right + ' / ' + Q.length + (done < Q.length ? '  (' + (Q.length - done) + ' left)' : '');
+    if (done === Q.length) {
+      var miss = []; results.forEach(function (x, i) { if (!x && miss.indexOf(Q[i].s) < 0) miss.push(Q[i].s); });
+      var rr = document.getElementById('reread'); while (rr.firstChild) rr.removeChild(rr.firstChild);
+      if (!miss.length) { rr.textContent = 'All correct. You are ready for the T04 test.'; return; }
+      rr.appendChild(document.createTextNode('Re-read: '));
+      miss.forEach(function (s, k) { var a = document.createElement('a'); a.href = '#' + s; a.textContent = names[s]; a.style.color = 'var(--copper)'; rr.appendChild(a); if (k < miss.length - 1) rr.appendChild(document.createTextNode(', ')); });
+    }
+  }
+  document.querySelectorAll('.check input').forEach(function (c) {
+    try { c.checked = localStorage.getItem('t04-' + c.id) === '1'; } catch (e) {}
+    c.addEventListener('change', function () { try { localStorage.setItem('t04-' + c.id, c.checked ? '1' : '0'); } catch (e) {} });
+  });
+})();
+</script>

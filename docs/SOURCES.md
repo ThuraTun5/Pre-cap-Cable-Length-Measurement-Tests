@@ -56,6 +56,14 @@ community discussions second.
 - ESP32 errata 3.11 (GPIO36/39 pulled low ~80 ns when ADC/Wi-Fi powers up) as discussed on esp32.com:
   <https://esp32.com/viewtopic.php?p=137753>, <https://esp32.com/viewtopic.php?p=84884>
 
+## T4 — Encoder counting
+- ESP32Encoder library 0.11.8 (PlatformIO registry `madhephaestus/ESP32Encoder`): builds with espressif32 6.13.0 /
+  Arduino 2.0.17 (legacy IDF 4.4 PCNT driver); 16-bit counter extended to int64 on ±32767 limit interrupts;
+  getCount() uses portENTER_CRITICAL_SAFE (ISR-safe); setFilter max 1023, default 250.
+  <https://github.com/madhephaestus/ESP32Encoder>
+- AMT10 datasheet: A leads B for CCW (viewed from front); resolutions are pre-quadrature (×4); DIP all OFF = 2048;
+  index once per turn; stepper magnets can disturb the index.
+
 ## Fuse (shopping)
 - Inline 5×20 mm fuse holders + glass fuse assortment (0.1–20 A, incl. 1 A, 2 A, 3 A):
   <https://www.amazon.co.jp/dp/B098JVN9V1>
