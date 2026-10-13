@@ -1,0 +1,484 @@
+<title>T03 Level Shifter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: bench notebook - sticky contents rail (desktop), one reading column, copper accent; same family as the T01 and T02 pages */
+:root{
+  --bg:#F4F6F4; --surface:#FFFFFF; --sunk:#E8ECE9; --fg:#1C2321; --muted:#56615D; --line:#CBD3CF;
+  --copper:#A8551F; --copper-soft:#F6E6DA; --signal:#1F5FA8; --signal-soft:#E1ECF8;
+  --ok:#2E7D4F; --ok-soft:#E0F2E7; --bad:#B23A32; --bad-soft:#F9E3E1; --warn:#8C6200; --warn-soft:#FBF0D3;
+  --v12:#E06A00; --v5:#D7322C; --gnd:#1F2421; --ind:#1F5FA8;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.65;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-inline:20px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:16px;padding-inline:16px}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:14px;line-height:1.4}
+nav.toc .lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-size:13px;margin-bottom:8px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:4px 10px;color:var(--muted);text-decoration:none;margin-left:-2px;border-left:2px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--copper);border-left-color:var(--copper)}
+@media (max-width:900px){nav.toc{position:static}nav.toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border-left:0}nav.toc a{border:1px solid var(--line);border-radius:6px;margin:0}}
+main{min-width:0;max-width:760px}
+header.hero{padding-bottom:18px;border-bottom:2px solid var(--copper);margin-bottom:8px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--copper);font-size:14px;font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,48px);line-height:1.05;margin:6px 0 12px;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.15;margin:56px 0 10px;text-wrap:balance;scroll-margin-top:16px}
+h2 .tag{font-size:15px;font-weight:600;color:var(--copper);letter-spacing:.06em;display:block;text-transform:uppercase}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;margin:26px 0 6px}
+p{margin:0 0 12px}
+.goal{font-size:19px}
+.assume{font-size:14px;color:var(--muted);background:var(--sunk);border-radius:6px;padding:8px 12px;display:inline-block}
+.why{background:var(--signal-soft);border-left:4px solid var(--signal);padding:10px 14px;margin:12px 0}
+.one{background:var(--copper-soft);border-left:4px solid var(--copper);padding:10px 14px;margin:16px 0;font-weight:700}
+.details{border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;font-size:15.5px}
+.details b.h{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.extra{display:inline-block;font-size:12px;font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 7px;vertical-align:middle;margin-left:6px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--sunk);padding:1px 5px;border-radius:4px}
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+figure{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure .sc{overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--fg)}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.codebox{position:relative;margin:14px 0}
+pre{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:13.5px;line-height:1.55;margin:0}
+.copy{position:absolute;top:8px;right:8px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.copy:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.step{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;margin:14px 0}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--copper);color:var(--surface);display:grid;place-items:center;font-family:var(--f-display);font-weight:700}
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0}
+.sim label{font-size:15px;display:block;margin:8px 0 2px}
+.sim input[type=range]{width:100%;accent-color:var(--copper)}
+.readout{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.readout div{flex:1 1 150px;background:var(--sunk);border-radius:8px;padding:8px 12px;font-size:14px}
+.readout b{display:block;font-family:var(--f-mono);font-size:19px;font-variant-numeric:tabular-nums}
+.readout .bad b{color:var(--bad)}
+.traps li{margin-bottom:10px}
+.quiz .q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0}
+.quiz .qt{font-weight:700;margin-bottom:8px}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left;font:inherit;font-size:15.5px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.opts button:hover{border-color:var(--copper)}
+.opts button.right{background:var(--ok-soft);border-color:var(--ok)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.numrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.numrow input{font:inherit;width:150px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.btn{font:inherit;font-size:15px;background:var(--copper);color:var(--surface);border:0;border-radius:8px;padding:7px 16px;cursor:pointer}
+.fb{margin-top:10px;font-size:15px;padding:8px 12px;border-radius:8px}
+.fb.ok{background:var(--ok-soft)}.fb.no{background:var(--bad-soft)}
+.err{color:var(--bad);font-size:13px}
+.score{font-family:var(--f-display);font-size:22px;font-weight:600}
+.check label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+.check input{margin-top:6px;accent-color:var(--copper);width:18px;height:18px;flex:none}
+svg .t{font-family:var(--f-body);font-size:12px;fill:currentColor}
+svg .tb{font-family:var(--f-display);font-size:14px;font-weight:600;fill:currentColor}
+svg .tm{font-family:var(--f-mono);font-size:11px;fill:currentColor}
+svg .box{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
+svg .boxc{fill:var(--copper-soft);stroke:var(--copper);stroke-width:1.6}
+svg .ln{stroke:currentColor;stroke-width:1.4;fill:none}
+svg .w12{stroke:var(--v12);stroke-width:2.6;fill:none}
+svg .w5{stroke:var(--v5);stroke-width:2.6;fill:none}
+svg .wg{stroke:var(--gnd);stroke-width:2.2;fill:none}
+svg .wi{stroke:var(--ind);stroke-width:2.6;fill:none}
+svg .wc{stroke:var(--copper);stroke-width:2;fill:none}
+svg .grid{stroke:var(--line);stroke-width:1}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+<style>
+:root{ --v33:#B88E00; --undef:#D9D4C7; }
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){ --v33:#F2CC45; --undef:#3B3A33; }}
+:root[data-theme="dark"]{ --v33:#F2CC45; --undef:#3B3A33; }
+svg .w33{stroke:var(--v33);stroke-width:2.6;fill:none}
+svg .zone-lo{fill:var(--ok-soft)} svg .zone-hi{fill:var(--signal-soft)} svg .zone-un{fill:var(--undef)}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">On this page</div>
+  <ol>
+    <li><a href="#map">Map</a></li>
+    <li><a href="#words">Key words</a></li>
+    <li><a href="#why">1 · Why shift levels</a></li>
+    <li><a href="#how">2 · How the chip does it</a></li>
+    <li><a href="#pins">3 · Pins, DIR, OE</a></li>
+    <li><a href="#unused">4 · Unused inputs + 100 nF</a></li>
+    <li><a href="#levels">5 · Logic levels</a></li>
+    <li><a href="#speed">6 · Is it fast enough?</a></li>
+    <li><a href="#esp">7 · ESP32 side + code</a></li>
+    <li><a href="#example">Worked example</a></li>
+    <li><a href="#traps">Traps</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+    <li><a href="#checklist">Checklist</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Capstone 2026PUZ1 · Test T03 of 10</div>
+  <h1>74LVC245 level shifter</h1>
+  <p class="goal">After this page you can explain why the encoder can't connect straight to the ESP32, wire the 74LVC245 correctly (including the pins you don't use), check the logic levels with numbers, and read the T03 test output.</p>
+  <p class="assume">I assumed: you know what HIGH/LOW logic levels are, and you did T01 (setup/loop, millis). Goal = understand T03 while you test it.</p>
+</header>
+
+<h2 id="map"><span class="tag">Overview</span>Map of this test</h2>
+<p>The encoder speaks "5 V logic". The ESP32 speaks "3.3 V logic". The 74LVC245 sits between them and translates in one direction: A side (5 V in) → B side (3.3 V out).</p>
+<figure><div class="sc">
+<svg viewBox="0 0 720 190" role="img" aria-label="Signal path: 5 volt source on the A side of the 74LVC245, chip powered by 3.3 volts, 3.3 volt output on the B side to ESP32 GPIO 35, 34 and 32.">
+  <defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="currentColor"/></marker></defs>
+  <rect class="box" x="10" y="55" width="150" height="70" rx="6"/><text class="tb" x="85" y="82" text-anchor="middle">5 V signal</text><text class="t" x="85" y="102" text-anchor="middle">T3: jumper · T4: encoder</text>
+  <rect class="boxc" x="250" y="40" width="200" height="100" rx="6"/><text class="tb" x="350" y="72" text-anchor="middle">74LVC245</text><text class="t" x="350" y="94" text-anchor="middle">A side ← 5 V tolerant</text><text class="t" x="350" y="112" text-anchor="middle">B side → max 3.3 V</text>
+  <rect class="box" x="540" y="55" width="170" height="70" rx="6"/><text class="tb" x="625" y="82" text-anchor="middle">ESP32</text><text class="t" x="625" y="102" text-anchor="middle">GPIO35 · 34 · 32</text>
+  <line class="w5" x1="160" y1="90" x2="248" y2="90" marker-end="url(#m1)"/><text class="t" x="204" y="80" text-anchor="middle">0 / 5 V</text>
+  <line class="w33" x1="450" y1="90" x2="538" y2="90" marker-end="url(#m1)"/><text class="t" x="494" y="80" text-anchor="middle">0 / 3.3 V</text>
+  <line class="w33" x1="350" y1="10" x2="350" y2="38" marker-end="url(#m1)"/><text class="t" x="358" y="22">VCC = 3.3 V (from ESP32)</text>
+  <text class="t" x="350" y="170" text-anchor="middle" style="fill:var(--copper)">hard idea: the output can never be higher than the chip's own VCC</text>
+</svg></div>
+<figcaption>Part A checks this path with the meter. Part B lets the ESP32 read three channels, the same ones the encoder uses in T4.</figcaption></figure>
+
+<h2 id="words"><span class="tag">Vocabulary</span>Key words</h2>
+<div class="tbl"><table>
+<thead><tr><th>Word</th><th>Simple meaning</th><th>Symbol / unit</th></tr></thead>
+<tbody>
+<tr><td>Logic level</td><td>The voltage a chip reads as 0 (LOW) or 1 (HIGH).</td><td>V</td></tr>
+<tr><td>Level shifter</td><td>A circuit that changes a signal from one logic voltage to another.</td><td>—</td></tr>
+<tr><td>Transceiver / buffer</td><td>A chip that copies a digital signal from its input to its output, with fresh drive strength.</td><td>—</td></tr>
+<tr><td>5 V tolerant input</td><td>An input that survives 5 V even when the chip runs on 3.3 V.</td><td>up to 5.5 V</td></tr>
+<tr><td>V<sub>IH</sub> / V<sub>IL</sub></td><td>Lowest voltage that is surely read as HIGH / highest voltage that is surely read as LOW.</td><td>V</td></tr>
+<tr><td>V<sub>OH</sub> / V<sub>OL</sub></td><td>Lowest voltage a HIGH output gives / highest voltage a LOW output gives.</td><td>V</td></tr>
+<tr><td>Noise margin</td><td>How much noise a signal can take before it could be read wrong.</td><td>NM (V)</td></tr>
+<tr><td>DIR</td><td>Direction pin of the 245: HIGH = A → B, LOW = B → A.</td><td>pin 1</td></tr>
+<tr><td>OE (active low)</td><td>Output Enable. LOW = outputs on, HIGH = outputs off (floating). The bar over the name means "active when LOW".</td><td>pin 19</td></tr>
+<tr><td>Floating input</td><td>An input connected to nothing. Its level is random.</td><td>—</td></tr>
+<tr><td>Decoupling capacitor</td><td>A small capacitor right at a chip's supply pins that delivers fast current spikes.</td><td>100 nF</td></tr>
+<tr><td>Propagation delay</td><td>How long the chip takes to pass a change from input to output.</td><td>t<sub>pd</sub> (ns)</td></tr>
+<tr><td>Debounce</td><td>Accept a new level only after it has stayed the same for a short time.</td><td>ms</td></tr>
+</tbody></table></div>
+
+<h2 id="why"><span class="tag">Section 1</span>Why the encoder can't connect straight to the ESP32</h2>
+<div class="why"><b>Why this matters:</b> it is the one mistake in this project that can kill the ESP32 without any smoke or warning.</div>
+<p>The AMT102 runs on 5 V, and its HIGH output is at least V<sub>DD</sub> − 0.8 = <b>4.2 V</b>, up to 5 V. The ESP32 runs on 3.3 V, and its absolute maximum is <b>3.6 V</b> on any pin.</p>
+<p>Inside each ESP32 pin there are small protection diodes to its 3.3 V supply. If you put 5 V on the pin, current flows through that diode into the 3.3 V supply. Sometimes it works for a while; then the pin or the whole chip fails. <span class="extra">Extra</span></p>
+<p class="one">In one sentence: 5 V on a 3.3 V pin is outside the ESP32's ratings, so every encoder signal goes through the level shifter first.</p>
+
+<h2 id="how"><span class="tag">Section 2</span>How the 74LVC245 does it</h2>
+<div class="why"><b>Why this matters:</b> once you see where the output voltage comes from, you understand why pin 20 must be 3.3 V and never 5 V.</div>
+<figure><div class="sc">
+<svg viewBox="0 0 720 220" role="img" aria-label="Inside one channel: a 5 volt tolerant input stage reads A, and an output stage powered from VCC equals 3.3 volts drives B. The output can only switch between GND and VCC.">
+  <rect class="box" x="200" y="30" width="320" height="160" rx="8"/><text class="tb" x="360" y="52" text-anchor="middle">one channel of the 74LVC245</text>
+  <rect class="boxc" x="230" y="80" width="110" height="70" rx="6"/><text class="tb" x="285" y="108" text-anchor="middle">input stage</text><text class="t" x="285" y="126" text-anchor="middle">takes up to 5.5 V</text>
+  <rect class="boxc" x="380" y="80" width="110" height="70" rx="6"/><text class="tb" x="435" y="108" text-anchor="middle">output stage</text><text class="t" x="435" y="126" text-anchor="middle">switches GND ↔ VCC</text>
+  <line class="ln" x1="340" y1="115" x2="380" y2="115"/>
+  <line class="w5" x1="60" y1="115" x2="230" y2="115"/><text class="t" x="70" y="105">A1: 0 or 5 V</text>
+  <line class="w33" x1="490" y1="115" x2="660" y2="115"/><text class="t" x="560" y="105">B1: 0 or 3.3 V</text>
+  <line class="w33" x1="435" y1="10" x2="435" y2="80"/><text class="t" x="443" y="24">VCC = 3.3 V (pin 20)</text>
+  <line class="wg" x1="435" y1="150" x2="435" y2="210"/><text class="t" x="443" y="206">GND (pin 10)</text>
+</svg></div>
+<figcaption>The input stage only "looks" at the voltage. The output stage connects B either to GND or to VCC. So B can never be higher than VCC.</figcaption></figure>
+<p>That's why the chip is a level shifter: the input accepts 5 V, but the output takes its HIGH level from the chip's <b>own</b> supply. Power the chip from 3.3 V and every output is at most 3.3 V.</p>
+<p class="one">In one sentence: the output HIGH is the chip's VCC, so VCC = 3.3 V gives safe 3.3 V outputs.</p>
+<div class="details"><b class="h">Small details</b>
+"Inputs accept voltages to 5.5 V" (TI). The A pins have no diode to VCC that would leak the 5 V into the 3.3 V supply. That is what makes them "5 V tolerant". The chip also has "I<sub>off</sub>": when it is unpowered, 5 V on its pins does not damage it or back-power it.</div>
+
+<h2 id="pins"><span class="tag">Section 3</span>The pins, DIR and OE</h2>
+<figure><div class="sc">
+<svg viewBox="0 0 720 330" role="img" aria-label="DIP-20 pinout of the SN74LVC245AN with the connections used in T03: pin 1 DIR to 3.3 V, pins 2 to 4 test inputs, 5 to 9 to GND, 10 GND, 20 VCC to 3.3 V, 19 OE to GND, 18 to 16 to ESP32 GPIO 35, 34, 32, 15 to 11 empty." id="dipsvg"></svg></div>
+<figcaption>Top view. The notch marks the top. Left side counts down 1 → 10, right side counts up 11 → 20.</figcaption></figure>
+<div class="tbl"><table>
+<thead><tr><th>Pin</th><th>Name</th><th>Our connection</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>20</td><td>VCC</td><td>ESP32 3V3</td><td>Sets the output HIGH level to 3.3 V.</td></tr>
+<tr><td>10</td><td>GND</td><td>GND</td><td>Chip ground, shared with the ESP32.</td></tr>
+<tr><td>1</td><td>DIR</td><td>3.3 V (HIGH)</td><td>HIGH = signals flow A → B. LOW would turn the A pins into outputs and fight the encoder.</td></tr>
+<tr><td>19</td><td>OE</td><td>GND (LOW)</td><td>LOW = outputs on. HIGH = outputs off (floating).</td></tr>
+<tr><td>2, 3, 4</td><td>A1–A3</td><td>Test jumpers (T3) / encoder B, A, X (T4)</td><td>The three inputs we use.</td></tr>
+<tr><td>18, 17, 16</td><td>B1–B3</td><td>GPIO35, GPIO34, GPIO32</td><td>The matching 3.3 V outputs.</td></tr>
+<tr><td>5–9</td><td>A4–A8</td><td>GND</td><td>Unused inputs (section 4).</td></tr>
+<tr><td>15–11</td><td>B4–B8</td><td>nothing</td><td>Unused outputs. They simply output LOW (their inputs are tied to GND).</td></tr>
+</tbody></table></div>
+<p><b>About OE:</b> TI suggests tying OE to VCC through a pull-up resistor, so the outputs stay off while the power comes up. That matters when several chips share one bus wire. Our B outputs only drive ESP32 input pins, so having them on from the first moment is harmless. Tying OE straight to GND is simpler and correct here.</p>
+<p class="one">In one sentence: VCC 3.3 V, DIR HIGH, OE LOW: the chip copies A → B at 3.3 V levels, all the time.</p>
+
+<h2 id="unused"><span class="tag">Section 4</span>Unused inputs and the 100 nF capacitor</h2>
+<div class="why"><b>Why this matters:</b> these two "extra" connections are the most common thing beginners leave out, and the chip can then misbehave in random ways.</div>
+<p><b>Unused inputs (A4–A8 → GND).</b> A CMOS input connected to nothing "floats": it picks up noise from your hand and from nearby wires, and can sit halfway between LOW and HIGH. At halfway, both transistors inside the input are partly on. The chip then draws extra current, can get warm, and the output can oscillate. TI's rule: "All unused inputs of the device must be held at VCC or GND." We use GND.</p>
+<p><b>The 100 nF capacitor (pins 20 and 19/10).</b> Every time an output switches, the chip needs a short, fast pulse of current. Long breadboard wires can't deliver it fast enough, so the supply voltage at the chip dips for a moment. A small capacitor right at the chip acts as a tiny local battery for these pulses. Ceramic, marked "104", any orientation.</p>
+<p class="one">In one sentence: never leave an input floating, and give every logic chip a 100 nF capacitor at its supply pins.</p>
+
+<h2 id="levels"><span class="tag">Section 5 · the hard idea</span>Logic levels and noise margins</h2>
+<div class="why"><b>Why this matters:</b> "it works" is not enough for a measuring machine. Noise margins tell you how much electrical noise (motors!) the signal can take before a count is lost.</div>
+<p>Each input has a LOW zone, a HIGH zone, and an "undefined" zone in between. A signal is safe when the sender's worst output is inside the receiver's zone, with distance to spare. That distance is the <b>noise margin</b>:</p>
+<p style="text-align:center">\[ NM_H = V_{OH,\min}(\text{sender}) - V_{IH}(\text{receiver}) \qquad NM_L = V_{IL}(\text{receiver}) - V_{OL,\max}(\text{sender}) \]</p>
+<div class="tbl"><table>
+<thead><tr><th>Link</th><th>V<sub>OH</sub> min → V<sub>IH</sub></th><th>NM<sub>H</sub></th><th>V<sub>OL</sub> max → V<sub>IL</sub></th><th>NM<sub>L</sub></th></tr></thead>
+<tbody>
+<tr><td>AMT102 (5 V) → 74LVC245 A</td><td class="num">4.2 V → 2.0 V</td><td class="num">2.2 V</td><td class="num">0.4 V → 0.8 V</td><td class="num">0.4 V</td></tr>
+<tr><td>74LVC245 B (3.3 V) → ESP32</td><td class="num">3.1 V → 2.475 V</td><td class="num">0.625 V</td><td class="num">0.2 V → 0.825 V</td><td class="num">0.625 V</td></tr>
+</tbody></table></div>
+<p style="font-size:14px;color:var(--muted)">ESP32: V<sub>IH</sub> = 0.75 × 3.3 V, V<sub>IL</sub> = 0.25 × 3.3 V (datasheet Table 15). 74LVC245 V<sub>OH</sub>/V<sub>OL</sub> at a small load (the ESP32 input draws only nanoamps).</p>
+<div class="sim">
+  <b>Try it: put a voltage on A1</b>
+  <label for="vin">Voltage on A1 = <span id="vinv">5.0</span> V</label>
+  <input id="vin" type="range" min="0" max="5.5" step="0.05" value="5">
+  <svg id="ladder" viewBox="0 0 680 170" role="img" aria-label="Voltage ladder for the 74LVC245 input showing LOW, undefined and HIGH zones, the selected voltage, and the resulting output."></svg>
+  <div class="readout"><div>74LVC245 reads A1 as<b id="r245">—</b></div><div>B1 output<b id="rb1">—</b></div><div>ESP32 GPIO35 reads<b id="resp">—</b></div></div>
+</div>
+<p class="one">In one sentence: every link has room for about half a volt of noise or more, so short motor spikes shouldn't flip a bit. We'll still keep encoder wires away from motor wires.</p>
+
+<h2 id="speed"><span class="tag">Section 6</span>Is the chip fast enough for the encoder?</h2>
+<p>The encoder has 2048 pulses per turn, and the 20-tooth pulley moves 40 mm per turn. If someone pushes the slider fast, say 0.5 m/s:</p>
+<p style="text-align:center">\[ f = \frac{v}{40\ \text{mm}} \times 2048 = \frac{500\ \text{mm/s}}{40\ \text{mm}} \times 2048 = 25.6\ \text{kHz} \]</p>
+<div class="sim">
+  <b>Try it: slider speed</b>
+  <label for="spd">Slider speed = <span id="spdv">0.50</span> m/s</label>
+  <input id="spd" type="range" min="0.05" max="2" step="0.05" value="0.5">
+  <div class="readout"><div>Pulse frequency per channel<b id="rf">—</b></div><div>Time between A/B edges<b id="re">—</b></div><div>Chip delay t<sub>pd</sub> (max)<b>6.3 ns</b></div><div>Delay as % of edge time<b id="rp">—</b></div></div>
+</div>
+<p>The time between two edges (A or B) is a quarter period, about 10 µs at 0.5 m/s. The chip delays each edge by at most 6.3 ns, which is under 0.1 % of that time. It also delays A and B equally, so the order of the edges (which tells the direction) stays correct.</p>
+<p class="one">In one sentence: the 74LVC245 is roughly 1000 times faster than the encoder needs, even for a fast hand.</p>
+<div class="details"><b class="h">Small details</b>
+The encoder itself is the limit: at 2048 PPR the datasheet allows 7500 RPM = 125 turns/s = 5 m/s of slider speed. A hand won't get close. <span class="extra">Extra</span></div>
+
+<h2 id="esp"><span class="tag">Section 7</span>The ESP32 side and the T03 code</h2>
+<div class="why"><b>Why this matters:</b> these are the exact pins and the same reading pattern T4 builds on.</div>
+<p><b>Pins.</b> GPIO34 and GPIO35 are input-only and have no internal pull-up. That's fine, because the 245 actively drives them HIGH or LOW. GPIO32 is a normal pin, and we also set it to plain <code>INPUT</code>.</p>
+<p><b>Why not GPIO39?</b> While researching T3 we found Espressif errata 3.11: GPIO36 and GPIO39 can be pulled LOW for about 80 ns when the ESP32's ADC powers up, and the Wi-Fi driver uses that ADC. For the encoder's index pulse that could fake a "zero" mark. So encoder X moved to <b>GPIO32</b>, which is also next to 34 and 35 on the board.</p>
+<p><b>Debounce.</b> When you move a jumper by hand, the contact bounces and floats for a few milliseconds. The program reads all three pins every 1 ms, but accepts a new level only after it has stayed the same for <b>20 ms</b>. So each move prints exactly one line.</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre>bool level = digitalRead(ch.pin) == HIGH;
+if (level != ch.raw) {            // raw reading changed?
+  ch.raw = level;
+  ch.rawSinceMs = now;            // start the "how long stable" clock
+  ch.rawChanges++;                // count for the stability check
+}
+if (ch.raw != ch.stable &amp;&amp; now - ch.rawSinceMs &gt;= DEBOUNCE_MS) {
+  ch.stable = ch.raw;             // stable for 20 ms: accept it
+  Serial.printf("%s : %s -&gt; %s\n", ch.name, levelText(!ch.stable), levelText(ch.stable));
+  showRgb();                      // red = A1, green = A2, blue = A3
+}</pre></div>
+<p><b>Stability warning.</b> Once per second the program checks how often each raw reading changed. More than 20 changes in a second means a loose wire or a floating input. Then it prints <code>WARNING … changes in 1 s</code>. This is a cheap way to find bad breadboard contacts.</p>
+<p style="font-size:14px;color:var(--muted)">Note: this 20 ms debounce is only for hand-moved jumpers. In T4 the encoder signals are counted in hardware (PCNT), which has its own tiny glitch filter in nanoseconds. A 20 ms debounce would throw away real encoder pulses.</p>
+<p class="one">In one sentence: the ESP32 reads 35/34/32, accepts a level only when it is stable, and warns you about bad contacts.</p>
+
+<h2 id="example"><span class="tag">Practice</span>Worked example: check one link by numbers</h2>
+<p><b>Problem.</b> A student powers the 74LVC245 from <b>5 V</b> by mistake (pin 20 on the 5V rail). (a) What voltage does B1 give when A1 is HIGH? (b) Is that safe for GPIO35? (c) With the correct 3.3 V supply, what is the HIGH noise margin from B1 to the ESP32?</p>
+<div class="step"><div class="n">a</div><div><p><b>Why:</b> the output HIGH comes from the chip's own VCC (section 2).</p><p>B1 ≈ VCC = <b>5 V</b>. Also, the chip is only rated for VCC up to 3.6 V, so it is outside its own ratings too.</p></div></div>
+<div class="step"><div class="n">b</div><div><p><b>Why:</b> compare with the ESP32 absolute maximum.</p><p>5 V &gt; 3.6 V (ESP32 absolute maximum) → <b>not safe</b>. The level shifter would do nothing useful.</p></div></div>
+<div class="step"><div class="n">c</div><div><p><b>Why:</b> the noise margin is the worst sender output minus the receiver's threshold.</p><p>\( NM_H = V_{OH,\min} - V_{IH} = 3.1\ \text{V} - 0.75 \times 3.3\ \text{V} = 3.1 - 2.475 = 0.625\ \text{V} \)</p></div></div>
+<p><b>Sanity check.</b> In Part A you should measure B1 ≈ 3.2–3.3 V, a bit above the 3.1 V minimum, as expected with almost no load. If you ever measure about 5 V on pin 18, pin 20 is on the wrong rail.</p>
+
+<h2 id="traps"><span class="tag">Watch out</span>Test traps</h2>
+<ul class="traps">
+<li><b>Pin 20 on 5 V.</b> The outputs become 5 V and the shifting is gone. Check pin 18 with the meter in Part A <i>before</i> connecting any B pin to the ESP32.</li>
+<li><b>Chip turned around.</b> If the notch is at the bottom, pin 1 is where you think pin 11 is. The notch points away from you, or up in the diagram.</li>
+<li><b>Counting the right side downwards.</b> The right side counts <b>up</b>: pin 20 is top-right, pin 11 bottom-right. B1 is pin 18, not pin 12.</li>
+<li><b>DIR left floating or LOW.</b> Then the A pins can become outputs and fight the encoder. DIR goes to 3.3 V.</li>
+<li><b>OE forgotten.</b> Floating OE gives outputs that switch on and off at random. OE goes to GND.</li>
+<li><b>Unused A4–A8 left open.</b> Strange current draw and warm chip. Tie them to GND.</li>
+<li><b>A B pin or ESP32 pin touching the 5V rail.</b> Only A1–A3 may touch the 5V rail.</li>
+<li><b>Thinking the input-only pins need a pull-up.</b> They can't have one, and they don't need one: the 245 drives them.</li>
+<li><b>Using GPIO36/39 for encoder signals.</b> Errata 3.11. We use 34/35/32.</li>
+</ul>
+
+<h2 id="quiz"><span class="tag">Test yourself</span>Practice quiz</h2>
+<div class="quiz" id="quizbox"></div>
+<div id="scorebox" class="score" aria-live="polite"></div>
+<div id="reread" style="font-size:15px"></div>
+
+<h2 id="checklist"><span class="tag">Self-check</span>I can…</h2>
+<div class="check">
+<label><input type="checkbox" id="c1"> say why 5 V must never reach an ESP32 pin, with the number 3.6 V.</label>
+<label><input type="checkbox" id="c2"> explain why the 245's output is 3.3 V (the output HIGH comes from VCC).</label>
+<label><input type="checkbox" id="c3"> find pins 1, 10, 18, 19 and 20 on the chip without looking at the diagram.</label>
+<label><input type="checkbox" id="c4"> explain what DIR and OE do, and which levels we use.</label>
+<label><input type="checkbox" id="c5"> say why unused inputs go to GND and why the 100 nF capacitor is there.</label>
+<label><input type="checkbox" id="c6"> calculate a noise margin from V<sub>OH</sub> and V<sub>IH</sub>.</label>
+<label><input type="checkbox" id="c7"> explain why encoder X uses GPIO32 instead of GPIO39.</label>
+</div>
+
+<h2 id="sources"><span class="tag">Where this came from</span>Sources</h2>
+<div class="tbl"><table>
+<thead><tr><th>Section</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>2–5 · Pinout, DIR/OE, 5.5 V inputs, V<sub>IH</sub> 2.0 V, V<sub>IL</sub> 0.8 V, V<sub>OH</sub>, t<sub>pd</sub> 6.3 ns, unused inputs, OE pull-up note</td><td>TI SN74LVC245A datasheet (SCAS218)</td></tr>
+<tr><td>1, 5 · AMT102 V<sub>OH</sub> ≥ V<sub>DD</sub> − 0.8 V, V<sub>OL</sub> ≤ 0.4 V; 7500 RPM at 2048 PPR</td><td>Same Sky / CUI AMT10 datasheet</td></tr>
+<tr><td>1, 5 · ESP32 3.6 V abs. max, V<sub>IH</sub> 0.75 V<sub>DD</sub>, V<sub>IL</sub> 0.25 V<sub>DD</sub></td><td>Espressif ESP32-WROOM-32E datasheet v2.1, Tables 13 and 15</td></tr>
+<tr><td>7 · GPIO36/39 glitch</td><td>Espressif errata 3.11, as quoted on the esp32.com forum</td></tr>
+<tr><td>1 · Protection diodes to the supply</td><td><span class="extra">Extra</span> general CMOS input structure</td></tr>
+<tr><td>7 · Code</td><td><code>tests/T03_shifter/src/main.cpp</code> (builds clean, static check passed)</td></tr>
+</tbody></table></div>
+</main>
+</div>
+
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; return e; }
+
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var pre = b.parentNode.querySelector('pre'), txt = pre.innerText;
+      var sel = function () { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Press Ctrl+C'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); }, sel);
+      else sel();
+    });
+  });
+
+  // ---------- DIP pinout ----------
+  var dip = document.getElementById('dipsvg');
+  var L = [['1', 'DIR', '3.3 V', 'w33'], ['2', 'A1', 'jumper / enc B', 'w5'], ['3', 'A2', 'jumper / enc A', 'w5'], ['4', 'A3', 'jumper / enc X', 'w5'], ['5', 'A4', 'GND', 'wg'], ['6', 'A5', 'GND', 'wg'], ['7', 'A6', 'GND', 'wg'], ['8', 'A7', 'GND', 'wg'], ['9', 'A8', 'GND', 'wg'], ['10', 'GND', 'GND', 'wg']];
+  var R = [['20', 'VCC', '3.3 V', 'w33'], ['19', 'OE', 'GND', 'wg'], ['18', 'B1', 'GPIO35', 'w33'], ['17', 'B2', 'GPIO34', 'w33'], ['16', 'B3', 'GPIO32', 'w33'], ['15', 'B4', '—', ''], ['14', 'B5', '—', ''], ['13', 'B6', '—', ''], ['12', 'B7', '—', ''], ['11', 'B8', '—', '']];
+  var cx = 290, cw = 140, top = 30, pitch = 28;
+  dip.appendChild(el('rect', { x: cx, y: top - 14, width: cw, height: 10 * pitch + 8, rx: 4, fill: 'var(--sunk)', stroke: 'currentColor', 'stroke-width': 1.3 }));
+  dip.appendChild(el('path', { d: 'M' + (cx + cw / 2 - 12) + ' ' + (top - 14) + ' a12 12 0 0 0 24 0', fill: 'var(--bg)', stroke: 'currentColor', 'stroke-width': 1.3 }));
+  dip.appendChild(el('text', { 'class': 't', x: cx + cw / 2, y: top + 10 * pitch - 14, 'text-anchor': 'middle', style: 'fill:var(--muted)' }, 'SN74LVC245AN'));
+  L.forEach(function (p, i) {
+    var y = top + i * pitch;
+    dip.appendChild(el('rect', { x: cx - 14, y: y - 5, width: 14, height: 10, fill: 'var(--surface)', stroke: 'currentColor' }));
+    dip.appendChild(el('text', { 'class': 'tm', x: cx + 8, y: y + 4 }, p[0] + ' ' + p[1]));
+    if (p[3]) dip.appendChild(el('line', { 'class': p[3], x1: cx - 14, y1: y, x2: cx - 90, y2: y }));
+    dip.appendChild(el('text', { 'class': 't', x: cx - 96, y: y + 4, 'text-anchor': 'end' }, p[2]));
+  });
+  R.forEach(function (p, i) {
+    var y = top + i * pitch;
+    dip.appendChild(el('rect', { x: cx + cw, y: y - 5, width: 14, height: 10, fill: 'var(--surface)', stroke: 'currentColor' }));
+    dip.appendChild(el('text', { 'class': 'tm', x: cx + cw - 8, y: y + 4, 'text-anchor': 'end' }, p[1] + ' ' + p[0]));
+    if (p[3]) dip.appendChild(el('line', { 'class': p[3], x1: cx + cw + 14, y1: y, x2: cx + cw + 90, y2: y }));
+    dip.appendChild(el('text', { 'class': 't', x: cx + cw + 96, y: y + 4, style: p[3] ? '' : 'fill:var(--muted)' }, p[2]));
+  });
+
+  // ---------- voltage ladder ----------
+  var vin = document.getElementById('vin'), lad = document.getElementById('ladder');
+  function drawLadder() {
+    var v = +vin.value; document.getElementById('vinv').textContent = v.toFixed(2);
+    while (lad.firstChild) lad.removeChild(lad.firstChild);
+    var x0 = 60, w = 580, X = function (u) { return x0 + u / 5.5 * w; };
+    lad.appendChild(el('rect', { 'class': 'zone-lo', x: X(0), y: 40, width: X(0.8) - X(0), height: 40 }));
+    lad.appendChild(el('rect', { 'class': 'zone-un', x: X(0.8), y: 40, width: X(2.0) - X(0.8), height: 40 }));
+    lad.appendChild(el('rect', { 'class': 'zone-hi', x: X(2.0), y: 40, width: X(5.5) - X(2.0), height: 40 }));
+    lad.appendChild(el('text', { 'class': 't', x: (X(0) + X(0.8)) / 2, y: 64, 'text-anchor': 'middle' }, 'LOW'));
+    lad.appendChild(el('text', { 'class': 't', x: (X(0.8) + X(2.0)) / 2, y: 64, 'text-anchor': 'middle' }, 'undefined'));
+    lad.appendChild(el('text', { 'class': 't', x: (X(2.0) + X(5.5)) / 2, y: 64, 'text-anchor': 'middle' }, 'HIGH (up to 5.5 V allowed)'));
+    lad.appendChild(el('text', { 'class': 'tb', x: x0, y: 28 }, '74LVC245 input A1 (VCC = 3.3 V)'));
+    [0, 0.8, 2.0, 3.3, 4.2, 5, 5.5].forEach(function (t) {
+      lad.appendChild(el('line', { 'class': 'grid', x1: X(t), x2: X(t), y1: 80, y2: 90 }));
+      lad.appendChild(el('text', { 'class': 'tm', x: X(t), y: 104, 'text-anchor': 'middle' }, t + ''));
+    });
+    lad.appendChild(el('text', { 'class': 't', x: X(4.2), y: 122, 'text-anchor': 'middle', style: 'fill:var(--muted)' }, 'AMT102 HIGH ≥ 4.2'));
+    lad.appendChild(el('line', { x1: X(v), x2: X(v), y1: 34, y2: 86, stroke: 'var(--copper)', 'stroke-width': 3 }));
+    lad.appendChild(el('text', { 'class': 'tb', x: Math.min(X(v), 600), y: 150, 'text-anchor': 'middle', style: 'fill:var(--copper)' }, v.toFixed(2) + ' V'));
+    var r, b, e;
+    if (v <= 0.8) { r = 'LOW'; b = '≈ 0 V'; e = 'LOW'; }
+    else if (v < 2.0) { r = 'undefined!'; b = '0 or 3.3 V (random)'; e = 'random'; }
+    else { r = 'HIGH'; b = '≈ 3.3 V'; e = 'HIGH'; }
+    document.getElementById('r245').textContent = r;
+    document.getElementById('rb1').textContent = b;
+    document.getElementById('resp').textContent = e;
+  }
+  vin.addEventListener('input', drawLadder); drawLadder();
+
+  // ---------- speed ----------
+  var spd = document.getElementById('spd');
+  function speed() {
+    var v = +spd.value; document.getElementById('spdv').textContent = v.toFixed(2);
+    var f = v * 1000 / 40 * 2048, edge = 1 / f / 4;
+    document.getElementById('rf').textContent = (f / 1000).toFixed(1) + ' kHz';
+    document.getElementById('re').textContent = (edge * 1e6).toFixed(2) + ' µs';
+    document.getElementById('rp').textContent = (6.3e-9 / edge * 100).toFixed(3) + ' %';
+  }
+  spd.addEventListener('input', speed); speed();
+
+  // ---------- quiz ----------
+  var Q = [
+    { t: 'Why can the 74LVC245 output never go above 3.3 V in our circuit?', o: ['Because the input is limited to 3.3 V', 'Because the output HIGH comes from the chip\'s own VCC, which is 3.3 V', 'Because of the 100 nF capacitor', 'Because OE is tied to GND'], a: 1,
+      e: 'The output stage switches B between GND and VCC. VCC = 3.3 V → B ≤ 3.3 V. The input may take up to 5.5 V; that is a different thing.', s: 'how' },
+    { t: 'Which pin of the SN74LVC245AN is B1?', o: ['Pin 11', 'Pin 12', 'Pin 18', 'Pin 2'], a: 2,
+      e: 'The right side counts UP from 11 at the bottom: 11 = B8, …, 18 = B1, 19 = OE, 20 = VCC. Pin 2 is A1.', s: 'pins' },
+    { t: 'DIR (pin 1) is accidentally connected to GND. What happens?', o: ['Nothing, DIR is only for speed', 'Signals flow B → A: the A pins become outputs and can fight the encoder', 'The outputs turn off', 'The chip runs at 5 V'], a: 1,
+      e: 'DIR LOW = B to A. The A pins then drive against the encoder outputs. OE (not DIR) is what turns the outputs off.', s: 'pins' },
+    { t: 'Why are A4–A8 (pins 5–9) tied to GND even though we don\'t use them?', o: ['To make the chip faster', 'A floating CMOS input can sit halfway, draw extra current and oscillate', 'Because GND is needed on every pin', 'To set the direction'], a: 1,
+      e: 'TI: all unused inputs must be held at VCC or GND. A floating input picks up noise and can make both input transistors partly conduct.', s: 'unused' },
+    { t: 'The 74LVC245 output gives at least 3.1 V for HIGH. The ESP32 needs at least 0.75 × 3.3 V for HIGH. What is the HIGH noise margin in volts?', num: 0.625, tol: 0.02, unit: 'V',
+      e: '0.75 × 3.3 = 2.475 V. 3.1 − 2.475 = 0.625 V. A common mistake is to use 3.3 V instead of the guaranteed minimum 3.1 V.', s: 'levels' },
+    { t: 'The slider moves at 1 m/s. What is the pulse frequency on one encoder channel (in kHz)? (40 mm per turn, 2048 PPR)', num: 51.2, tol: 0.02, unit: 'kHz',
+      e: '1000 mm/s ÷ 40 mm = 25 turns/s. 25 × 2048 = 51 200 Hz = 51.2 kHz. Still far below what the chip (6.3 ns delay) and the encoder (5 m/s limit) can do.', s: 'speed' },
+    { t: 'Why does encoder X go to GPIO32 and not GPIO39?', o: ['GPIO39 is an output-only pin', 'GPIO39 can be pulled LOW for ~80 ns when the ADC/Wi-Fi powers up (errata 3.11)', 'GPIO39 is a strapping pin', 'GPIO32 is faster'], a: 1,
+      e: 'GPIO36/39 are affected by errata 3.11, and a short glitch could look like an index pulse. GPIO39 is input-only, not output-only, and it is not a strapping pin.', s: 'esp' }
+  ];
+  var names = { how: '2 · How the chip does it', pins: '3 · Pins, DIR, OE', unused: '4 · Unused inputs', levels: '5 · Logic levels', speed: '6 · Speed', esp: '7 · ESP32 side' };
+  var box = document.getElementById('quizbox'), results = new Array(Q.length);
+  Q.forEach(function (q, i) {
+    var d = document.createElement('div'); d.className = 'q';
+    var t = document.createElement('div'); t.className = 'qt'; t.textContent = (i + 1) + '. ' + q.t; d.appendChild(t);
+    var fb = document.createElement('div'); fb.setAttribute('aria-live', 'polite');
+    if (q.o) {
+      var o = document.createElement('div'); o.className = 'opts';
+      q.o.forEach(function (txt, j) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = txt;
+        b.addEventListener('click', function () {
+          if (results[i] !== undefined) return;
+          var ok = j === q.a; results[i] = ok;
+          b.classList.add(ok ? 'right' : 'wrong'); if (!ok) o.children[q.a].classList.add('right');
+          fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. ') + q.e; score();
+        });
+        o.appendChild(b);
+      });
+      d.appendChild(o);
+    } else {
+      var r = document.createElement('div'); r.className = 'numrow';
+      var inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.id = 'qn' + i; inp.setAttribute('aria-label', 'Your answer in ' + q.unit);
+      var u = document.createElement('span'); u.textContent = q.unit;
+      var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn'; b2.textContent = 'Check';
+      var er = document.createElement('div'); er.className = 'err';
+      inp.addEventListener('input', function () { er.textContent = ''; });
+      b2.addEventListener('click', function () {
+        if (results[i] !== undefined) return;
+        var v = parseFloat(inp.value.replace(',', '.').replace(/\s/g, ''));
+        if (isNaN(v)) { er.textContent = 'Enter a number first.'; return; }
+        var ok = Math.abs(v - q.num) <= Math.abs(q.num) * q.tol; results[i] = ok;
+        fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. The answer is ' + q.num + ' ' + q.unit + '. ') + q.e; score();
+      });
+      r.appendChild(inp); r.appendChild(u); r.appendChild(b2); d.appendChild(r); d.appendChild(er);
+    }
+    d.appendChild(fb); box.appendChild(d);
+  });
+  function score() {
+    var done = results.filter(function (x) { return x !== undefined; }).length, right = results.filter(function (x) { return x === true; }).length;
+    document.getElementById('scorebox').textContent = 'Score: ' + right + ' / ' + Q.length + (done < Q.length ? '  (' + (Q.length - done) + ' left)' : '');
+    if (done === Q.length) {
+      var miss = []; results.forEach(function (x, i) { if (!x && miss.indexOf(Q[i].s) < 0) miss.push(Q[i].s); });
+      var rr = document.getElementById('reread'); while (rr.firstChild) rr.removeChild(rr.firstChild);
+      if (!miss.length) { rr.textContent = 'All correct. You are ready to finish the T03 test.'; return; }
+      rr.appendChild(document.createTextNode('Re-read: '));
+      miss.forEach(function (s, k) { var a = document.createElement('a'); a.href = '#' + s; a.textContent = names[s]; a.style.color = 'var(--copper)'; rr.appendChild(a); if (k < miss.length - 1) rr.appendChild(document.createTextNode(', ')); });
+    }
+  }
+  document.querySelectorAll('.check input').forEach(function (c) {
+    try { c.checked = localStorage.getItem('t03-' + c.id) === '1'; } catch (e) {}
+    c.addEventListener('change', function () { try { localStorage.setItem('t03-' + c.id, c.checked ? '1' : '0'); } catch (e) {} });
+  });
+})();
+</script>

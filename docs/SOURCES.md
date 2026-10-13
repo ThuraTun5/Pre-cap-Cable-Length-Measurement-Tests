@@ -48,6 +48,14 @@ community discussions second.
   (60 V / 400 kHz don't match a genuine LM2596 → chip unconfirmed; trust the meter).
 - External power on ESP32 dev boards (5V pin OR 3.3V pin, never with USB): <https://microcontroller-course.web.cern.ch/Exercises/DevBoard/ESP32_WROOM_32E.en>
 
+## T3 — Level shifter
+- TI SN74LVC245A datasheet (SCAS218): pinout (N/PDIP), DIR high = A→B, inputs to 5.5 V, VIH = 2.0 V /
+  VIL = 0.8 V at VCC 2.7–3.6 V, VOH ≥ VCC − 0.2 V (100 µA), tpd ≤ 6.3 ns at 3.3 V, unused inputs at VCC or GND,
+  OE pull-up only needed to keep outputs off during power-up: <https://www.ti.com/lit/ds/symlink/sn74lvc245a.pdf>
+- ESP32-WROOM-32E datasheet Table 15: VIH = 0.75 × VDD (2.475 V), VIL = 0.25 × VDD; abs. max VDD 3.6 V.
+- ESP32 errata 3.11 (GPIO36/39 pulled low ~80 ns when ADC/Wi-Fi powers up) as discussed on esp32.com:
+  <https://esp32.com/viewtopic.php?p=137753>, <https://esp32.com/viewtopic.php?p=84884>
+
 ## Fuse (shopping)
 - Inline 5×20 mm fuse holders + glass fuse assortment (0.1–20 A, incl. 1 A, 2 A, 3 A):
   <https://www.amazon.co.jp/dp/B098JVN9V1>

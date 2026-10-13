@@ -100,7 +100,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   <h1>Cable Jig Wiring Atlas</h1>
   <p>One wiring drawing per test. Every connection is drawn as a real wire from pin to pin, or from a pin to a breadboard rail. <b>Hover or tap a row</b> in a wire list to light up that wire. Hover a wire to find its row.</p>
 
-  <div class="banner"><b>T1 and T2 are ready to wire.</b> T3–T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
+  <div class="banner"><b>T1, T2 and T3 are ready to wire.</b> T4–T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
 
   <div class="legend" aria-label="Wire colour legend">
     <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black)</span>
@@ -168,7 +168,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     purpose: 'How the parts connect at the end. Each link is built and tested on its own first.',
     rows: [
       ['PC', 'ESP32 USB-C', 'usb', 'Power + programming + serial monitor during all tests'],
-      ['AMT102-V A / B / X (5 V)', '74LVC245 → GPIO34 / 35 / 39 (3.3 V)', 'encA', 'T3 + T4'],
+      ['AMT102-V A / B / X (5 V)', '74LVC245 → GPIO34 / 35 / 32 (3.3 V)', 'encA', 'T3 + T4'],
       ['ESP32 5V pin', 'Encoder 5V', 'v5', 'Encoder needs only ~6 mA'],
       ['ESP32 GPIO4 / GPIO17', 'TMC2209 PDN (both drivers)', 'uart', 'Settings + current over UART'],
       ['ESP32 GPIO25/26 and 27/14', 'STEP / DIR of driver 1 and driver 2', 'step', ''],
@@ -239,8 +239,8 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     checks: ['USB cable UNPLUGGED from the ESP32.', 'Output re-measured: 4.95–5.05 V.', 'OUT+ goes to the 5V pin, not a 3.3V pin.', 'Supply current limit 0.5 A (or 1 A fuse).'],
     todo: [] },
 
-  { id: 't3', tab: 'T3 Shifter', title: 'T3 · 74LVC245 level shifter', status: 'draft', statusText: 'Draft',
-    purpose: 'Prove the chip turns a 5 V input into a 3.3 V output. The ESP32 5V pin is used as the 5 V test signal.', vb: [800, 412],
+  { id: 't3', tab: 'T3 Part A', title: 'T3 Part A · 74LVC245 with the meter', status: 'go', statusText: 'Ready · wire now',
+    purpose: 'Prove the chip turns a 5 V input into a 3.3 V output, measured with the meter. The ESP32 (on USB) only supplies 3.3 V and 5 V here.', vb: [800, 412],
     bars: [
       { id: 'r3', net: 'v33', x1: 205, x2: 790, y: 28, label: '3V3 rail (fed by ESP32 3V3)' },
       { id: 'rg', net: 'gnd', x1: 195, x2: 790, y: 382, label: 'GND rail (fed by ESP32 GND)' }
@@ -279,15 +279,61 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['wcom', 'Meter COM', 'GND rail', 'gnd', '']
     ],
     checks: ['Notch at the top, pin 1 top-left.', 'Pin 20 goes to 3V3, NOT 5V.', 'USB unplugged while wiring.', 'Pins 11–17 (B2–B8) stay empty: they are outputs.'],
-    todo: ['Confirm pin numbers against the TI datasheet (SCAS218).', 'OE: tie to GND directly, or pull-up + GPIO?'] },
+    todo: [] },
+
+  { id: 't3b', tab: 'T3 Part B', title: 'T3 Part B · ESP32 reads the shifted signals', status: 'go', statusText: 'Ready · after Part A',
+    purpose: 'Same chip, now wired exactly like T4 will use it. Three test jumpers (A1, A2, A3) go to the 5V rail or the GND rail; the ESP32 reads B1–B3 on GPIO35 / 34 / 32. Start position drawn: A1 = 5V, A2 = 5V, A3 = GND.', vb: [900, 430],
+    bars: [
+      { id: 'r5', net: 'v5', x1: 200, x2: 300, y: 96, label: '5V rail' },
+      { id: 'rg', net: 'gnd', x1: 290, x2: 690, y: 402, label: 'GND rail' }
+    ],
+    comps: [
+      { id: 'u1', kind: 'dip', x: 360, y: 90, w: 160, title: 'SN74LVC245AN', L: DIPL, R: DIPR },
+      { id: 'esp', x: 700, y: 68, w: 180, title: 'ESP32 (on USB)', L: [['5v', '5V (left row)'], ['3v3', '3V3 (left row)'], ['gnda', 'GND (right row)'], ['g35', 'GPIO35 (left row)'], ['g34', 'GPIO34 (left row)'], ['g32', 'GPIO32 (left row)'], ['gndb', 'GND (left row)']] }
+    ],
+    vparts: [{ id: 'c1', kind: 'cap', x: 600, y1: 124, y2: 146, label: 'C1 100 nF', side: 'T' }],
+    wires: [
+      { id: 'w5', a: 'esp:5v', b: [210, 96], net: 'v5', via: [[672, 102], [672, 14], [210, 14]] },
+      { id: 'ja1', a: 'u1:2', b: [250, 96], net: 'v5', via: [[250, 146]] },
+      { id: 'ja2', a: 'u1:3', b: [230, 96], net: 'v5', via: [[230, 168]] },
+      { id: 'ja3', a: 'u1:4', b: [310, 402], net: 'gnd', via: [[310, 190]] },
+      { id: 'wvcc', a: 'u1:20', b: 'esp:3v3', net: 'v33' },
+      { id: 'wdir', a: [560, 124], b: 'u1:1', net: 'v33', via: [[560, 60], [325, 60], [325, 124]] },
+      { id: 'woe', a: 'u1:19', b: 'esp:gnda', net: 'gnd' },
+      { id: 'wcomb', a: 'u1:5', b: [335, 212], net: 'gnd', nodot: true }, { id: 'wcomb', a: 'u1:6', b: [335, 234], net: 'gnd' },
+      { id: 'wcomb', a: 'u1:7', b: [335, 256], net: 'gnd' }, { id: 'wcomb', a: 'u1:8', b: [335, 278], net: 'gnd' },
+      { id: 'wcomb', a: 'u1:9', b: [335, 300], net: 'gnd' }, { id: 'wcomb', a: 'u1:10', b: [335, 322], net: 'gnd' },
+      { id: 'wcomb', a: [335, 212], b: [335, 402], net: 'gnd', nodotA: true },
+      { id: 'wb1', a: 'u1:18', b: 'esp:g35', net: 'encB' },
+      { id: 'wb2', a: 'u1:17', b: 'esp:g34', net: 'encA' },
+      { id: 'wb3', a: 'u1:16', b: 'esp:g32', net: 'encX' },
+      { id: 'wge', a: 'esp:gndb', b: [676, 402], net: 'gnd', via: [[676, 234]] }
+    ],
+    rows: [
+      ['w5', 'ESP32 5V', '5V rail', 'v5', 'Source for the 5 V test inputs.'],
+      ['wge', 'ESP32 GND (left row)', 'GND rail', 'gnd', ''],
+      ['wvcc', 'Pin 20 (VCC)', 'ESP32 3V3', 'v33', 'Chip power, straight from the ESP32.'],
+      ['wdir', 'Pin 1 (DIR)', 'VCC wire (3.3 V)', 'v33', 'Branch off the VCC wire, over the top of the chip.'],
+      ['woe', 'Pin 19 (OE)', 'ESP32 GND (right row)', 'gnd', 'Outputs always on.'],
+      ['c1', 'C1 100 nF', 'Across pins 20 and 19', 'v33', 'Right at the chip.'],
+      ['wcomb', 'Pin 10 (GND) + pins 5–9', 'GND rail', 'gnd', 'Chip ground + unused inputs A4–A8.'],
+      ['ja1', 'Jumper on pin 2 (A1)', '5V rail (start)', 'v5', 'You move this one between 5V and GND.'],
+      ['ja2', 'Jumper on pin 3 (A2)', '5V rail (start)', 'v5', 'You move this one between 5V and GND.'],
+      ['ja3', 'Jumper on pin 4 (A3)', 'GND rail (start)', 'gnd', 'You move this one between GND and 5V.'],
+      ['wb1', 'Pin 18 (B1)', 'GPIO35', 'encB', 'Later: encoder B.'],
+      ['wb2', 'Pin 17 (B2)', 'GPIO34', 'encA', 'Later: encoder A.'],
+      ['wb3', 'Pin 16 (B3)', 'GPIO32', 'encX', 'Later: encoder X. (Not GPIO39: ESP32 erratum.)']
+    ],
+    checks: ['USB unplugged while wiring.', 'Pin 20 to the ESP32 3V3 pin, NOT 5V.', 'No B pin goes to 5V. Only A1–A3 may touch the 5V rail.', 'Pins 11–15 (B4–B8) stay empty.'],
+    todo: [] },
 
   { id: 't4', tab: 'T4 Encoder', title: 'T4 · AMT102-V encoder → ESP32', status: 'draft', statusText: 'Draft',
-    purpose: 'Encoder signals (5 V) go through the 74LVC245 to the input-only pins 34 / 35 / 39 (3.3 V). The encoder takes 5 V from the ESP32 5V pin. Chip power comes straight from the ESP32 3V3 pin.', vb: [900, 430],
+    purpose: 'Encoder signals (5 V) go through the 74LVC245 to the pins 34 / 35 / 32 (3.3 V). The encoder takes 5 V from the ESP32 5V pin. Chip power comes straight from the ESP32 3V3 pin.', vb: [900, 430],
     bars: [{ id: 'rg', net: 'gnd', x1: 170, x2: 690, y: 402, label: 'GND rail' }],
     comps: [
       { id: 'enc', x: 20, y: 130, w: 130, title: 'AMT102-V', sub: 'header: B 5V A X G', R: [['b', 'B'], ['5v', '5V'], ['a', 'A'], ['x', 'X (index)'], ['g', 'G (GND)']] },
       { id: 'u1', kind: 'dip', x: 360, y: 90, w: 160, title: 'SN74LVC245AN', L: DIPL, R: DIPR },
-      { id: 'esp', x: 700, y: 68, w: 180, title: 'ESP32 (on USB)', L: [['5v', '5V (left row)'], ['3v3', '3V3 (left row)'], ['gnda', 'GND (right row)'], ['g35', 'GPIO35'], ['g34', 'GPIO34'], ['g39', 'GPIO39 / VN'], ['gndb', 'GND (left row)']] }
+      { id: 'esp', x: 700, y: 68, w: 180, title: 'ESP32 (on USB)', L: [['5v', '5V (left row)'], ['3v3', '3V3 (left row)'], ['gnda', 'GND (right row)'], ['g35', 'GPIO35'], ['g34', 'GPIO34'], ['g39', 'GPIO32 (left row)'], ['gndb', 'GND (left row)']] }
     ],
     vparts: [{ id: 'c1', kind: 'cap', x: 600, y1: 124, y2: 146, label: 'C1 100 nF', side: 'T' }],
     wires: [
@@ -317,7 +363,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['wx', 'Encoder X', 'Pin 4 (A3)', 'encX', 'Index: one pulse per turn.'],
       ['wa2', 'Pin 17 (B2)', 'GPIO34', 'encA', '3.3 V side.'],
       ['wb2', 'Pin 18 (B1)', 'GPIO35', 'encB', ''],
-      ['wx2', 'Pin 16 (B3)', 'GPIO39 (VN)', 'encX', ''],
+      ['wx2', 'Pin 16 (B3)', 'GPIO32', 'encX', 'Not GPIO39: ESP32 erratum (glitches when Wi-Fi/ADC powers up).'],
       ['wvcc', 'Pin 20 (VCC)', 'ESP32 3V3', 'v33', 'Chip power, straight from the ESP32.'],
       ['wdir', 'Pin 1 (DIR)', 'VCC wire (3.3 V)', 'v33', 'Branches off the VCC wire, over the chip.'],
       ['woe', 'Pin 19 (OE)', 'ESP32 GND (right row)', 'gnd', 'Any ESP32 GND pin is the same ground.'],
@@ -325,7 +371,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['wcomb', 'Pin 10 (GND) + pins 5–9', 'GND rail', 'gnd', 'Chip ground + unused inputs A4–A8.']
     ],
     checks: ['Read the B / 5V / A / X / G labels printed on the encoder before connecting.', 'No encoder wire goes straight to the ESP32.', 'Encoder DIP switches all OFF = 2048 PPR.', 'Tape the encoder cable down.'],
-    todo: ['Final GPIO for A / B / X (draft 34 / 35 / 39).', 'Use the index X for zeroing? (options in T5).', 'The datasheet warns that stepper magnets can disturb the index pulse. Check the distance in the jig.'] },
+    todo: ['Use the index X for zeroing? (options in T5).', 'The datasheet warns that stepper magnets can disturb the index pulse. Check the distance in the jig.'] },
 
   { id: 't7', tab: 'T7 Driver', title: 'T7 · One TMC2209 + one motor', status: 'draft', statusText: 'Draft · most risk',
     purpose: 'One driver over UART. First read the chip ID with the motor not moving, then spin slowly. No wire crosses another.', vb: [930, 490],
