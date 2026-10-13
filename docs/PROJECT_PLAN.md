@@ -12,8 +12,8 @@ safety) → 3. Build (one small PlatformIO project) → 4. Verify (compile, logi
 | Test | Component | Status |
 |---|---|---|
 | T0 | Setup: folders, git, PlatformIO, safety rules | Delivered |
-| T1 | ESP32 board bring-up (USB only) | Delivered (code compiled, study page ready) — waiting for your hardware test |
-| T2 | Buck converter set to 5.0 V | Not started |
+| T1 | ESP32 board bring-up (USB only) | Signed off by user 2026-10-13 (no test results reported) |
+| T2 | Buck converter set to 5.0 V + ESP32 as load | Delivered (code compiled, study page ready) — waiting for your hardware test |
 | T3 | 74LVC245 level shifter | Not started |
 | T4 | AMT102-V encoder → counts, degrees | Not started |
 | T5 | Encoder → mm (GT2 20T, 40 mm/turn) + first calibration | Not started |

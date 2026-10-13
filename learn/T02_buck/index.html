@@ -1,0 +1,512 @@
+<title>T02 Buck Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: bench notebook - sticky contents rail (desktop), one reading column, copper accent; same family as the T01 page */
+:root{
+  --bg:#F4F6F4; --surface:#FFFFFF; --sunk:#E8ECE9; --fg:#1C2321; --muted:#56615D; --line:#CBD3CF;
+  --copper:#A8551F; --copper-soft:#F6E6DA; --signal:#1F5FA8; --signal-soft:#E1ECF8;
+  --ok:#2E7D4F; --ok-soft:#E0F2E7; --bad:#B23A32; --bad-soft:#F9E3E1; --warn:#8C6200; --warn-soft:#FBF0D3;
+  --v12:#E06A00; --v5:#D7322C; --gnd:#1F2421; --ind:#1F5FA8;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.65;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-inline:20px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:16px;padding-inline:16px}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:14px;line-height:1.4}
+nav.toc .lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-size:13px;margin-bottom:8px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:4px 10px;color:var(--muted);text-decoration:none;margin-left:-2px;border-left:2px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--copper);border-left-color:var(--copper)}
+@media (max-width:900px){nav.toc{position:static}nav.toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border-left:0}nav.toc a{border:1px solid var(--line);border-radius:6px;margin:0}}
+main{min-width:0;max-width:760px}
+header.hero{padding-bottom:18px;border-bottom:2px solid var(--copper);margin-bottom:8px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--copper);font-size:14px;font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,48px);line-height:1.05;margin:6px 0 12px;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.15;margin:56px 0 10px;text-wrap:balance;scroll-margin-top:16px}
+h2 .tag{font-size:15px;font-weight:600;color:var(--copper);letter-spacing:.06em;display:block;text-transform:uppercase}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;margin:26px 0 6px}
+p{margin:0 0 12px}
+.goal{font-size:19px}
+.assume{font-size:14px;color:var(--muted);background:var(--sunk);border-radius:6px;padding:8px 12px;display:inline-block}
+.why{background:var(--signal-soft);border-left:4px solid var(--signal);padding:10px 14px;margin:12px 0}
+.one{background:var(--copper-soft);border-left:4px solid var(--copper);padding:10px 14px;margin:16px 0;font-weight:700}
+.details{border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;font-size:15.5px}
+.details b.h{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.extra{display:inline-block;font-size:12px;font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 7px;vertical-align:middle;margin-left:6px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--sunk);padding:1px 5px;border-radius:4px}
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+figure{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure .sc{overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--fg)}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.codebox{position:relative;margin:14px 0}
+pre{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:13.5px;line-height:1.55;margin:0}
+.copy{position:absolute;top:8px;right:8px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.copy:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.step{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;margin:14px 0}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--copper);color:var(--surface);display:grid;place-items:center;font-family:var(--f-display);font-weight:700}
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0}
+.sim label{font-size:15px;display:block;margin:8px 0 2px}
+.sim input[type=range]{width:100%;accent-color:var(--copper)}
+.readout{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.readout div{flex:1 1 150px;background:var(--sunk);border-radius:8px;padding:8px 12px;font-size:14px}
+.readout b{display:block;font-family:var(--f-mono);font-size:19px;font-variant-numeric:tabular-nums}
+.readout .bad b{color:var(--bad)}
+.traps li{margin-bottom:10px}
+.quiz .q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0}
+.quiz .qt{font-weight:700;margin-bottom:8px}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left;font:inherit;font-size:15.5px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.opts button:hover{border-color:var(--copper)}
+.opts button.right{background:var(--ok-soft);border-color:var(--ok)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.numrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.numrow input{font:inherit;width:150px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.btn{font:inherit;font-size:15px;background:var(--copper);color:var(--surface);border:0;border-radius:8px;padding:7px 16px;cursor:pointer}
+.fb{margin-top:10px;font-size:15px;padding:8px 12px;border-radius:8px}
+.fb.ok{background:var(--ok-soft)}.fb.no{background:var(--bad-soft)}
+.err{color:var(--bad);font-size:13px}
+.score{font-family:var(--f-display);font-size:22px;font-weight:600}
+.check label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+.check input{margin-top:6px;accent-color:var(--copper);width:18px;height:18px;flex:none}
+svg .t{font-family:var(--f-body);font-size:12px;fill:currentColor}
+svg .tb{font-family:var(--f-display);font-size:14px;font-weight:600;fill:currentColor}
+svg .tm{font-family:var(--f-mono);font-size:11px;fill:currentColor}
+svg .box{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
+svg .boxc{fill:var(--copper-soft);stroke:var(--copper);stroke-width:1.6}
+svg .ln{stroke:currentColor;stroke-width:1.4;fill:none}
+svg .w12{stroke:var(--v12);stroke-width:2.6;fill:none}
+svg .w5{stroke:var(--v5);stroke-width:2.6;fill:none}
+svg .wg{stroke:var(--gnd);stroke-width:2.2;fill:none}
+svg .wi{stroke:var(--ind);stroke-width:2.6;fill:none}
+svg .wc{stroke:var(--copper);stroke-width:2;fill:none}
+svg .grid{stroke:var(--line);stroke-width:1}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">On this page</div>
+  <ol>
+    <li><a href="#map">Map</a></li>
+    <li><a href="#words">Key words</a></li>
+    <li><a href="#why5">1 · Why a buck converter</a></li>
+    <li><a href="#how">2 · How it works</a></li>
+    <li><a href="#fb">3 · Feedback + trimmer</a></li>
+    <li><a href="#budget">4 · ESP32 power budget</a></li>
+    <li><a href="#calc">5 · Input current</a></li>
+    <li><a href="#setting">6 · Setting it safely</a></li>
+    <li><a href="#partb">7 · Part B: brown-out</a></li>
+    <li><a href="#example">Worked example</a></li>
+    <li><a href="#code">Code</a></li>
+    <li><a href="#traps">Traps</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+    <li><a href="#checklist">Checklist</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Capstone 2026PUZ1 · Test T02 of 10</div>
+  <h1>Buck converter → 5.0 V</h1>
+  <p class="goal">After this page you can explain how the buck converter turns 12 V into 5 V, calculate how much current it takes from the supply, set it safely to 5.0 V, and read the LED codes of the Part B test.</p>
+  <p class="assume">I assumed: you know Ohm's law and P = V·I. Goal = understand T02 before you test it.</p>
+</header>
+
+<h2 id="map"><span class="tag">Overview</span>Map of this test</h2>
+<p>Power flows from left to right. In Part A, only the meter sits on the output. In Part B, the ESP32 takes its place as a real load.</p>
+<figure><div class="sc">
+<svg viewBox="0 0 720 200" role="img" aria-label="Power path: supply 12 V, fuse, buck converter, 5.0 V, ESP32 board 5V pin, on-board 3.3 V regulator, ESP32 chip. A feedback loop inside the buck converter holds the output at 5.0 V.">
+  <defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="currentColor"/></marker></defs>
+  <rect class="box" x="10" y="60" width="100" height="60" rx="6"/><text class="tb" x="60" y="86" text-anchor="middle">Supply</text><text class="t" x="60" y="104" text-anchor="middle">12 V</text>
+  <rect class="box" x="140" y="70" width="60" height="40" rx="6"/><text class="t" x="170" y="94" text-anchor="middle">Fuse</text>
+  <rect class="boxc" x="230" y="50" width="150" height="80" rx="6"/><text class="tb" x="305" y="80" text-anchor="middle">Buck converter</text><text class="t" x="305" y="100" text-anchor="middle">12 V → 5.0 V</text>
+  <path class="wc" d="M330 130 V160 H280 V132" marker-end="url(#m1)"/><text class="t" x="305" y="178" text-anchor="middle" style="fill:var(--copper)">feedback: the hard idea</text>
+  <rect class="box" x="420" y="60" width="130" height="60" rx="6"/><text class="tb" x="485" y="86" text-anchor="middle">ESP32 board</text><text class="t" x="485" y="104" text-anchor="middle">5V pin</text>
+  <rect class="box" x="580" y="60" width="130" height="60" rx="6"/><text class="tb" x="645" y="86" text-anchor="middle">3.3 V regulator</text><text class="t" x="645" y="104" text-anchor="middle">→ ESP32 chip</text>
+  <line class="w12" x1="110" y1="90" x2="138" y2="90" marker-end="url(#m1)"/>
+  <line class="w12" x1="200" y1="90" x2="228" y2="90" marker-end="url(#m1)"/>
+  <line class="w5" x1="380" y1="90" x2="418" y2="90" marker-end="url(#m1)"/>
+  <line class="ln" x1="550" y1="90" x2="578" y2="90" marker-end="url(#m1)"/>
+  <text class="t" x="400" y="80" text-anchor="middle">5.0 V</text>
+  <text class="t" x="485" y="42" text-anchor="middle">Part B only (USB unplugged)</text>
+</svg></div>
+<figcaption>The buck converter does the big step from 12 V to 5 V. The small regulator on the ESP32 board then makes the 3.3 V the chip runs on.</figcaption></figure>
+
+<h2 id="words"><span class="tag">Vocabulary</span>Key words</h2>
+<div class="tbl"><table>
+<thead><tr><th>Word</th><th>Simple meaning</th><th>Symbol / unit</th></tr></thead>
+<tbody>
+<tr><td>Buck converter</td><td>A circuit that makes a lower DC voltage from a higher one by switching on and off very fast.</td><td>—</td></tr>
+<tr><td>Linear regulator</td><td>A regulator that drops the extra voltage as heat. Simple, but wasteful for big drops.</td><td>—</td></tr>
+<tr><td>Duty cycle</td><td>The fraction of time the switch is ON.</td><td>D (0–1)</td></tr>
+<tr><td>Switching frequency</td><td>How many times per second the switch turns on and off.</td><td>f (kHz)</td></tr>
+<tr><td>Inductor</td><td>A coil that stores energy in a magnetic field and smooths the current.</td><td>L (µH)</td></tr>
+<tr><td>Output capacitor</td><td>Stores charge and smooths the voltage.</td><td>C (µF)</td></tr>
+<tr><td>Ripple</td><td>The small wave left on top of the DC output.</td><td>mV</td></tr>
+<tr><td>Feedback</td><td>The converter measures its own output and corrects itself.</td><td>—</td></tr>
+<tr><td>Reference voltage</td><td>A fixed, exact voltage inside the chip that the output is compared with.</td><td>V<sub>ref</sub> (≈1.23 V on an LM2596)</td></tr>
+<tr><td>Trimmer potentiometer</td><td>A small adjustable resistor turned with a screwdriver. Here it sets the output voltage.</td><td>Ω</td></tr>
+<tr><td>Efficiency</td><td>Output power divided by input power.</td><td>η (%)</td></tr>
+<tr><td>Brown-out</td><td>The supply voltage dips so low that the chip can't run safely, so it resets itself.</td><td>—</td></tr>
+<tr><td>Current limit</td><td>A setting on a bench supply: it will never give more current than this.</td><td>A</td></tr>
+<tr><td>Solder pad</td><td>A flat metal spot on a board where you solder a wire.</td><td>—</td></tr>
+</tbody></table></div>
+
+<h2 id="why5"><span class="tag">Section 1</span>Why a buck converter, not a simple regulator</h2>
+<div class="why"><b>Why this matters:</b> at the end, the jig runs from a 12–24 V supply (for the motors) without a PC. The ESP32 then needs its own 5 V from that supply.</div>
+<p>Both kinds of regulator give 5 V. The difference is <b>where the extra voltage goes</b>.</p>
+<ul>
+<li>A <b>linear regulator</b> works like a valve that is partly closed. The current is the same in and out, and the extra 7 V (12 − 5) times the current becomes heat.</li>
+<li>A <b>buck converter</b> works like a tap that is opened fully, then closed fully, very fast. An inductor and a capacitor smooth the pulses into a steady 5 V. Very little energy becomes heat.</li>
+</ul>
+<p style="text-align:center">\[ P_{\text{loss,linear}} = (V_{in} - V_{out}) \cdot I_{out} \qquad\qquad \eta_{\text{linear}} \approx \frac{V_{out}}{V_{in}} \]</p>
+<p>At 12 V in and 0.4 A out, a linear regulator wastes (12 − 5) × 0.4 = <b>2.8 W</b> as heat (efficiency about 42 %). A buck converter at about 75 % efficiency wastes about <b>0.67 W</b>. Try other values in the calculator in section 5.</p>
+<p class="one">In one sentence: a buck converter switches instead of burning off the extra voltage, so it stays cool even for big voltage drops.</p>
+
+<h2 id="how"><span class="tag">Section 2</span>How a buck converter works</h2>
+<div class="why"><b>Why this matters:</b> it explains why the module needs some "headroom" (input above output), and why its output is DC with a tiny ripple.</div>
+<figure><div class="sc">
+<svg viewBox="0 0 720 230" role="img" aria-label="Buck converter circuit: input voltage, electronic switch, diode to ground, inductor in series, output capacitor to ground, load. A feedback divider returns the output to the controller.">
+  <text class="t" x="20" y="60">V<tspan dy="3" font-size="9">in</tspan></text><text class="t" x="20" y="76">12 V</text>
+  <line class="w12" x1="60" y1="60" x2="150" y2="60"/>
+  <rect class="box" x="150" y="45" width="80" height="30" rx="4"/><text class="t" x="190" y="65" text-anchor="middle">switch</text>
+  <line class="ln" x1="230" y1="60" x2="300" y2="60"/>
+  <circle cx="300" cy="60" r="3" fill="currentColor"/><text class="t" x="300" y="45" text-anchor="middle">switch node</text>
+  <path class="wi" d="M300 60 H330 c0 -14 18 -14 18 0 c0 -14 18 -14 18 0 c0 -14 18 -14 18 0 c0 -14 18 -14 18 0 H460"/>
+  <text class="t" x="375" y="35" text-anchor="middle" style="fill:var(--ind)">inductor L</text>
+  <line class="ln" x1="300" y1="60" x2="300" y2="110"/>
+  <path class="ln" d="M290 130 L310 130 L300 112 Z"/><line class="ln" x1="290" y1="110" x2="310" y2="110"/>
+  <line class="ln" x1="300" y1="130" x2="300" y2="170"/><text class="t" x="316" y="128">diode</text>
+  <line class="w5" x1="460" y1="60" x2="620" y2="60"/><circle cx="500" cy="60" r="3" fill="currentColor"/>
+  <line class="ln" x1="500" y1="60" x2="500" y2="104"/><line class="ln" x1="488" y1="104" x2="512" y2="104"/><line class="ln" x1="488" y1="112" x2="512" y2="112"/><line class="ln" x1="500" y1="112" x2="500" y2="170"/>
+  <text class="t" x="520" y="112">C<tspan dy="3" font-size="9">out</tspan></text>
+  <rect class="box" x="620" y="45" width="80" height="125" rx="4"/><text class="t" x="660" y="105" text-anchor="middle">load</text><text class="t" x="660" y="121" text-anchor="middle">(ESP32)</text>
+  <text class="t" x="560" y="50" text-anchor="middle" style="fill:var(--v5)">V<tspan dy="3" font-size="9">out</tspan><tspan dy="-3"> = 5.0 V</tspan></text>
+  <line class="wg" x1="60" y1="170" x2="620" y2="170"/><text class="t" x="20" y="174">GND</text>
+  <path class="wc" d="M560 60 V200 H190 V77" stroke-dasharray="5 4"/>
+  <text class="t" x="380" y="216" text-anchor="middle" style="fill:var(--copper)">feedback: controller measures V<tspan dy="3" font-size="9">out</tspan><tspan dy="-3"> and sets how long the switch stays on</tspan></text>
+</svg></div>
+<figcaption>Switch ON: current flows from the input through the inductor to the load. Switch OFF: the inductor keeps the current flowing through the diode. The capacitor smooths what's left.</figcaption></figure>
+<p>The switch turns on and off many thousand times per second (the listing for your module says 400 kHz). If it is ON for a fraction <i>D</i> of each cycle, the average voltage after the inductor and capacitor is about <i>D</i> × V<sub>in</sub>:</p>
+<p style="text-align:center">\[ V_{out} \approx D \cdot V_{in} \quad\Rightarrow\quad D \approx \frac{V_{out}}{V_{in}} = \frac{5}{12} \approx 0.42 \]</p>
+<p>So at 12 V the switch is ON about 42 % of the time. At 24 V it is ON only about 21 % of the time, and the output is still 5 V.</p>
+<div class="sim">
+  <b>Try it: switch-node waveform</b>
+  <label for="dvin">Input voltage V<sub>in</sub> = <span id="dvinv">12</span> V</label>
+  <input id="dvin" type="range" min="7" max="24" step="1" value="12">
+  <svg id="wave" viewBox="0 0 680 150" role="img" aria-label="Square wave at the switch node and its average value, which stays at 5 volts."></svg>
+  <div class="readout"><div>Duty cycle D<b id="dd">—</b></div><div>ON time per cycle at 400 kHz<b id="dton">—</b></div><div>Average = output<b>5.0 V</b></div></div>
+</div>
+<p class="one">In one sentence: the switch chops the input into pulses, and the inductor and capacitor average them into a steady lower voltage.</p>
+<div class="details"><b class="h">Small details</b>
+D = V<sub>out</sub>/V<sub>in</sub> is the ideal case; real losses make D a little larger. A buck converter can only go <b>down</b>. It needs some extra input voltage (your module's listing says at least 1 V more at high current; other LM2596 guides say 1.5 V), so 12 V in for 5 V out is comfortable. The listing calls the module an "LM2596S", but it accepts up to 60 V and switches at 400 kHz. A real LM2596 is rated 40 V and 150 kHz, so the chip on your board is probably a different one. That is why we trust the meter, not the label.</div>
+
+<h2 id="fb"><span class="tag">Section 3 · the hard idea</span>Feedback and the trimmer screw</h2>
+<div class="why"><b>Why this matters:</b> it explains what you change when you turn the blue screw, and why the output stays at 5 V when the input or the load changes.</div>
+<p>The converter does not "know" 5 V. It only knows its own small, exact <b>reference voltage</b> (about 1.23 V on an LM2596). Two resistors divide the output down and feed it back. The controller adjusts the duty cycle until the divided output exactly equals the reference.</p>
+<p style="text-align:center">\[ V_{out} = V_{ref}\left(1 + \frac{R_2}{R_1}\right) \]</p>
+<p>The blue trimmer is part of this divider. Turning it changes R<sub>2</sub>/R<sub>1</sub>, and so V<sub>out</sub>. For 5 V you need R<sub>2</sub>/R<sub>1</sub> = 5/1.23 − 1 ≈ 3.07. The trimmer has many turns (often 15–25), so each turn changes the voltage only a little. This is good for fine setting, but it can feel like "nothing happens" at first.</p>
+<p>Because of the feedback, the output stays at 5.0 V when you change the input from 12 V to 24 V, and when the ESP32 suddenly draws more current. This is what the optional 24 V check in Part A shows you.</p>
+<p class="one">In one sentence: the chip keeps the divided output equal to its reference, and the trimmer changes the divider, so the trimmer sets the output.</p>
+<div class="details"><b class="h">Small details</b>
+On most modules, turning <b>clockwise raises</b> the voltage. Some modules work the other way, so always watch the meter while turning. Set the voltage with <b>no load</b> first, then check it again under load (Part B).</div>
+
+<h2 id="budget"><span class="tag">Section 4</span>How much power does the ESP32 need?</h2>
+<div class="why"><b>Why this matters:</b> it tells us what current limit to set on the supply, and what "normal" looks like in Part B.</div>
+<div class="tbl"><table>
+<thead><tr><th>ESP32 state (datasheet, at 3.3 V)</th><th>Average</th><th>Peak</th></tr></thead>
+<tbody>
+<tr><td>Wi-Fi transmitting (802.11b, 19.5 dBm)</td><td class="num">239 mA</td><td class="num">379 mA</td></tr>
+<tr><td>Wi-Fi transmitting (802.11n, 20 MHz)</td><td class="num">183 mA</td><td class="num">258 mA</td></tr>
+<tr><td>Wi-Fi receiving / scanning</td><td class="num">112 mA</td><td class="num">112 mA</td></tr>
+<tr><td>Required from the supply (datasheet)</td><td colspan="2" class="num">at least 500 mA</td></tr>
+</tbody></table></div>
+<p>The board's own 3.3 V regulator is a linear type (a 3-pin part next to pins 12–13). For a linear regulator the current in equals the current out, so the 5 V side carries about the same current as the 3.3 V side, roughly <b>0.25 A average and 0.4 A peak</b>. The regulator turns (5 − 3.3) × 0.38 ≈ 0.65 W into heat at the peak. That's why it can feel warm.</p>
+<p class="one">In one sentence: plan for about 0.4 A at 5 V for the ESP32, the busiest case with Wi-Fi transmitting.</p>
+
+<h2 id="calc"><span class="tag">Section 5</span>How much current does the supply give?</h2>
+<p>Power in = power out + losses. With efficiency η:</p>
+<p style="text-align:center">\[ I_{in} = \frac{V_{out}\, I_{out}}{\eta \, V_{in}} \]</p>
+<p>The input current is <b>smaller</b> than the output current, because the input voltage is higher. A buck converter trades voltage for current.</p>
+<div class="sim">
+  <b>Try it: buck vs. linear calculator</b>
+  <label for="cvin">Input voltage V<sub>in</sub> = <span id="cvinv">12</span> V</label>
+  <input id="cvin" type="range" min="7" max="24" step="1" value="12">
+  <label for="cio">Output current I<sub>out</sub> at 5 V = <span id="ciov">0.40</span> A</label>
+  <input id="cio" type="range" min="0.05" max="1.5" step="0.05" value="0.40">
+  <label for="ceta">Buck efficiency η = <span id="cetav">75</span> %</label>
+  <input id="ceta" type="range" min="60" max="95" step="1" value="75">
+  <div class="readout">
+    <div>Output power<b id="rpo">—</b></div>
+    <div>Supply current (buck)<b id="riin">—</b></div>
+    <div>Heat in buck<b id="rlb">—</b></div>
+    <div class="bad">Heat if linear<b id="rll">—</b></div>
+  </div>
+</div>
+<p class="one">In one sentence: at 12 V the whole ESP32 needs only about 0.15–0.22 A from the supply, so a 0.5 A current limit is safe and still protective.</p>
+
+<h2 id="setting"><span class="tag">Section 6</span>Setting it safely (Part A)</h2>
+<div class="why"><b>Why this matters:</b> a new module can come set to almost any voltage, even close to its input. Connecting the ESP32 before setting it would put 12 V on a 5 V pin.</div>
+<div class="step"><div class="n">1</div><div><b>Only the meter on the output.</b> If the voltage is wrong, nothing gets damaged.</div></div>
+<div class="step"><div class="n">2</div><div><b>Low input first (12 V) and a low current limit (0.3 A).</b> If the wiring is wrong, the supply limits the damage.</div></div>
+<div class="step"><div class="n">3</div><div><b>Turn slowly, watch the meter.</b> Stop at 4.95–5.05 V.</div></div>
+<div class="step"><div class="n">4</div><div><b>OFF → ON check.</b> The value must come back the same, so you know the setting holds.</div></div>
+<p>The pads are labelled IN+, IN−, OUT+, OUT−. Solder short wires to them (24 AWG red/black came with the kit). Crocodile clips are only for a quick test: they slip and can bridge two pads.</p>
+<p class="one">In one sentence: set the voltage with nothing to damage, then prove it holds, and only then connect a real load.</p>
+
+<h2 id="partb"><span class="tag">Section 7</span>Part B: the ESP32 as a load, and brown-out</h2>
+<div class="why"><b>Why this matters:</b> a voltage that's correct with no load can still dip under a real, pulsing load. Part B tests the real situation.</div>
+<p>In Part B the USB cable is unplugged, so there is no serial monitor. The program therefore reports with LEDs.</p>
+<p>The ESP32 has a <b>brown-out detector</b>. If its supply dips too low, it resets itself instead of running wrongly. After any reset, the chip remembers <i>why</i> it reset. The program reads this with <code>esp_reset_reason()</code> and shows it on the RGB LED for 2 s:</p>
+<div class="tbl"><table>
+<thead><tr><th>RGB at start-up</th><th>Reset reason</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>White</td><td><code>ESP_RST_POWERON</code></td><td>Normal power-on (or the EN button). Good.</td></tr>
+<tr><td>Red</td><td><code>ESP_RST_BROWNOUT</code></td><td>The voltage dipped too low. Check the setting, the wires and the current limit.</td></tr>
+<tr><td>Yellow</td><td>anything else</td><td>Crash, watchdog, etc. Plug in USB and read the serial monitor.</td></tr>
+</tbody></table></div>
+<p>To load the supply, the program starts a Wi-Fi scan every 4 seconds. It uses <code>WiFi.scanNetworks(true)</code>: the <code>true</code> means "scan in the background". So <code>loop()</code> never waits and the blue LED keeps blinking at a steady 1 Hz. That is the same non-blocking idea you learned in T01. If the blue LED ever stops or the RGB shows red at start-up, the supply is not good enough.</p>
+<p><b>Why USB must be unplugged:</b> the buck's 5 V and the PC's 5 V would be joined on the board's 5 V line. We can't confirm this board has a protection diode, so the higher of the two could push current into the other (see the T01 page, section 8).</p>
+<p class="one">In one sentence: Part B runs the ESP32 at its busiest from the buck alone, and the start-up colour tells you if the voltage ever dipped.</p>
+
+<h2 id="example"><span class="tag">Practice</span>Worked example: choose the current limit for Part B</h2>
+<p><b>Problem.</b> The supply is set to 12 V. The ESP32 draws up to 0.40 A at 5 V. Assume the buck efficiency is 75 %. (a) What duty cycle does the buck run at? (b) How much current does the supply give at the peak? (c) What current limit should you set? (d) How much heat would a linear regulator make instead?</p>
+<div class="step"><div class="n">a</div><div><p><b>Why:</b> for an ideal buck converter, the duty cycle is the voltage ratio.</p><p>\( D = \dfrac{5\ \text{V}}{12\ \text{V}} = 0.42 \) (42 % ON time)</p></div></div>
+<div class="step"><div class="n">b</div><div><p><b>Why:</b> first the output power, then add the losses, then divide by the input voltage.</p><p>\( P_{out} = 5\ \text{V} \times 0.40\ \text{A} = 2.0\ \text{W} \qquad P_{in} = \dfrac{2.0\ \text{W}}{0.75} = 2.67\ \text{W} \qquad I_{in} = \dfrac{2.67\ \text{W}}{12\ \text{V}} = 0.22\ \text{A} \)</p></div></div>
+<div class="step"><div class="n">c</div><div><p><b>Why:</b> the limit must be above the normal peak, so the ESP32 is not starved, but low enough to protect against a short circuit.</p><p>0.22 A peak → choose <b>0.5 A</b>. That is more than twice the peak, and still far below the supply's 3 A.</p></div></div>
+<div class="step"><div class="n">d</div><div><p><b>Why:</b> a linear regulator turns the whole voltage difference into heat.</p><p>\( P_{loss} = (12 - 5)\ \text{V} \times 0.40\ \text{A} = 2.8\ \text{W} \) compared with \( 2.67 - 2.0 = 0.67\ \text{W} \) for the buck.</p></div></div>
+<p><b>Sanity check.</b> Units: W / V = A ✓. The supply current (0.22 A) is smaller than the output current (0.40 A), which must be true for a step-down converter. At 24 V the supply current halves (≈0.11 A), as expected for the same power.</p>
+
+<h2 id="code"><span class="tag">Hands-on</span>The Part B code</h2>
+<p>The full file is <code>tests/T02_buck/src/main.cpp</code>. It compiled with PlatformIO: <b>SUCCESS</b>, no warnings, static check passed. This is the core of <code>loop()</code>:</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre>// Start a Wi-Fi scan every 4 s. "true" = background (asynchronous) scan,
+// so loop() never waits.
+if (!scanRunning &amp;&amp; now - lastScanMs &gt;= SCAN_INTERVAL_MS) {
+  lastScanMs = now;
+  WiFi.scanNetworks(true);
+  scanRunning = true;
+}
+
+// Has the background scan finished?
+// scanComplete(): -1 = still running, -2 = failed, &gt;= 0 = networks found
+if (scanRunning) {
+  int16_t result = WiFi.scanComplete();
+  if (result &gt;= 0 || result == WIFI_SCAN_FAILED) {
+    scanRunning = false;
+    int found = result &gt; 0 ? result : 0;
+    if (found &gt; 0) setRgb(0, RGB_LEVEL, 0);   // green flash
+    else           setRgb(RGB_LEVEL, 0, 0);   // red flash
+    flashOn = true;
+    flashStartMs = now;
+    WiFi.scanDelete();                       // free the memory
+  }
+}</pre></div>
+<p>And the start-up check in <code>setup()</code>:</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre>esp_reset_reason_t reason = esp_reset_reason();   // why did we (re)start?
+if (reason == ESP_RST_POWERON)       setRgb(RGB_LEVEL, RGB_LEVEL, RGB_LEVEL);  // white
+else if (reason == ESP_RST_BROWNOUT) setRgb(RGB_LEVEL, 0, 0);                  // red
+else                                 setRgb(RGB_LEVEL, RGB_LEVEL, 0);          // yellow
+delay(BOOT_SIGNAL_MS);   // OK here: setup() runs once, before the work starts</pre></div>
+<h3>Expected serial output (B1, on USB)</h3>
+<div class="codebox"><pre>=== T02 Part B: ESP32 as load for the buck converter ===
+Reset reason: power-on (or EN button)
+Scan 1: 6 network(s)
+Scan 2: 6 network(s)
+...</pre></div>
+<p style="font-size:14px;color:var(--muted)">Example only. Your network count will be different.</p>
+
+<h2 id="traps"><span class="tag">Watch out</span>Test traps</h2>
+<ul class="traps">
+<li><b>Meter probe in the "A" (current) socket.</b> In the current socket the meter is almost a short circuit. On the output, it shorts the converter. For voltage, the red probe goes in the <b>V/Ω</b> socket.</li>
+<li><b>Setting the voltage with the ESP32 already connected.</b> A new module may output 10+ V. Always set it with only the meter connected.</li>
+<li><b>"Turning does nothing".</b> It's a multi-turn trimmer: keep turning (up to ~20 turns) while watching the meter. If the voltage never moves, check that the input really is above 6 V.</li>
+<li><b>Input too close to the output.</b> With 6 V in, the output can't hold 5.0 V under load. Use 12 V.</li>
+<li><b>IN and OUT swapped.</b> The pads are on opposite ends. The supply goes to IN+/IN−, never to OUT.</li>
+<li><b>USB still plugged in during Part B.</b> Two 5 V sources joined. Unplug USB first.</li>
+<li><b>OUT+ on a 3.3V pin.</b> 5 V on the 3.3 V line damages the ESP32. The board's 5V pins are at the bottom of the left row.</li>
+<li><b>Crocodile clips touching.</b> Two clips on neighbouring pads can short. Solder wires, or angle the clips apart.</li>
+</ul>
+
+<h2 id="quiz"><span class="tag">Test yourself</span>Practice quiz</h2>
+<div class="quiz" id="quizbox"></div>
+<div id="scorebox" class="score" aria-live="polite"></div>
+<div id="reread" style="font-size:15px"></div>
+
+<h2 id="checklist"><span class="tag">Self-check</span>I can…</h2>
+<div class="check">
+<label><input type="checkbox" id="c1"> explain the difference between a buck converter and a linear regulator, using the word "heat".</label>
+<label><input type="checkbox" id="c2"> calculate the duty cycle for 12 V → 5 V and for 24 V → 5 V.</label>
+<label><input type="checkbox" id="c3"> explain what the trimmer changes, using V<sub>out</sub> = V<sub>ref</sub>(1 + R<sub>2</sub>/R<sub>1</sub>).</label>
+<label><input type="checkbox" id="c4"> calculate the supply current from the output power and the efficiency.</label>
+<label><input type="checkbox" id="c5"> say why the voltage is set with nothing but the meter connected.</label>
+<label><input type="checkbox" id="c6"> read the start-up colour of Part B and say what a red one means.</label>
+<label><input type="checkbox" id="c7"> say why USB must be unplugged in Part B.</label>
+</div>
+
+<h2 id="sources"><span class="tag">Where this came from</span>Sources</h2>
+<div class="tbl"><table>
+<thead><tr><th>Section</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>Module data (60 V in, 2–34 V out, 3 A, 400 kHz, solder pads)</td><td><code>DC-DC Buck Converter/</code> screenshots (product listing)</td></tr>
+<tr><td>1–3 · Buck principle, V<sub>ref</sub> 1.23 V, formula, 73 % at 12 V → 5 V, 3 A</td><td>ON Semiconductor LM2596 datasheet</td></tr>
+<tr><td>3 · Clockwise = higher, measure while adjusting</td><td>LM2596 module manuals (manuals.plus, Phipps Electronics); <span class="extra">varies by module</span></td></tr>
+<tr><td>4 · ESP32 current 239 / 379 mA, supply ≥ 0.5 A</td><td>Espressif ESP32-WROOM-32E datasheet v2.1, Tables 14 and 16</td></tr>
+<tr><td>7 · Reset reasons, async scan</td><td><code>tests/T02_buck/src/main.cpp</code>; Arduino-ESP32 2.0.17 API</td></tr>
+<tr><td>Duty-cycle waveform, ON time</td><td><span class="extra">Extra</span> ideal buck relation D = V<sub>out</sub>/V<sub>in</sub></td></tr>
+</tbody></table></div>
+</main>
+</div>
+
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; return e; }
+
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var pre = b.parentNode.querySelector('pre'), txt = pre.innerText;
+      var sel = function () { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Press Ctrl+C'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); }, sel);
+      else sel();
+    });
+  });
+
+  // ---------- duty-cycle waveform ----------
+  var dvin = document.getElementById('dvin'), wave = document.getElementById('wave');
+  function drawWave() {
+    var vin = +dvin.value, D = 5 / vin;
+    document.getElementById('dvinv').textContent = vin;
+    document.getElementById('dd').textContent = (D * 100).toFixed(0) + ' %';
+    document.getElementById('dton').textContent = (D / 400e3 * 1e6).toFixed(2) + ' µs';
+    while (wave.firstChild) wave.removeChild(wave.firstChild);
+    var x0 = 60, w = 600, y0 = 130, sc = 100 / 24, periods = 4, pw = w / periods;
+    var Y = function (v) { return y0 - v * sc; };
+    [0, 5, 12, 24].forEach(function (v) {
+      wave.appendChild(el('line', { 'class': 'grid', x1: x0, x2: x0 + w, y1: Y(v), y2: Y(v) }));
+      wave.appendChild(el('text', { 'class': 'tm', x: x0 - 8, y: Y(v) + 4, 'text-anchor': 'end' }, v + ' V'));
+    });
+    var d = 'M' + x0 + ' ' + Y(0);
+    for (var i = 0; i < periods; i++) {
+      var xs = x0 + i * pw;
+      d += ' L' + xs + ' ' + Y(vin) + ' L' + (xs + D * pw) + ' ' + Y(vin) + ' L' + (xs + D * pw) + ' ' + Y(0) + ' L' + (xs + pw) + ' ' + Y(0);
+    }
+    wave.appendChild(el('path', { d: d, 'class': 'w12' }));
+    wave.appendChild(el('line', { x1: x0, x2: x0 + w, y1: Y(5), y2: Y(5), 'class': 'w5', 'stroke-dasharray': '7 4' }));
+    wave.appendChild(el('text', { 'class': 't', x: x0 + w, y: Y(5) - 6, 'text-anchor': 'end', style: 'fill:var(--v5)' }, 'average = output 5 V'));
+    wave.appendChild(el('text', { 'class': 't', x: x0 + 4, y: 14, style: 'fill:var(--v12)' }, 'switch node: ON for D of each cycle, at ' + vin + ' V'));
+  }
+  dvin.addEventListener('input', drawWave); drawWave();
+
+  // ---------- calculator ----------
+  var cvin = document.getElementById('cvin'), cio = document.getElementById('cio'), ceta = document.getElementById('ceta');
+  function calc() {
+    var vin = +cvin.value, io = +cio.value, eta = +ceta.value / 100;
+    document.getElementById('cvinv').textContent = vin;
+    document.getElementById('ciov').textContent = io.toFixed(2);
+    document.getElementById('cetav').textContent = Math.round(eta * 100);
+    var po = 5 * io, pin = po / eta;
+    document.getElementById('rpo').textContent = po.toFixed(2) + ' W';
+    document.getElementById('riin').textContent = (pin / vin).toFixed(3) + ' A';
+    document.getElementById('rlb').textContent = (pin - po).toFixed(2) + ' W';
+    document.getElementById('rll').textContent = ((vin - 5) * io).toFixed(2) + ' W';
+  }
+  [cvin, cio, ceta].forEach(function (s) { s.addEventListener('input', calc); }); calc();
+
+  // ---------- quiz ----------
+  var Q = [
+    { t: 'What happens to the extra 7 V (12 V − 5 V) in a LINEAR regulator?', o: ['It is stored in the capacitor', 'It becomes heat', 'It goes back to the supply', 'It is switched off 58 % of the time'], a: 1,
+      e: 'A linear regulator drops the extra voltage across itself, so (Vin − Vout) × I becomes heat. Switching on and off is what a buck converter does.', s: 'why5' },
+    { t: 'Input 24 V, output 5 V. What is the ideal duty cycle in percent?', num: 20.83, tol: 0.03, unit: '%',
+      e: 'D = Vout / Vin = 5 / 24 = 0.208 = 20.8 %. Higher input → shorter ON time.', s: 'how' },
+    { t: 'The output is 5.0 V with 12 V in. You change the input to 24 V. What should the output be?', o: ['10 V, because the input doubled', '5.0 V, because the feedback adjusts the duty cycle', '2.5 V', '0 V, the module turns off'], a: 1,
+      e: 'Feedback keeps Vout = Vref(1 + R2/R1). The controller simply shortens the ON time. The output only doubles in a circuit WITHOUT feedback.', s: 'fb' },
+    { t: 'The ESP32 draws 0.30 A at 5 V. Input 24 V, efficiency 80 %. How much current does the supply give (in A)?', num: 0.0781, tol: 0.03, unit: 'A',
+      e: 'Pout = 5 × 0.30 = 1.5 W. Pin = 1.5 / 0.80 = 1.875 W. Iin = 1.875 / 24 = 0.078 A. A common trap is to answer 0.30 A: a step-down converter takes LESS current from the higher voltage.', s: 'calc' },
+    { t: 'Why do you set the voltage with only the meter on the output?', o: ['The meter needs a load to read correctly', 'A new module can output almost the input voltage, which would destroy the ESP32', 'The trimmer only works without a load', 'To save power'], a: 1,
+      e: 'Modules arrive at random settings. With only the meter connected, a wrong voltage can\'t damage anything.', s: 'setting' },
+    { t: 'In Part B the RGB LED shows RED for 2 s at start-up. What does it mean?', o: ['No Wi-Fi networks were found', 'A brown-out reset: the supply voltage dipped too low', 'The program crashed', 'Everything is fine'], a: 1,
+      e: 'At start-up, red = ESP_RST_BROWNOUT. The short red FLASH after a scan is a different signal (no networks found). Check the voltage, the wires and the current limit.', s: 'partb' },
+    { t: 'Your meter shows 0.00 and the buck module gets hot as soon as you connect the probes to OUT+ and OUT−. What is the most likely cause?', o: ['The trimmer is at its end', 'The red probe is in the current (A) socket, which shorts the output', 'The input is 24 V', 'The meter battery is empty'], a: 1,
+      e: 'In the A socket the meter is almost a short circuit. For voltage, use the V/Ω socket.', s: 'traps' }
+  ];
+  var names = { why5: '1 · Why a buck converter', how: '2 · How it works', fb: '3 · Feedback + trimmer', calc: '5 · Input current', setting: '6 · Setting it safely', partb: '7 · Part B', traps: 'Traps' };
+  var box = document.getElementById('quizbox'), results = new Array(Q.length);
+  Q.forEach(function (q, i) {
+    var d = document.createElement('div'); d.className = 'q';
+    var t = document.createElement('div'); t.className = 'qt'; t.textContent = (i + 1) + '. ' + q.t; d.appendChild(t);
+    var fb = document.createElement('div'); fb.setAttribute('aria-live', 'polite');
+    if (q.o) {
+      var o = document.createElement('div'); o.className = 'opts';
+      q.o.forEach(function (txt, j) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = txt;
+        b.addEventListener('click', function () {
+          if (results[i] !== undefined) return;
+          var ok = j === q.a; results[i] = ok;
+          b.classList.add(ok ? 'right' : 'wrong'); if (!ok) o.children[q.a].classList.add('right');
+          fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. ') + q.e; score();
+        });
+        o.appendChild(b);
+      });
+      d.appendChild(o);
+    } else {
+      var r = document.createElement('div'); r.className = 'numrow';
+      var inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.id = 'qn' + i; inp.setAttribute('aria-label', 'Your answer in ' + q.unit);
+      var u = document.createElement('span'); u.textContent = q.unit;
+      var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn'; b2.textContent = 'Check';
+      var er = document.createElement('div'); er.className = 'err';
+      inp.addEventListener('input', function () { er.textContent = ''; });
+      b2.addEventListener('click', function () {
+        if (results[i] !== undefined) return;
+        var v = parseFloat(inp.value.replace(',', '.').replace(/\s/g, ''));
+        if (isNaN(v)) { er.textContent = 'Enter a number first.'; return; }
+        var ok = Math.abs(v - q.num) <= Math.abs(q.num) * q.tol; results[i] = ok;
+        fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. The answer is ' + q.num + ' ' + q.unit + '. ') + q.e; score();
+      });
+      r.appendChild(inp); r.appendChild(u); r.appendChild(b2); d.appendChild(r); d.appendChild(er);
+    }
+    d.appendChild(fb); box.appendChild(d);
+  });
+  function score() {
+    var done = results.filter(function (x) { return x !== undefined; }).length, right = results.filter(function (x) { return x === true; }).length;
+    document.getElementById('scorebox').textContent = 'Score: ' + right + ' / ' + Q.length + (done < Q.length ? '  (' + (Q.length - done) + ' left)' : '');
+    if (done === Q.length) {
+      var miss = []; results.forEach(function (x, i) { if (!x && miss.indexOf(Q[i].s) < 0) miss.push(Q[i].s); });
+      var rr = document.getElementById('reread'); while (rr.firstChild) rr.removeChild(rr.firstChild);
+      if (!miss.length) { rr.textContent = 'All correct. You are ready to run the T02 test.'; return; }
+      rr.appendChild(document.createTextNode('Re-read: '));
+      miss.forEach(function (s, k) { var a = document.createElement('a'); a.href = '#' + s; a.textContent = names[s]; a.style.color = 'var(--copper)'; rr.appendChild(a); if (k < miss.length - 1) rr.appendChild(document.createTextNode(', ')); });
+    }
+  }
+  document.querySelectorAll('.check input').forEach(function (c) {
+    try { c.checked = localStorage.getItem('t02-' + c.id) === '1'; } catch (e) {}
+    c.addEventListener('change', function () { try { localStorage.setItem('t02-' + c.id, c.checked ? '1' : '0'); } catch (e) {} });
+  });
+})();
+</script>

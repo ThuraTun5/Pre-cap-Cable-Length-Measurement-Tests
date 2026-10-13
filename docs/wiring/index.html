@@ -100,7 +100,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   <h1>Cable Jig Wiring Atlas</h1>
   <p>One wiring drawing per test. Every connection is drawn as a real wire from pin to pin, or from a pin to a breadboard rail. <b>Hover or tap a row</b> in a wire list to light up that wire. Hover a wire to find its row.</p>
 
-  <div class="banner"><b>Only T1 is ready to wire now.</b> T2–T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
+  <div class="banner"><b>T1 and T2 are ready to wire.</b> T3–T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
 
   <div class="legend" aria-label="Wire colour legend">
     <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black)</span>
@@ -187,8 +187,8 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     rows: [['w1', 'PC USB port', 'ESP32 USB-C', 'usb', 'Must be a data cable (a charge-only cable shows no COM port).']],
     checks: ['Nothing is connected to any pin.', 'Board on a non-conductive surface (not metal, not black foam).', 'Use a data USB-C cable.'], todo: [] },
 
-  { id: 't2', tab: 'T2 Buck', title: 'T2 · Buck converter → 5.0 V', status: 'draft', statusText: 'Draft',
-    purpose: 'Set the LM2596S output to 5.0 V with the multimeter. Nothing else is connected to the output.', vb: [790, 160],
+  { id: 't2', tab: 'T2 Buck', title: 'T2 Part A · Buck converter → 5.0 V', status: 'go', statusText: 'Ready · wire now',
+    purpose: 'Set the buck output to 5.0 V with the multimeter. Nothing else is connected to the output. Supply at 12 V.', vb: [790, 160],
     comps: [
       { id: 'psu', x: 30, y: 40, w: 160, title: 'Bench supply', sub: '12 V (or 24 V)', R: [['p', '+ (red)'], ['n', '− (black)']] },
       { id: 'f1', kind: 'part', x: 250, y: 62, w: 80, title: 'F1 fuse 1–2 A', L: [['a', '']], R: [['b', '']] },
@@ -208,7 +208,36 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['w5', 'Buck OUT−', 'Meter COM', 'gnd', '']
     ],
     checks: ['Supply OFF while wiring. Check IN+ / IN− polarity twice.', 'Supply current limit low (≈0.3 A) if it has one.', 'Nothing but the meter on the output.', 'Input at least 1 V above the output.'],
-    todo: ['Which direction of the screw lowers the voltage (differs between modules).', 'Fuse value (1 A or 2 A).', 'Optional load test with a resistor.'] },
+    todo: [] },
+
+  { id: 't2b', tab: 'T2 Part B', title: 'T2 Part B · ESP32 powered by the buck', status: 'go', statusText: 'Ready · after Part A',
+    purpose: 'The buck (already set to 5.0 V) powers the ESP32 through its 5V pin. USB is UNPLUGGED. The meter watches the voltage while Wi-Fi scans.', vb: [900, 270],
+    comps: [
+      { id: 'psu', x: 30, y: 40, w: 160, title: 'Bench supply', sub: '12 V, limit 0.5 A', R: [['p', '+ (red)'], ['n', '− (black)']] },
+      { id: 'f1', kind: 'part', x: 250, y: 62, w: 80, title: 'F1 fuse 1 A', L: [['a', '']], R: [['b', '']] },
+      { id: 'buck', x: 410, y: 40, w: 160, title: 'Buck (5.0 V)', sub: 'set in Part A', L: [['inp', 'IN+'], ['inn', 'IN−']], R: [['outp', 'OUT+'], ['outn', 'OUT−']] },
+      { id: 'esp', x: 690, y: 40, w: 200, title: 'ESP32 · USB UNPLUGGED', L: [['5v', '5V (left row, bottom)'], ['gnd', 'GND (any)']] },
+      { id: 'dmm', x: 660, y: 150, w: 120, title: 'Multimeter', sub: 'DC volts', L: [['v', 'V'], ['com', 'COM']] }
+    ],
+    wires: [
+      { id: 'w1', a: 'psu:p', b: 'f1:a', net: 'vm' }, { id: 'w2', a: 'f1:b', b: 'buck:inp', net: 'vm' },
+      { id: 'w3', a: 'psu:n', b: 'buck:inn', net: 'gnd' },
+      { id: 'w4', a: 'buck:outp', b: 'esp:5v', net: 'v5' },
+      { id: 'w5', a: 'buck:outn', b: 'esp:gnd', net: 'gnd' },
+      { id: 'w6', a: [640, 74], b: 'dmm:v', net: 'probe', via: [[640, 184]], cls: 'dash' },
+      { id: 'w7', a: [625, 96], b: 'dmm:com', net: 'probe', via: [[625, 206]], cls: 'dash' }
+    ],
+    rows: [
+      ['w1', 'Supply +', 'Fuse F1', 'vm', 'Only needed if the supply has no current limit.'],
+      ['w2', 'Fuse F1', 'Buck IN+', 'vm', ''],
+      ['w3', 'Supply −', 'Buck IN−', 'gnd', ''],
+      ['w4', 'Buck OUT+', 'ESP32 5V pin', 'v5', 'Re-measure 5.0 V just before this connection.'],
+      ['w5', 'Buck OUT−', 'ESP32 GND pin', 'gnd', ''],
+      ['w6', 'Meter V', 'Buck OUT+', 'probe', 'Watch for dips during Wi-Fi scans.'],
+      ['w7', 'Meter COM', 'Buck OUT−', 'probe', '']
+    ],
+    checks: ['USB cable UNPLUGGED from the ESP32.', 'Output re-measured: 4.95–5.05 V.', 'OUT+ goes to the 5V pin, not a 3.3V pin.', 'Supply current limit 0.5 A (or 1 A fuse).'],
+    todo: [] },
 
   { id: 't3', tab: 'T3 Shifter', title: 'T3 · 74LVC245 level shifter', status: 'draft', statusText: 'Draft',
     purpose: 'Prove the chip turns a 5 V input into a 3.3 V output. The ESP32 5V pin is used as the 5 V test signal.', vb: [800, 412],

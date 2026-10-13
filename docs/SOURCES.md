@@ -37,6 +37,17 @@ community discussions second.
   <https://klipper.discourse.group/t/tmc2209-v1-3-confusion-and-more-confusion/16896>,
   <https://github.com/bigtreetech/BIGTREETECH-TMC2209-V1.2/issues/16>
 
+## T2 — Buck converter
+- ON Semiconductor LM2596 datasheet: Vout = Vref(1 + R2/R1), Vref = 1.23 V; 73 % at 12 V → 5 V, 3 A:
+  <https://www.onsemi.com/download/data-sheet/pdf/Lm2596-d.pdf>
+- Espressif ESP32-WROOM-32E datasheet v2.1, Tables 14/16: supply ≥ 0.5 A; Wi-Fi TX 239 mA avg / 379 mA peak:
+  <https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32e_esp32-wroom-32ue_datasheet_en.pdf>
+- LM2596 module manuals (clockwise usually raises the voltage; always measure while adjusting):
+  <https://manuals.plus/asin/B0CPHN7VG1>, <https://www.phippselectronics.com/support/lm2596s-dc-dc-step-down-adjustable-power-supply-module/>
+- Project listing screenshots: module input 4.2–60 V, 400 kHz, input ≥ output + 1 V at high current
+  (60 V / 400 kHz don't match a genuine LM2596 → chip unconfirmed; trust the meter).
+- External power on ESP32 dev boards (5V pin OR 3.3V pin, never with USB): <https://microcontroller-course.web.cern.ch/Exercises/DevBoard/ESP32_WROOM_32E.en>
+
 ## Fuse (shopping)
 - Inline 5×20 mm fuse holders + glass fuse assortment (0.1–20 A, incl. 1 A, 2 A, 3 A):
   <https://www.amazon.co.jp/dp/B098JVN9V1>

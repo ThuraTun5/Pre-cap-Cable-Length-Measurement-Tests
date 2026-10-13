@@ -30,7 +30,7 @@ Every `tests/Txx_*` folder is its own PlatformIO project, so pass that folder wi
 
 - **Pinned platform:** `platform = platformio/espressif32 @ 6.13.0` (Arduino-ESP32 core **2.0.17**, ESP-IDF 4.4) and `board = esp32dev`. Use the 2.0.x APIs. For example, `neopixelWrite()` is correct; `rgbLedWrite()` is the 3.x name. The newer platform 7.x still ships core 2.0.17. Don't switch to pioarduino or core 3.x without asking.
 - **Layout:**
-  - `tests/Txx_name/`: one small, separate project per component test. Each holds `platformio.ini`, `src/main.cpp`, `INSTRUCTIONS.md` and a wiring diagram (`wiring.svg`).
+  - `tests/Txx_name/`: one small, separate project per component test. Each holds `platformio.ini`, `src/main.cpp` and `INSTRUCTIONS.md`. Wiring diagrams live in one place: the interactive atlas `docs/wiring/index.html` (published as an Artifact), one tab per test. Draw real wires to pins or rail bars, never floating net-name tags (the user rejected that style).
   - `learn/Txx_name/index.html`: the study page for each test, also published as an Artifact.
   - `firmware/`: the final assembled program. Stays empty until the Assembly phase.
 - **Docs are the source of truth.** Read them before changing hardware-related code:
