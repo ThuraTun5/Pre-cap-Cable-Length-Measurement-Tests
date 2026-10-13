@@ -19,6 +19,10 @@ risk is putting 5 V on the wrong pin.
 ## What you need
 - ESP32 on USB, breadboard, jumper wires
 - SN74LVC245AN (20-pin DIP), one **100 nF** ceramic capacitor (marked "104")
+  - **Don't have one?** T3 still works without it: the signals here change slowly (by hand).
+    You can also use one of your **100 µF electrolytic** capacitors for now:
+    **stripe (−) to GND**, the other leg to pin 20 (3.3 V). Buy proper 100 nF
+    ceramics before T4, where the encoder's fast edges need them.
 - Multimeter
 
 ## Chip orientation (both parts)

@@ -30,5 +30,7 @@ safety) → 3. Build (one small PlatformIO project) → 4. Verify (compile, logi
 - Motor 3 (camera rail, different driver)
 
 ## Shopping list
+- [ ] 100 nF (0.1 µF, "104") ceramic capacitors, through-hole, 50 V, a pack of ~100: needed before T4
+  (e.g. <https://www.amazon.co.jp/dp/B01HNZPI8I>)
 - [ ] Inline fuse holder + fuses (1–3 A range) — needed before T7 (or T2 if the
       supply has no current limit)
