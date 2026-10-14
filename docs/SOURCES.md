@@ -64,6 +64,12 @@ community discussions second.
 - AMT10 datasheet: A leads B for CCW (viewed from front); resolutions are pre-quadrature (×4); DIP all OFF = 2048;
   index once per turn; stepper magnets can disturb the index.
 
+## T5 — Encoder → mm
+- GT2 belt 2 mm pitch, 20-tooth pulley → 40 mm per turn: project file `Belt and Pulley.png` (KeeYees GT2 kit).
+- Settings stored with the Arduino-ESP32 `Preferences` library (ESP-IDF NVS), core 2.0.17.
+- User decisions (2026-10-14): zero = push slider to end stop + `z`; reference = ruler, known part or caliper
+  (all available); slider travel ≈ 1 m; encoder not yet mounted on the belt.
+
 ## Fuse (shopping)
 - Inline 5×20 mm fuse holders + glass fuse assortment (0.1–20 A, incl. 1 A, 2 A, 3 A):
   <https://www.amazon.co.jp/dp/B098JVN9V1>

@@ -1,0 +1,302 @@
+<title>T05 Encoder to mm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: bench notebook - sticky contents rail (desktop), one reading column, copper accent; same family as the earlier test pages */
+:root{
+  --bg:#F4F6F4; --surface:#FFFFFF; --sunk:#E8ECE9; --fg:#1C2321; --muted:#56615D; --line:#CBD3CF;
+  --copper:#A8551F; --copper-soft:#F6E6DA; --signal:#1F5FA8; --signal-soft:#E1ECF8;
+  --ok:#2E7D4F; --ok-soft:#E0F2E7; --bad:#B23A32; --bad-soft:#F9E3E1; --warn:#8C6200; --warn-soft:#FBF0D3;
+  --v12:#E06A00; --v5:#D7322C; --gnd:#1F2421; --ind:#1F5FA8;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.65;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-inline:20px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:16px;padding-inline:16px}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:14px;line-height:1.4}
+nav.toc .lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-size:13px;margin-bottom:8px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:4px 10px;color:var(--muted);text-decoration:none;margin-left:-2px;border-left:2px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--copper);border-left-color:var(--copper)}
+@media (max-width:900px){nav.toc{position:static}nav.toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border-left:0}nav.toc a{border:1px solid var(--line);border-radius:6px;margin:0}}
+main{min-width:0;max-width:760px}
+header.hero{padding-bottom:18px;border-bottom:2px solid var(--copper);margin-bottom:8px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--copper);font-size:14px;font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,48px);line-height:1.05;margin:6px 0 12px;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.15;margin:56px 0 10px;text-wrap:balance;scroll-margin-top:16px}
+h2 .tag{font-size:15px;font-weight:600;color:var(--copper);letter-spacing:.06em;display:block;text-transform:uppercase}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;margin:26px 0 6px}
+p{margin:0 0 12px}
+.goal{font-size:19px}
+.assume{font-size:14px;color:var(--muted);background:var(--sunk);border-radius:6px;padding:8px 12px;display:inline-block}
+.why{background:var(--signal-soft);border-left:4px solid var(--signal);padding:10px 14px;margin:12px 0}
+.one{background:var(--copper-soft);border-left:4px solid var(--copper);padding:10px 14px;margin:16px 0;font-weight:700}
+.details{border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;font-size:15.5px}
+.details b.h{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.extra{display:inline-block;font-size:12px;font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 7px;vertical-align:middle;margin-left:6px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--sunk);padding:1px 5px;border-radius:4px}
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+figure{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure .sc{overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--fg)}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.codebox{position:relative;margin:14px 0}
+pre{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:13.5px;line-height:1.55;margin:0}
+.copy{position:absolute;top:8px;right:8px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.copy:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.step{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;margin:14px 0}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--copper);color:var(--surface);display:grid;place-items:center;font-family:var(--f-display);font-weight:700}
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0}
+.sim label{font-size:15px;display:block;margin:8px 0 2px}
+.sim input[type=range]{width:100%;accent-color:var(--copper)}
+.readout{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.readout div{flex:1 1 150px;background:var(--sunk);border-radius:8px;padding:8px 12px;font-size:14px}
+.readout b{display:block;font-family:var(--f-mono);font-size:19px;font-variant-numeric:tabular-nums}
+.readout .bad b{color:var(--bad)}
+.traps li{margin-bottom:10px}
+.quiz .q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0}
+.quiz .qt{font-weight:700;margin-bottom:8px}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left;font:inherit;font-size:15.5px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.opts button:hover{border-color:var(--copper)}
+.opts button.right{background:var(--ok-soft);border-color:var(--ok)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.numrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.numrow input{font:inherit;width:150px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.btn{font:inherit;font-size:15px;background:var(--copper);color:var(--surface);border:0;border-radius:8px;padding:7px 16px;cursor:pointer}
+.fb{margin-top:10px;font-size:15px;padding:8px 12px;border-radius:8px}
+.fb.ok{background:var(--ok-soft)}.fb.no{background:var(--bad-soft)}
+.err{color:var(--bad);font-size:13px}
+.score{font-family:var(--f-display);font-size:22px;font-weight:600}
+.check label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+.check input{margin-top:6px;accent-color:var(--copper);width:18px;height:18px;flex:none}
+svg .t{font-family:var(--f-body);font-size:12px;fill:currentColor}
+svg .tb{font-family:var(--f-display);font-size:14px;font-weight:600;fill:currentColor}
+svg .tm{font-family:var(--f-mono);font-size:11px;fill:currentColor}
+svg .box{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
+svg .boxc{fill:var(--copper-soft);stroke:var(--copper);stroke-width:1.6}
+svg .ln{stroke:currentColor;stroke-width:1.4;fill:none}
+svg .w12{stroke:var(--v12);stroke-width:2.6;fill:none}
+svg .w5{stroke:var(--v5);stroke-width:2.6;fill:none}
+svg .wg{stroke:var(--gnd);stroke-width:2.2;fill:none}
+svg .wi{stroke:var(--ind);stroke-width:2.6;fill:none}
+svg .wc{stroke:var(--copper);stroke-width:2;fill:none}
+svg .grid{stroke:var(--line);stroke-width:1}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">On this page</div>
+  <ol>
+    <li><a href="#map">Map</a></li>
+    <li><a href="#mm">1 · Counts → mm</a></li>
+    <li><a href="#cal">2 · Calibration</a></li>
+    <li><a href="#zero">3 · Zero, offset, length</a></li>
+    <li><a href="#save">4 · Saved settings</a></li>
+    <li><a href="#acc">5 · How accurate?</a></li>
+    <li><a href="#example">Worked example</a></li>
+    <li><a href="#traps">Traps</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Capstone 2026PUZ1 · Test T05 of 10</div>
+  <h1>Encoder → mm</h1>
+  <p class="goal">After this page you can turn encoder counts into slider travel and cable length, explain why we calibrate, and use the z / c / o / d commands.</p>
+  <p class="assume">Short page on purpose. The only important formula is in section 1.</p>
+</header>
+
+<h2 id="map"><span class="tag">Overview</span>The chain from belt to cable length</h2>
+<figure><div class="sc">
+<svg viewBox="0 0 720 150" role="img" aria-label="Slider moves the belt, the belt turns the 20-tooth pulley and the encoder, the ESP32 counts and multiplies by mm per count, then adds the offset to get the cable length.">
+  <defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="currentColor"/></marker></defs>
+  <rect class="box" x="10" y="45" width="110" height="60" rx="6"/><text class="tb" x="65" y="72" text-anchor="middle">Slider</text><text class="t" x="65" y="90" text-anchor="middle">moved by hand</text>
+  <rect class="box" x="155" y="45" width="130" height="60" rx="6"/><text class="tb" x="220" y="72" text-anchor="middle">GT2 belt</text><text class="t" x="220" y="90" text-anchor="middle">20-tooth pulley</text>
+  <rect class="box" x="320" y="45" width="120" height="60" rx="6"/><text class="tb" x="380" y="72" text-anchor="middle">Encoder</text><text class="t" x="380" y="90" text-anchor="middle">8192 per turn</text>
+  <rect class="boxc" x="475" y="45" width="110" height="60" rx="6"/><text class="tb" x="530" y="72" text-anchor="middle">× mm/count</text><text class="t" x="530" y="90" text-anchor="middle">travel</text>
+  <rect class="box" x="620" y="45" width="90" height="60" rx="6"/><text class="tb" x="665" y="72" text-anchor="middle">+ offset</text><text class="t" x="665" y="90" text-anchor="middle">length</text>
+  <line class="ln" x1="120" y1="75" x2="153" y2="75" marker-end="url(#m1)"/><line class="ln" x1="285" y1="75" x2="318" y2="75" marker-end="url(#m1)"/>
+  <line class="ln" x1="440" y1="75" x2="473" y2="75" marker-end="url(#m1)"/><line class="ln" x1="585" y1="75" x2="618" y2="75" marker-end="url(#m1)"/>
+  <text class="t" x="220" y="130" text-anchor="middle">1 turn = 20 × 2 mm = 40 mm</text>
+  <text class="t" x="530" y="130" text-anchor="middle" style="fill:var(--copper)">corrected by calibration</text>
+</svg></div></figure>
+
+<h2 id="mm"><span class="tag">Section 1</span>Counts → mm</h2>
+<p>The GT2 belt has a tooth every 2 mm. The pulley has 20 teeth, so one turn pulls 40 mm of belt. One turn is 8192 counts (T4).</p>
+<p style="text-align:center">\[ \text{mm per count} = \frac{20 \times 2\ \text{mm}}{8192} = 0.00488\ \text{mm} \qquad \text{travel} = \text{count} \times \text{mm per count} \]</p>
+<p>So 1000 mm of travel is about 25 turns, or 204 800 counts. One count is about 5 µm, far finer than the 1 mm target.</p>
+<p class="one">In one sentence: travel = count × 40 / 8192 mm, before calibration.</p>
+
+<h2 id="cal"><span class="tag">Section 2 · the hard idea</span>Why we calibrate, and how</h2>
+<div class="why"><b>Why this matters:</b> 40 mm per turn is the <i>ideal</i> value. The real belt sits a little deeper or higher in the pulley teeth, and belts stretch a little. A 0.4 % difference already gives a 4 mm error over 1000 mm.</div>
+<p>Calibration measures the real value: you move the slider an <b>exactly known</b> distance D, and the ESP32 counts how many counts N that took:</p>
+<p style="text-align:center">\[ \text{mm per count} = \frac{D}{N} \]</p>
+<p>In the program: <code>c</code> at the start mark, move exactly D, then <code>c D</code> (for example <code>c 900</code>). The new value is saved. As a safety check, the program refuses a result that differs more than 10 % from 40 mm/turn: that would mean a typo or a slipping belt.</p>
+<div class="sim">
+  <b>Try it: calibration calculator</b>
+  <label for="cn">Counts the ESP32 measured, N = <span id="cnv">81920</span></label>
+  <input id="cn" type="range" min="73728" max="90112" step="16" value="81920">
+  <label for="cd">Real distance you moved, D = <span id="cdv">398.4</span> mm</label>
+  <input id="cd" type="range" min="380" max="420" step="0.1" value="398.4">
+  <div class="readout"><div>Real mm per turn<b id="rt">—</b></div><div>Change vs 40 mm<b id="rc">—</b></div><div>Error at 1000 mm without calibration<b id="re">—</b></div></div>
+</div>
+<p class="one">In one sentence: move a known distance, and the ESP32 divides it by the counts to get the true mm per count.</p>
+
+<h2 id="zero"><span class="tag">Section 3</span>Zero, offset and cable length</h2>
+<p>The encoder only counts <i>movement</i>. After power-on it doesn't know where the slider is. So each time:</p>
+<ol>
+<li>Push the slider against its <b>end stop</b> and type <code>z</code>: travel = 0.</li>
+<li>The <b>offset</b> is the cable length when the slider is at the end stop (clamp to clamp). You measure it once and type <code>o 123.4</code>.</li>
+</ol>
+<p style="text-align:center">\[ \text{cable length} = \text{offset} + \text{travel} \]</p>
+<p><code>d</code> flips the direction, so that pulling the slider away makes the length bigger.</p>
+<p class="one">In one sentence: end stop + <code>z</code> sets zero; length = offset + travel.</p>
+
+<h2 id="save"><span class="tag">Section 4</span>Saved settings</h2>
+<p>The calibration, offset and direction are stored in the ESP32's flash memory with the <code>Preferences</code> library (Espressif's NVS). They stay after power-off, so you calibrate once, not every day. The zero is <b>not</b> saved, on purpose: the slider may have moved while the power was off.</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre>prefs.begin("t05", false);                               // open the storage area
+mmPerCount = prefs.getDouble("mmpc", NOMINAL_MM_PER_COUNT); // read, or use the default
+...
+prefs.putDouble("mmpc", mmPerCount);                     // save after calibration</pre></div>
+<p class="one">In one sentence: calibration is saved in flash; zero is set fresh each time.</p>
+
+<h2 id="acc"><span class="tag">Section 5</span>How accurate can it be?</h2>
+<div class="tbl"><table>
+<thead><tr><th>Error source</th><th>Size over 1000 mm</th><th>What we do</th></tr></thead>
+<tbody>
+<tr><td>Encoder resolution</td><td class="num">0.005 mm</td><td>Nothing needed</td></tr>
+<tr><td>Belt / pulley not exactly 40 mm per turn</td><td class="num">a few mm</td><td>Calibration</td></tr>
+<tr><td>Reading the ruler during calibration (±0.5 mm over 900 mm)</td><td class="num">≈ 0.6 mm</td><td>Use the longest distance, or a part with a known length</td></tr>
+<tr><td>End stop not hit the same way each time</td><td class="num">depends on the jig</td><td>Push firmly; option later: index snap</td></tr>
+</tbody></table></div>
+<p class="one">In one sentence: resolution is no problem; calibration quality and a repeatable end stop decide the final accuracy.</p>
+
+<h2 id="example"><span class="tag">Practice</span>Worked example</h2>
+<p><b>Problem.</b> On the real belt you type <code>c</code>, slide exactly 398.4 mm (checked with a reference part), and the ESP32 counted 81 920 counts. (a) What is the true mm per turn? (b) How big would the error be at 1000 mm without calibration?</p>
+<div class="step"><div class="n">a</div><div><p><b>Why:</b> mm per count = D / N; one turn is 8192 counts.</p><p>\( \dfrac{398.4}{81\,920} \times 8192 = 39.84\ \text{mm per turn} \) (0.4 % less than 40)</p></div></div>
+<div class="step"><div class="n">b</div><div><p><b>Why:</b> the uncalibrated program assumes 40 mm per turn, which is 0.4 % too much.</p><p>\( 1000 \times \left(\dfrac{40}{39.84} - 1\right) \approx 4.0\ \text{mm} \) too long. That's 4 times the allowed 1 mm.</p></div></div>
+<p><b>Sanity check.</b> 81 920 counts = 10 turns. 10 × 39.84 = 398.4 mm ✓.</p>
+
+<h2 id="traps"><span class="tag">Watch out</span>Traps</h2>
+<ul class="traps">
+<li><b>Forgetting <code>z</code> after power-on.</b> The travel then starts from wherever the slider was.</li>
+<li><b>Calibrating over a short distance.</b> A 0.5 mm reading error over 50 mm is 1 %; over 900 mm it's 0.06 %.</li>
+<li><b>Typing the wrong distance.</b> The 10 % check catches big typos, not small ones. Type carefully.</li>
+<li><b>Belt slipping on the pulley.</b> Counts are lost and the calibration is wrong. The belt must be tight.</li>
+<li><b>Direction wrong.</b> Length gets smaller when you pull out: type <code>d</code> once.</li>
+</ul>
+
+<h2 id="quiz"><span class="tag">Test yourself</span>Quiz</h2>
+<div class="quiz" id="quizbox"></div>
+<div id="scorebox" class="score" aria-live="polite"></div>
+
+<h2 id="sources"><span class="tag">Where this came from</span>Sources</h2>
+<div class="tbl"><table>
+<thead><tr><th>Topic</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>GT2 2 mm pitch, 20-tooth pulley</td><td><code>Belt and Pulley.png</code> (KeeYees GT2 kit)</td></tr>
+<tr><td>8192 counts per turn</td><td>AMT10 datasheet + T4 result</td></tr>
+<tr><td>Saved settings</td><td>Arduino-ESP32 <code>Preferences</code> library (NVS)</td></tr>
+<tr><td>Code</td><td><code>tests/T05_mm/src/main.cpp</code> (builds clean, static check passed)</td></tr>
+</tbody></table></div>
+</main>
+</div>
+
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<script>
+(function () {
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var pre = b.parentNode.querySelector('pre'), txt = pre.innerText;
+      var sel = function () { var r = document.createRange(); r.selectNodeContents(pre); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Press Ctrl+C'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); }, sel);
+      else sel();
+    });
+  });
+  var cn = document.getElementById('cn'), cd = document.getElementById('cd');
+  function calc() {
+    var n = +cn.value, d = +cd.value;
+    document.getElementById('cnv').textContent = n.toLocaleString('en-US');
+    document.getElementById('cdv').textContent = d.toFixed(1);
+    var perTurn = d / n * 8192;
+    document.getElementById('rt').textContent = perTurn.toFixed(3) + ' mm';
+    document.getElementById('rc').textContent = ((perTurn / 40 - 1) * 100).toFixed(2) + ' %';
+    document.getElementById('re').textContent = (1000 * (40 / perTurn - 1)).toFixed(2) + ' mm';
+  }
+  cn.addEventListener('input', calc); cd.addEventListener('input', calc); calc();
+
+  var Q = [
+    { t: 'The encoder counted 16384 counts (2 turns, not calibrated). What travel does the program show in mm?', num: 80, tol: 0.001, unit: 'mm', e: '16384 × 40 / 8192 = 80 mm.' },
+    { t: 'Why do we calibrate?', o: ['The encoder loses counts', 'The real belt/pulley is not exactly 40 mm per turn', 'To set the zero', 'To make it faster'], a: 1, e: 'Small differences in the belt and pulley give mm-level errors over 1000 mm. Zero is a different step (z).' },
+    { t: 'You moved exactly 500 mm and the ESP32 counted 102 912 counts. What is the real mm per turn?', num: 39.80, tol: 0.002, unit: 'mm', e: '500 / 102912 × 8192 = 39.80 mm per turn.' },
+    { t: 'Which setting is NOT saved after power-off, on purpose?', o: ['Calibration', 'Offset', 'Direction', 'Zero'], a: 3, e: 'The slider may have moved while the power was off, so you push it to the end stop and type z again.' },
+    { t: 'Offset = 230.0 mm, travel = 612.5 mm. What is the cable length?', num: 842.5, tol: 0.001, unit: 'mm', e: 'Length = offset + travel = 230.0 + 612.5 = 842.5 mm.' }
+  ];
+  var box = document.getElementById('quizbox'), results = new Array(Q.length);
+  Q.forEach(function (q, i) {
+    var d = document.createElement('div'); d.className = 'q';
+    var t = document.createElement('div'); t.className = 'qt'; t.textContent = (i + 1) + '. ' + q.t; d.appendChild(t);
+    var fb = document.createElement('div'); fb.setAttribute('aria-live', 'polite');
+    if (q.o) {
+      var o = document.createElement('div'); o.className = 'opts';
+      q.o.forEach(function (txt, j) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = txt;
+        b.addEventListener('click', function () {
+          if (results[i] !== undefined) return;
+          var ok = j === q.a; results[i] = ok;
+          b.classList.add(ok ? 'right' : 'wrong'); if (!ok) o.children[q.a].classList.add('right');
+          fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. ') + q.e; score();
+        });
+        o.appendChild(b);
+      });
+      d.appendChild(o);
+    } else {
+      var r = document.createElement('div'); r.className = 'numrow';
+      var inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.id = 'qn' + i; inp.setAttribute('aria-label', 'Your answer in ' + q.unit);
+      var u = document.createElement('span'); u.textContent = q.unit;
+      var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn'; b2.textContent = 'Check';
+      var er = document.createElement('div'); er.className = 'err';
+      inp.addEventListener('input', function () { er.textContent = ''; });
+      b2.addEventListener('click', function () {
+        if (results[i] !== undefined) return;
+        var v = parseFloat(inp.value.replace(',', '.').replace(/\s/g, ''));
+        if (isNaN(v)) { er.textContent = 'Enter a number first.'; return; }
+        var ok = Math.abs(v - q.num) <= Math.max(Math.abs(q.num) * q.tol, 0.01); results[i] = ok;
+        fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. The answer is ' + q.num + ' ' + q.unit + '. ') + q.e; score();
+      });
+      r.appendChild(inp); r.appendChild(u); r.appendChild(b2); d.appendChild(r); d.appendChild(er);
+    }
+    d.appendChild(fb); box.appendChild(d);
+  });
+  function score() {
+    var done = results.filter(function (x) { return x !== undefined; }).length, right = results.filter(function (x) { return x === true; }).length;
+    document.getElementById('scorebox').textContent = 'Score: ' + right + ' / ' + Q.length + (done < Q.length ? '  (' + (Q.length - done) + ' left)' : '');
+  }
+})();
+</script>

@@ -327,7 +327,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     checks: ['USB unplugged while wiring.', 'Pin 20 to the ESP32 3V3 pin, NOT 5V.', 'No B pin goes to 5V. Only A1–A3 may touch the 5V rail.', 'Pins 11–15 (B4–B8) stay empty.'],
     todo: [] },
 
-  { id: 't4', tab: 'T4 Encoder', title: 'T4 · AMT102-V encoder → ESP32', status: 'go', statusText: 'Ready · wire now',
+  { id: 't4', tab: 'T4 + T5 Encoder', title: 'T4 + T5 · AMT102-V encoder → ESP32 (same wiring for both)', status: 'go', statusText: 'Ready · wire now',
     purpose: 'Encoder signals (5 V) go through the 74LVC245 to the pins 34 / 35 / 32 (3.3 V). The encoder takes 5 V from the ESP32 5V pin. Chip power comes straight from the ESP32 3V3 pin.', vb: [900, 430],
     bars: [{ id: 'rg', net: 'gnd', x1: 170, x2: 690, y: 402, label: 'GND rail' }],
     comps: [
