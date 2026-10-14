@@ -22,9 +22,9 @@ Source: [Freenove_ESP32_WROOM_Board_Pinout.pdf](https://github.com/Freenove/Free
 |---|---|---|---|
 | On-board LED | 2 | T1 | Blink test |
 | On-board RGB status LED | 16 | T1 | Status colours later |
-| Encoder A | 34 | T3 ✔ / T4 | via 74LVC245 B2 (5 V → 3.3 V) |
-| Encoder B | 35 | T3 ✔ / T4 | via 74LVC245 B1 |
-| Encoder index (X) | **32** | T3 ✔ / T4 | via 74LVC245 B3. Moved from 39 because of the errata (T3) |
+| Encoder A | 34 | T3 ✔ / T4 ✔ | via 74LVC245 B2 (5 V → 3.3 V) |
+| Encoder B | 35 | T3 ✔ / T4 ✔ | via 74LVC245 B1 |
+| Encoder index (X) | **32** | T3 ✔ / T4 ✔ | via 74LVC245 B3. Moved from 39 because of the errata (T3) |
 | TMC2209 UART TX | 17 | T7 | via 1 kΩ to PDN_UART (to be confirmed) |
 | TMC2209 UART RX | 4 | T7 | to PDN_UART |
 | Motor 1 STEP | 25 | T7 | |
