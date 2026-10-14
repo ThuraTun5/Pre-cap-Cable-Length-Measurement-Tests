@@ -4,8 +4,8 @@
 .piolibdeps/
 
 # VS Code machine-specific files (keep extensions.json if present)
-.vscode/*
-!.vscode/extensions.json
+**/.vscode/*
+!**/.vscode/extensions.json
 
 # Local secrets (Wi-Fi passwords etc.) - never commit
 **/secrets.h
