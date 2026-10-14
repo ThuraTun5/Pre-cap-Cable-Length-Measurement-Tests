@@ -70,6 +70,13 @@ community discussions second.
 - User decisions (2026-10-14): zero = push slider to end stop + `z`; reference = ruler, known part or caliper
   (all available); slider travel ≈ 1 m; encoder not yet mounted on the belt.
 
+## T6 — USB serial link to the Pi
+- pyserial: set `dtr`/`rts` before `open()` to avoid the ESP32 auto-reset; flow control off:
+  <https://pyserial.readthedocs.io/en/latest/pyserial_api.html>, <https://esp32.com/viewtopic.php?p=120226>
+- Raspberry Pi 5 USB power: 600 mA downstream by default (1.6 A with a 5 A supply):
+  <https://pip-assets.raspberrypi.com/categories/685-app-notes-guides-whitepapers/documents/RP-009856-WP-1-USB%20Power%20delivery%20on%20Raspberry%20Pi%205.pdf>
+- /dev/ttyUSB* belongs to the `dialout` group: <https://techoverflow.net/2022/06/10/how-to-fix-dev-ttyusb0-or-dev-ttyacm0-permission-error/>
+
 ## Fuse (shopping)
 - Inline 5×20 mm fuse holders + glass fuse assortment (0.1–20 A, incl. 1 A, 2 A, 3 A):
   <https://www.amazon.co.jp/dp/B098JVN9V1>

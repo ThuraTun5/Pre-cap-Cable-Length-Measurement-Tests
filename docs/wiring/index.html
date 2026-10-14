@@ -100,7 +100,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   <h1>Cable Jig Wiring Atlas</h1>
   <p>One wiring drawing per test. Every connection is drawn as a real wire from pin to pin, or from a pin to a breadboard rail. <b>Hover or tap a row</b> in a wire list to light up that wire. Hover a wire to find its row.</p>
 
-  <div class="banner"><b>T1–T4 are ready to wire.</b> T7–T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
+  <div class="banner"><b>T1–T6 are ready to wire.</b> T7–T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
 
   <div class="legend" aria-label="Wire colour legend">
     <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black)</span>
@@ -372,6 +372,17 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     ],
     checks: ['Read the B / 5V / A / X / G labels printed on the encoder before connecting.', 'Encoder 5V and G not swapped.', 'No encoder signal wire goes straight to the ESP32.', 'Encoder DIP switches all OFF = 2048 PPR.', 'No 100 nF yet? Use the 100 µF across legs 20/19 (stripe → 19) for now.', 'Tape the encoder cable down.'],
     todo: ['Index X for zeroing: options come in T5.', 'The datasheet warns that stepper magnets can disturb the index pulse.'] },
+
+  { id: 't6', tab: 'T6 USB to Pi', title: 'T6 · USB link to the Pi', status: 'go', statusText: 'Ready · wire now',
+    purpose: 'One USB cable: it powers the ESP32 and carries the data. Test with the laptop first, then the Pi. Encoder + chip stay wired as in T4.', vb: [760, 150],
+    comps: [
+      { id: 'pi', x: 40, y: 40, w: 200, title: 'Raspberry Pi 5', sub: '(or laptop for the test)', R: [['usb', 'USB-A port']] },
+      { id: 'esp', x: 440, y: 40, w: 250, title: 'ESP32 + encoder (as T4)', sub: 'no external 5 V on the 5V pin', L: [['usb', 'USB-C socket']] }
+    ],
+    wires: [{ id: 'w1', a: 'pi:usb', b: 'esp:usb', net: 'usb', cls: 'thick' }],
+    rows: [['w1', 'Pi USB-A', 'ESP32 USB-C', 'usb', 'Power (Pi gives up to 600 mA; ESP32 + encoder need < 100 mA) + data, 115200 baud.']],
+    checks: ['Never connect the buck converter to the ESP32 5V pin while USB is plugged in.', 'Pi program sets DTR/RTS off before opening the port (see docs/PROTOCOL.md).'],
+    todo: [] },
 
   { id: 't7', tab: 'T7 Driver', title: 'T7 · One TMC2209 + one motor', status: 'draft', statusText: 'Draft · most risk',
     purpose: 'One driver over UART. First read the chip ID with the motor not moving, then spin slowly. No wire crosses another.', vb: [930, 490],
