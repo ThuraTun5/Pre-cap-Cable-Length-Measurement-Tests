@@ -19,7 +19,7 @@ safety) → 3. Build (one small PlatformIO project) → 4. Verify (compile, logi
 | T5 | Encoder → mm (GT2 20T, 40 mm/turn), zero (end stop + z), calibration, offset, direction (saved in NVS) | Part A passed 2026-10-14 (by hand: 40 mm/turn, calibration, saved settings OK). Part B (real calibration on the belt) moves to Assembly |
 | T6 | **USB serial** link to the Pi + data format (docs/PROTOCOL.md v1) — Wi-Fi postponed by user | Signed off by user 2026-10-15 (no test results reported) |
 | T7 | One TMC2209 + one motor (UART check, 700 mA software current, RMT step pulses) | Delivered (code compiled) — waiting for your hardware test |
-| T8 | Second driver, synchronized motors | Not started |
+| T8 | Second driver (address 1), two synchronized motors, motor 2 mirrored | Delivered early at user's request (code compiled) — test after T7 |
 | T9 | Motor logic: start / pause / reverse / reset (unwind) | Not started |
 | T10 | Web page control (needs Wi-Fi: postponed with Wi-Fi; buttons may come from the Pi app over USB instead) | Not started |
 | A | Assembly: full firmware, calibration procedure, docs | Not started |

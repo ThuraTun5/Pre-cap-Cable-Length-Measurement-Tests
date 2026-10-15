@@ -29,8 +29,8 @@ Source: [Freenove_ESP32_WROOM_Board_Pinout.pdf](https://github.com/Freenove/Free
 | TMC2209 UART RX | 4 | T7 | direct to PDN (4th pin; the 5th pin is not connected inside, BTT V1.3 manual) |
 | Motor 1 STEP | 25 | T7 | |
 | Motor 1 DIR | 26 | T7 | |
-| Motor 2 STEP | 27 | T8 | |
-| Motor 2 DIR | 14 | T8 | GPIO14 toggles at boot → DIR only (harmless while drivers disabled) |
+| Motor 2 STEP | 27 | T8 | RMT channel 1 |
+| Motor 2 DIR | 14 | T8 | GPIO14 toggles at boot → DIR only (harmless while drivers disabled); inverted in software (mirror) |
 | Drivers EN (shared) | 13 | T7 | 10 kΩ pull-up to 3V3 keeps the drivers OFF during boot |
 | **Reserved:** Motor 3 STEP / DIR | 33 / TBD | later | different driver model; second pin chosen when M3 is known |
 | **Reserved:** E-stop input | 36 (VP) | later | external pull-up needed; filter in software (errata 3.11) |

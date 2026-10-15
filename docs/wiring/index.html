@@ -100,7 +100,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   <h1>Cable Jig Wiring Atlas</h1>
   <p>One wiring drawing per test. Every connection is drawn as a real wire from pin to pin, or from a pin to a breadboard rail. <b>Hover or tap a row</b> in a wire list to light up that wire. Hover a wire to find its row.</p>
 
-  <div class="banner"><b>T1 and T3–T7 are ready to wire</b> (T2, the buck converter, is no longer needed). T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
+  <div class="banner"><b>T1 and T3–T8 are ready to wire</b> (T2, the buck converter, is no longer needed).</div>
 
   <div class="legend" aria-label="Wire colour legend">
     <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black)</span>
@@ -435,7 +435,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     checks: ['Motor connected BEFORE the supply is switched on. Never unplug a motor while VM is on.', 'Capacitor polarity: stripe to GND.', 'Coil pairs: ≈4 Ω within a pair, open between pairs.', 'Power on: USB first, then VM. Power off: VM first.', 'Heatsink on; keep fingers off.'],
     todo: ['Meter check (power off): the two driver GND pins should read 0 Ω to each other.', 'Your motor cable colours may not match the datasheet: find the 2 pairs with the meter (about 4 Ω each).'] },
 
-  { id: 't8', tab: 'T8 Two drivers', title: 'T8 · Add driver 2 (synchronised)', status: 'draft', statusText: 'Draft',
+  { id: 't8', tab: 'T8 Two drivers', title: 'T8 · Add driver 2 (synchronised)', status: 'go', statusText: 'Ready · after T7',
     purpose: 'Driver 1 stays wired exactly as in T7 (shown here only by the pins driver 2 shares). Driver 2 shares EN, UART, VM and motor GND with driver 1, and gets its own STEP / DIR and address 1.', vb: [930, 600],
     comps: [
       { id: 'd1', x: 440, y: 102, w: 170, title: 'Driver 1 (as in T7)', L: [['en', 'EN'], ['_1', ''], ['_2', ''], ['pdn1', 'PDN']], R: [['vm', 'VM'], ['gnd1', 'GND']] },
@@ -464,7 +464,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['wua', 'Driver 1 PDN', 'Driver 2 PDN', 'uart', 'Same UART wire for both; the address tells them apart.'],
       ['wms1', 'ESP32 3.3V', 'Driver 2 MS1', 'v33', 'MS1 HIGH → address 1. The ONLY wiring difference to driver 1.'],
       ['wms2', 'ESP32 GND', 'Driver 2 MS2', 'gnd', ''],
-      ['wclk', 'ESP32 GND', 'Driver 2 CLK', 'gnd', 'As in T7 (to confirm).'],
+      ['wclk', 'ESP32 GND', 'Driver 2 CLK', 'gnd', 'Internal clock, as in T7.'],
       ['wst', 'GPIO27', 'Driver 2 STEP', 'step', ''],
       ['wdi', 'GPIO14', 'Driver 2 DIR', 'dir', 'Direction flipped in software (the motors face each other).'],
       ['wvdd', 'ESP32 3.3V', 'Driver 2 VDD', 'v33', ''],
@@ -474,8 +474,8 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['c3', 'C3 100 µF ≥35 V', 'VM ↔ GND at driver 2', 'vm', 'Each driver gets its own capacitor.'],
       ['wm', 'A2 A1 B1 B2', 'Motor 2 green, black, red, blue', 'ck', 'Check the pairs first.']
     ],
-    checks: ['All T7 checks, for both drivers.', 'Driver 2 MS1 really goes to 3.3 V (otherwise both answer to address 0).', 'Both motors free to turn, nothing clamped yet.'],
-    todo: ['Shared EN, or one EN pin per driver?', 'Confirm both addresses answer over UART before any motion.', 'At Assembly, all GND / 3.3 V moves onto rails (the ESP32 runs out of GND pins).'] }
+    checks: ['All T7 checks, for both drivers (motor connected before power, power order, current limit ~1 A).', 'Driver 2 MS1 really goes to 3.3 V (otherwise both answer to address 0).', 'Find motor 2 coil pairs with the meter first.', 'Run out of ESP32 GND / 3.3V pins? Several wires may share one ESP32 pin's breadboard row.', 'Both motors free to turn, nothing clamped yet.'],
+    todo: [] }
   ];
 
   // ------------------------------------------------------------------ geometry
