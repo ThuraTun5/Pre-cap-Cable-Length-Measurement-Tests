@@ -1,0 +1,242 @@
+<title>T07 Stepper Driver</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: bench notebook - sticky contents rail (desktop), one reading column, copper accent; same family as the earlier test pages */
+:root{
+  --bg:#F4F6F4; --surface:#FFFFFF; --sunk:#E8ECE9; --fg:#1C2321; --muted:#56615D; --line:#CBD3CF;
+  --copper:#A8551F; --copper-soft:#F6E6DA; --signal:#1F5FA8; --signal-soft:#E1ECF8;
+  --ok:#2E7D4F; --ok-soft:#E0F2E7; --bad:#B23A32; --bad-soft:#F9E3E1; --warn:#8C6200; --warn-soft:#FBF0D3;
+  --v12:#E06A00; --v5:#D7322C; --gnd:#1F2421; --ind:#1F5FA8;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.65;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-inline:20px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:16px;padding-inline:16px}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:14px;line-height:1.4}
+nav.toc .lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-size:13px;margin-bottom:8px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:4px 10px;color:var(--muted);text-decoration:none;margin-left:-2px;border-left:2px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--copper);border-left-color:var(--copper)}
+@media (max-width:900px){nav.toc{position:static}nav.toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border-left:0}nav.toc a{border:1px solid var(--line);border-radius:6px;margin:0}}
+main{min-width:0;max-width:760px}
+header.hero{padding-bottom:18px;border-bottom:2px solid var(--copper);margin-bottom:8px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--copper);font-size:14px;font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,48px);line-height:1.05;margin:6px 0 12px;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.15;margin:56px 0 10px;text-wrap:balance;scroll-margin-top:16px}
+h2 .tag{font-size:15px;font-weight:600;color:var(--copper);letter-spacing:.06em;display:block;text-transform:uppercase}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;margin:26px 0 6px}
+p{margin:0 0 12px}
+.goal{font-size:19px}
+.assume{font-size:14px;color:var(--muted);background:var(--sunk);border-radius:6px;padding:8px 12px;display:inline-block}
+.why{background:var(--signal-soft);border-left:4px solid var(--signal);padding:10px 14px;margin:12px 0}
+.one{background:var(--copper-soft);border-left:4px solid var(--copper);padding:10px 14px;margin:16px 0;font-weight:700}
+.details{border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;font-size:15.5px}
+.details b.h{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.extra{display:inline-block;font-size:12px;font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 7px;vertical-align:middle;margin-left:6px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--sunk);padding:1px 5px;border-radius:4px}
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+figure{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure .sc{overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--fg)}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.codebox{position:relative;margin:14px 0}
+pre{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:13.5px;line-height:1.55;margin:0}
+.copy{position:absolute;top:8px;right:8px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.copy:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.step{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;margin:14px 0}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--copper);color:var(--surface);display:grid;place-items:center;font-family:var(--f-display);font-weight:700}
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0}
+.sim label{font-size:15px;display:block;margin:8px 0 2px}
+.sim input[type=range]{width:100%;accent-color:var(--copper)}
+.readout{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.readout div{flex:1 1 150px;background:var(--sunk);border-radius:8px;padding:8px 12px;font-size:14px}
+.readout b{display:block;font-family:var(--f-mono);font-size:19px;font-variant-numeric:tabular-nums}
+.readout .bad b{color:var(--bad)}
+.traps li{margin-bottom:10px}
+.quiz .q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0}
+.quiz .qt{font-weight:700;margin-bottom:8px}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left;font:inherit;font-size:15.5px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.opts button:hover{border-color:var(--copper)}
+.opts button.right{background:var(--ok-soft);border-color:var(--ok)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.numrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.numrow input{font:inherit;width:150px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.btn{font:inherit;font-size:15px;background:var(--copper);color:var(--surface);border:0;border-radius:8px;padding:7px 16px;cursor:pointer}
+.fb{margin-top:10px;font-size:15px;padding:8px 12px;border-radius:8px}
+.fb.ok{background:var(--ok-soft)}.fb.no{background:var(--bad-soft)}
+.err{color:var(--bad);font-size:13px}
+.score{font-family:var(--f-display);font-size:22px;font-weight:600}
+.check label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+.check input{margin-top:6px;accent-color:var(--copper);width:18px;height:18px;flex:none}
+svg .t{font-family:var(--f-body);font-size:12px;fill:currentColor}
+svg .tb{font-family:var(--f-display);font-size:14px;font-weight:600;fill:currentColor}
+svg .tm{font-family:var(--f-mono);font-size:11px;fill:currentColor}
+svg .box{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
+svg .boxc{fill:var(--copper-soft);stroke:var(--copper);stroke-width:1.6}
+svg .ln{stroke:currentColor;stroke-width:1.4;fill:none}
+svg .w12{stroke:var(--v12);stroke-width:2.6;fill:none}
+svg .w5{stroke:var(--v5);stroke-width:2.6;fill:none}
+svg .wg{stroke:var(--gnd);stroke-width:2.2;fill:none}
+svg .wi{stroke:var(--ind);stroke-width:2.6;fill:none}
+svg .wc{stroke:var(--copper);stroke-width:2;fill:none}
+svg .grid{stroke:var(--line);stroke-width:1}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">On this page</div>
+  <ol>
+    <li><a href="#map">Map</a></li>
+    <li><a href="#step">1 · How a stepper turns</a></li>
+    <li><a href="#micro">2 · Microsteps and speed</a></li>
+    <li><a href="#current">3 · Current, not voltage</a></li>
+    <li><a href="#uart">4 · UART settings</a></li>
+    <li><a href="#safety">5 · The safety rules</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+  </ol>
+</nav>
+<main>
+<header class="hero">
+  <div class="eyebrow">Capstone 2026PUZ1 · Test T07</div>
+  <h1>Stepper driver basics</h1>
+  <p class="goal">After this page you can explain how a stepper motor turns, how STEP pulses become rpm, why the driver sets current (not voltage), and why the three safety rules exist.</p>
+  <p class="assume">Short page for someone new to stepper motors.</p>
+</header>
+
+<h2 id="map"><span class="tag">Overview</span>Who does what</h2>
+<figure><div class="sc">
+<svg viewBox="0 0 720 170" role="img" aria-label="The ESP32 sends settings over UART once and then STEP and DIR pulses. The TMC2209 driver turns them into controlled coil currents from the 24 volt supply. The motor turns.">
+  <defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="currentColor"/></marker></defs>
+  <rect class="box" x="20" y="50" width="150" height="80" rx="8"/><text class="tb" x="95" y="84" text-anchor="middle">ESP32</text><text class="t" x="95" y="104" text-anchor="middle">decides</text>
+  <rect class="boxc" x="290" y="50" width="160" height="80" rx="8"/><text class="tb" x="370" y="84" text-anchor="middle">TMC2209</text><text class="t" x="370" y="104" text-anchor="middle">drives the coils</text>
+  <rect class="box" x="560" y="50" width="140" height="80" rx="8"/><text class="tb" x="630" y="84" text-anchor="middle">Motor</text><text class="t" x="630" y="104" text-anchor="middle">2 coils</text>
+  <line class="ln" x1="170" y1="70" x2="288" y2="70" marker-end="url(#m1)"/><text class="t" x="229" y="62" text-anchor="middle">UART: settings</text>
+  <line class="ln" x1="170" y1="110" x2="288" y2="110" marker-end="url(#m1)"/><text class="t" x="229" y="102" text-anchor="middle">STEP + DIR</text>
+  <line class="w12" x1="370" y1="12" x2="370" y2="48" marker-end="url(#m1)"/><text class="t" x="380" y="26">24 V supply</text>
+  <line class="wi" x1="450" y1="90" x2="558" y2="90" marker-end="url(#m1)"/><text class="t" x="504" y="82" text-anchor="middle">coil currents</text>
+</svg></div></figure>
+<p>The ESP32 never powers the motor. It only <b>tells</b> the driver what to do: settings once over UART, then one STEP pulse for every small step, and DIR for the direction. The driver takes the energy from the 24 V supply.</p>
+
+<h2 id="step"><span class="tag">Section 1</span>How a stepper turns</h2>
+<p>Inside the motor there are two coils (A and B) and a magnet rotor with many teeth. The driver switches current through the coils in a fixed order, and the rotor jumps to the next position each time: <b>200 full steps per turn</b> (1.8° each, from the motor's datasheet).</p>
+<p>The motor holds its position as long as current flows, even standing still. That's why the shaft is hard to turn after <code>e</code>, and free again after <code>x</code>.</p>
+<p class="one">In one sentence: the driver switches the two coils in order, and each switch moves the rotor one step.</p>
+
+<h2 id="micro"><span class="tag">Section 2</span>Microsteps and speed</h2>
+<p>The TMC2209 can split each full step into smaller ones by setting the two coil currents to in-between values. We use <b>16 microsteps</b>, so one turn needs:</p>
+<p style="text-align:center">\[ 200 \times 16 = 3200 \text{ STEP pulses per turn} \qquad f_{\text{STEP}} = \frac{\text{rpm} \times 3200}{60} \]</p>
+<p>So 30 rpm needs 1600 pulses per second. The FastAccelStepper library makes these pulses in hardware and speeds up and slows down smoothly ("acceleration"), so the motor doesn't jump or lose steps. It also counts every pulse, which is how <code>g</code> knows how to go back to 0. In T9 the same count lets <b>Reset unwind every turn</b>.</p>
+<p class="one">In one sentence: 3200 pulses = one turn, and the pulse count is the motor's position.</p>
+
+<h2 id="current"><span class="tag">Section 3 · the hard idea</span>The driver sets current, not voltage</h2>
+<div class="why"><b>Why this matters:</b> the motor label says 4.1 V, but we feed 24 V. That's correct, and it's safe only because the driver controls current.</div>
+<p>The motor's torque comes from the coil <b>current</b>. The driver measures the current through its small sense resistors (0.11 Ω) and switches the 24 V on and off very fast, so the current stays exactly at the set value ("chopper"). The high voltage only helps the current build up quickly at higher speed.</p>
+<p>The motor is rated 1 A per phase. We set <b>700 mA</b> (and half of that when standing still), well below the limit. Heat in the motor is about I² × R per coil: 2 × 0.7² × 4.1 Ω ≈ 4 W. Warm is normal; too hot to touch is not.</p>
+<p>We also set <code>I_scale_analog = 0</code>: the current then comes only from software. The blue screw on the driver can no longer change it by accident.</p>
+<p class="one">In one sentence: the driver regulates the current to 700 mA, so 24 V is fine for a "4.1 V" motor.</p>
+
+<h2 id="uart"><span class="tag">Section 4</span>What the program sets over UART</h2>
+<div class="tbl"><table>
+<thead><tr><th>Setting</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td><code>test_connection()</code>, version 0x21</td><td>Proves the driver answers before anything moves.</td></tr>
+<tr><td><code>pdn_disable(true)</code></td><td>The PDN pin is our UART wire, so its old function must be off (datasheet).</td></tr>
+<tr><td><code>I_scale_analog(false)</code></td><td>Current only from software.</td></tr>
+<tr><td><code>microsteps(16)</code>, <code>mstep_reg_select(true)</code></td><td>Microsteps from software, not from the MS1/MS2 pins (which now set the address).</td></tr>
+<tr><td><code>rms_current(700, 0.5)</code></td><td>700 mA running, 350 mA holding.</td></tr>
+<tr><td><code>en_spreadCycle(false)</code></td><td>StealthChop: almost silent at our slow speeds.</td></tr>
+<tr><td><code>toff(4)</code></td><td>Switches the output stage on (0 would mean "off").</td></tr>
+</tbody></table></div>
+<p>Every half second the program reads the driver's flags (over-temperature, short circuit). If one is set, it switches the motor off at once.</p>
+
+<h2 id="safety"><span class="tag">Section 5</span>Why the three safety rules</h2>
+<ul class="traps">
+<li><b>Never unplug the motor while powered.</b> A coil stores energy like a spring. Pulling the plug suddenly creates a large voltage spike that destroys the driver's output transistors.</li>
+<li><b>Motor power ON last, OFF first.</b> The ESP32 must already be running (EN held high = driver off) before the driver gets power, so the motor can't jump.</li>
+<li><b>Current limit or fuse.</b> If something is wired wrong, the supply limits the damage instead of letting several amps flow.</li>
+<li><b>The 10 kΩ pull-up on EN.</b> While the ESP32 boots, its pins float for a moment. The resistor holds EN high = driver off.</li>
+<li><b>The 100 µF capacitor.</b> It absorbs fast current pulses and spikes on the 24 V line, right at the driver.</li>
+</ul>
+
+<h2 id="quiz"><span class="tag">Test yourself</span>Quiz</h2>
+<div class="quiz" id="quizbox"></div>
+<div id="scorebox" class="score" aria-live="polite"></div>
+</main>
+</div>
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<script>
+(function () {
+  var Q = [
+    { t: 'How many STEP pulses per second for 60 rpm (16 microsteps, 200 steps per turn)?', num: 3200, unit: 'Hz', e: '60 × 3200 / 60 = 3200 pulses per second = 1 turn per second.' },
+    { t: 'The motor label says 4.1 V. Why may we connect 24 V?', o: ['The motor is broken anyway', 'The driver regulates the coil current (700 mA); the voltage only helps the current rise fast', 'The ESP32 lowers the voltage', '24 V is the same as 4.1 V'], a: 1, e: 'A chopper driver controls current. Without a driver, 24 V straight on the coil would burn it.' },
+    { t: 'Why must you never unplug the motor while it is powered?', o: ['The motor forgets its position', 'The coil makes a voltage spike that destroys the driver', 'The ESP32 resets', 'It changes the direction'], a: 1, e: 'A coil keeps current flowing; breaking it suddenly gives a high-voltage spike.' },
+    { t: 'What does the 10 kΩ resistor on EN do?', o: ['Sets the motor current', 'Keeps the driver OFF while the ESP32 boots', 'Makes UART faster', 'Protects the motor coils'], a: 1, e: 'EN high = off. The resistor pulls EN high until the program takes control.' },
+    { t: 'After f, s and then g, the motor goes back exactly to the start mark. How does the program know where the start is?', o: ['From the encoder', 'It counts every STEP pulse it sent', 'From the driver temperature', 'It guesses'], a: 1, e: 'Every pulse is one microstep; the count is the position. The encoder is on the slider, not on the motor.' }
+  ];
+  var box = document.getElementById('quizbox'), results = new Array(Q.length);
+  function score() {
+    var right = results.filter(function (x) { return x === true; }).length, done = results.filter(function (x) { return x !== undefined; }).length;
+    document.getElementById('scorebox').textContent = 'Score: ' + right + ' / ' + Q.length + (done < Q.length ? '  (' + (Q.length - done) + ' left)' : '');
+  }
+  Q.forEach(function (q, i) {
+    var d = document.createElement('div'); d.className = 'q';
+    var t = document.createElement('div'); t.className = 'qt'; t.textContent = (i + 1) + '. ' + q.t; d.appendChild(t);
+    var fb = document.createElement('div'); fb.setAttribute('aria-live', 'polite');
+    if (q.o) {
+      var o = document.createElement('div'); o.className = 'opts';
+      q.o.forEach(function (txt, j) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = txt;
+        b.addEventListener('click', function () {
+          if (results[i] !== undefined) return;
+          var ok = j === q.a; results[i] = ok;
+          b.classList.add(ok ? 'right' : 'wrong'); if (!ok) o.children[q.a].classList.add('right');
+          fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. ') + q.e; score();
+        });
+        o.appendChild(b);
+      });
+      d.appendChild(o);
+    } else {
+      var r = document.createElement('div'); r.className = 'numrow';
+      var inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.id = 'qn' + i; inp.setAttribute('aria-label', 'Your answer in ' + q.unit);
+      var u = document.createElement('span'); u.textContent = q.unit;
+      var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn'; b2.textContent = 'Check';
+      var er = document.createElement('div'); er.className = 'err';
+      inp.addEventListener('input', function () { er.textContent = ''; });
+      b2.addEventListener('click', function () {
+        if (results[i] !== undefined) return;
+        var v = parseFloat(inp.value.replace(',', '.').replace(/\s/g, ''));
+        if (isNaN(v)) { er.textContent = 'Enter a number first.'; return; }
+        var ok = Math.abs(v - q.num) <= Math.abs(q.num) * 0.01; results[i] = ok;
+        fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. The answer is ' + q.num + ' ' + q.unit + '. ') + q.e; score();
+      });
+      r.appendChild(inp); r.appendChild(u); r.appendChild(b2); d.appendChild(r); d.appendChild(er);
+    }
+    d.appendChild(fb); box.appendChild(d);
+  });
+})();
+</script>

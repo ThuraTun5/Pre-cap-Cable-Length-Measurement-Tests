@@ -100,7 +100,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   <h1>Cable Jig Wiring Atlas</h1>
   <p>One wiring drawing per test. Every connection is drawn as a real wire from pin to pin, or from a pin to a breadboard rail. <b>Hover or tap a row</b> in a wire list to light up that wire. Hover a wire to find its row.</p>
 
-  <div class="banner"><b>T1–T6 are ready to wire.</b> T7–T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
+  <div class="banner"><b>T1–T7 are ready to wire.</b> T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
 
   <div class="legend" aria-label="Wire colour legend">
     <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black)</span>
@@ -384,14 +384,14 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     checks: ['Never connect the buck converter to the ESP32 5V pin while USB is plugged in.', 'Pi program sets DTR/RTS off before opening the port (see docs/PROTOCOL.md).'],
     todo: [] },
 
-  { id: 't7', tab: 'T7 Driver', title: 'T7 · One TMC2209 + one motor', status: 'draft', statusText: 'Draft · most risk',
+  { id: 't7', tab: 'T7 Driver', title: 'T7 · One TMC2209 + one motor', status: 'go', statusText: 'Ready · follow the checklist',
     purpose: 'One driver over UART. First read the chip ID with the motor not moving, then spin slowly. No wire crosses another.', vb: [930, 490],
     comps: [
       { id: 'esp', x: 20, y: 58, w: 200, title: 'ESP32 (on USB)', R: [['3v3a', '3V3 (left row, top)'], ['_1', ''], ['g13', 'GPIO13 → EN'], ['gnd1', 'GND (right row)'], ['gnd2', 'GND (right row)'], ['g4', 'GPIO4 (RX)'], ['g17', 'GPIO17 (TX)'], ['gnd3', 'GND (right row)'], ['g25', 'GPIO25 → STEP'], ['g26', 'GPIO26 → DIR'], ['gnd4', 'GND (left row)'], ['3v3b', '3.3V (left row, bottom)']] },
       { id: 'r1', kind: 'part', x: 270, y: 212, w: 66, title: 'R1 1 kΩ', L: [['a', '']], R: [['b', '']], tin: true },
       { id: 'drv', x: 440, y: 102, w: 170, title: 'TMC2209 V1.3 #1', sub: 'UART address 0', L: drvL, R: drvR },
       { id: 'mot', x: 760, y: 146, w: 150, title: 'Motor 1', sub: 'pairs ≈ 4 Ω', L: motL },
-      { id: 'f1', kind: 'part', x: 675, y: 48, w: 50, title: 'F1 fuse', L: [['a', '']], R: [['b', '']], ttop: true },
+      { id: 'f1', kind: 'part', x: 675, y: 48, w: 50, title: 'F1 fuse*', L: [['a', '']], R: [['b', '']], ttop: true },
       { id: 'psu', x: 750, y: 26, w: 150, title: 'Motor supply', sub: '12–24 V', L: [['p', '+'], ['n', '−']] }
     ],
     vparts: [
@@ -422,18 +422,18 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['wen', 'GPIO13', 'Driver EN', 'en', 'LOW = motor on, HIGH = off.'],
       ['r2', 'R2 10 kΩ', 'ESP32 3V3 (top) ↔ EN wire', 'en', 'Keeps the driver OFF while the ESP32 boots.'],
       ['wms', 'ESP32 GND ×2', 'MS1, MS2', 'gnd', 'Both LOW = UART address 0.'],
-      ['wclk', 'ESP32 GND', 'CLK', 'gnd', 'Use the internal clock (to confirm).'],
-      ['wrx', 'GPIO4 (RX)', 'PDN (4th pin)', 'uart', 'Direct.'],
+      ['wclk', 'ESP32 GND', 'CLK', 'gnd', 'CLK to GND = internal clock (TMC2209 datasheet).'],
+      ['wrx', 'GPIO4 (RX)', 'PDN (4th pin)', 'uart', 'Direct. The 4th pin is the UART pin (BTT V1.3 manual). The 5th pin is not connected inside: leave it empty.'],
       ['wtx', 'GPIO17 (TX)', 'R1 1 kΩ → RX wire', 'uart', 'TX goes through 1 kΩ and joins the RX wire.'],
       ['wst', 'GPIO25', 'STEP', 'step', ''],
       ['wdi', 'GPIO26', 'DIR', 'dir', ''],
-      ['wvm', 'Supply + → fuse F1', 'Driver VM', 'vm', '12–24 V. Never near the 3.3 V / 5 V wires.'],
+      ['wvm', 'Supply + → fuse F1*', 'Driver VM', 'vm', '24 V (12 V is gentler for the first run). *No fuse yet: set the supply current limit to about 1 A instead.'],
       ['wpg', 'Driver GND (power side)', 'Supply −', 'gnd', 'Motor current returns here.'],
       ['c2', 'C2 100 µF ≥35 V', 'VM wire (+) ↔ GND wire (−)', 'vm', 'Right at the driver. Stripe = minus.'],
       ['wm', 'A2 A1 B1 B2', 'Motor green, black, red, blue', 'ck', 'Check the pairs with the meter first (≈4 Ω).']
     ],
     checks: ['Motor connected BEFORE the supply is switched on. Never unplug a motor while VM is on.', 'Capacitor polarity: stripe to GND.', 'Coil pairs: ≈4 Ω within a pair, open between pairs.', 'Power on: USB first, then VM. Power off: VM first.', 'Heatsink on; keep fingers off.'],
-    todo: ['Meter check: are the two driver GND pins joined on the module (0 Ω)? That link joins motor ground and ESP32 ground.', 'Are the two PDN pins joined? Is there already a 1 kΩ on the module?', 'CLK to GND or open?', 'Motor current over UART ≈0.7–1.0 A (R_SENSE of this module).', 'Fuse value.'] },
+    todo: ['Meter check (power off): the two driver GND pins should read 0 Ω to each other.', 'Your motor cable colours may not match the datasheet: find the 2 pairs with the meter (about 4 Ω each).'] },
 
   { id: 't8', tab: 'T8 Two drivers', title: 'T8 · Add driver 2 (synchronised)', status: 'draft', statusText: 'Draft',
     purpose: 'Driver 1 stays wired exactly as in T7 (shown here only by the pins driver 2 shares). Driver 2 shares EN, UART, VM and motor GND with driver 1, and gets its own STEP / DIR and address 1.', vb: [930, 600],

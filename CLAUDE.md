@@ -8,7 +8,7 @@ ESP32 firmware for a KUAS capstone project (assignment 2026PUZ1, sponsored by Pe
 - The cable is clamped between a fixed support and a sliding support that is **moved by hand**.
 - Two steppers rotate the two clamp heads **in sync**, so a camera can see the cable from all sides.
 - An AMT102-V encoder on the slider measures how far it moved, which gives the cable **length**. Target: ≤1 mm error per 1000 mm.
-- The ESP32 sends the readings to a Raspberry Pi 5 over Wi-Fi.
+- The ESP32 sends the readings to a Raspberry Pi 5 over a USB cable (serial). Wi-Fi is postponed.
 
 **Scope: ESP32 side only.** A teammate writes the Pi software (SQL storage and display). Never write Pi application code. Only document the data format the Pi will receive. Project background is in `Project Contents.pdf` and `Chasis/`. Part datasheets and photos are in the component folders at the repo root.
 
@@ -61,4 +61,6 @@ Every `tests/Txx_*` folder is its own PlatformIO project, so pass that folder wi
 
 - The Arduino core defines `RGB_BRIGHTNESS` as a macro. Using that name for a constant fails with "expected unqualified-id before numeric constant". Other core macro names can do the same.
 - The first build of a fresh environment downloads several hundred MB of toolchain.
+- **PCNT/RMT resource clash (found in T7):** FastAccelStepper's default ESP32 step driver (MCPWM/PCNT) hard-codes PCNT units 0–5, and ESP32Encoder also takes PCNT units from 0. So always use `engine.stepperConnectToPin(pin, DRIVER_RMT)`. The RMT driver uses RMT channel = stepper index (0, 1), and Arduino's `neopixelWrite()` also allocates RMT channels, so programs with motors don't use the RGB LED on GPIO16 (use the blue LED on GPIO2).
+- **TMC2209 setup (T7):** BTT V1.3 module, R_SENSE 0.11 Ω (resistors marked R110). UART on the 4th left pin (PDN); the 5th pin is open unless pad R10 is bridged. Set `pdn_disable(true)`, `I_scale_analog(false)` (current from software, not from the VREF screw), `mstep_reg_select(true)`, and `toff(>0)`. CLK goes to GND (internal clock). UART only answers while VM is powered. Pinned libraries: TMCStepper 0.7.3, FastAccelStepper 1.3.4, ESP32Encoder 0.11.8.
 - Commits use the repo-local identity (user.name `thura`). End commit messages with the Claude co-author line.

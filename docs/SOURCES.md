@@ -77,6 +77,18 @@ community discussions second.
   <https://pip-assets.raspberrypi.com/categories/685-app-notes-guides-whitepapers/documents/RP-009856-WP-1-USB%20Power%20delivery%20on%20Raspberry%20Pi%205.pdf>
 - /dev/ttyUSB* belongs to the `dialout` group: <https://techoverflow.net/2022/06/10/how-to-fix-dev-ttyusb0-or-dev-ttyacm0-permission-error/>
 
+## T7 — TMC2209 + one motor
+- BIGTREETECH TMC2209 V1.3 user manual (pinout EN/MS1/MS2/RX/TX/CLK/STEP/DIR, VM/GND/A2/A1/B1/B2/VIO/GND;
+  UART on the 4th pin by default, 5th pin only via pad R10; 12–28 V; cooling above 1.2 A; sense resistors R110):
+  <https://3d.nice-cdn.com/upload/file/BIGTREETECH_TMC2209_V1.3_User_Manual.pdf>, <https://global.bttwiki.com/TMC2209.html>
+- TMC2209 datasheet (CLK to GND = internal clock; pdn_disable must be set with UART; I_scale_analog default 1 = VREF):
+  <https://www.analog.com/media/en/technical-documentation/data-sheets/tmc2209_datasheet_rev1.09.pdf>,
+  <https://www.mouser.com/pdfDocs/TMC2209_Datasheet_V103.pdf>
+- ESP32 + TMC2209 single-wire UART practice (RX direct, TX via 1 kΩ): <https://forum.arduino.cc/t/tmc2209-and-esp32-uart-wiring/1362812>
+- FastAccelStepper 1.3.4 source (checked in this project): MCPWM/PCNT driver uses PCNT_UNIT_0..5 → use DRIVER_RMT;
+  RMT driver uses channel = stepper index: <https://github.com/gin66/FastAccelStepper>
+- Arduino-ESP32 2.0.17 `neopixelWrite()` calls `rmtInit()` (allocates an RMT channel): core source esp32-hal-rgb-led.c.
+
 ## Fuse (shopping)
 - Inline 5×20 mm fuse holders + glass fuse assortment (0.1–20 A, incl. 1 A, 2 A, 3 A):
   <https://www.amazon.co.jp/dp/B098JVN9V1>
