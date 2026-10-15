@@ -2,7 +2,8 @@
 
 ESP32 side of the sensor-cable inspection jig:
 - Reads an **AMT102-V** encoder on a hand-moved slider (GT2 belt, 20T pulley)
-  and reports **degrees + millimetres** to a Raspberry Pi 5 over Wi-Fi.
+  and reports **degrees + millimetres** to a Raspberry Pi 5 over a USB cable
+  (serial, [protocol](docs/PROTOCOL.md)). The Pi also powers the ESP32 through it.
 - Drives **two synchronized stepper motors** (TMC2209, UART) that rotate the
   cable clamp heads: start / pause / reverse / reset.
 

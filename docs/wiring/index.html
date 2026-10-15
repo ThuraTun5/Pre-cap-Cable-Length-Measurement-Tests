@@ -100,7 +100,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   <h1>Cable Jig Wiring Atlas</h1>
   <p>One wiring drawing per test. Every connection is drawn as a real wire from pin to pin, or from a pin to a breadboard rail. <b>Hover or tap a row</b> in a wire list to light up that wire. Hover a wire to find its row.</p>
 
-  <div class="banner"><b>T1–T7 are ready to wire.</b> T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
+  <div class="banner"><b>T1 and T3–T7 are ready to wire</b> (T2, the buck converter, is no longer needed). T8 are <b>drafts</b>: each one gets checked again with fresh research inside its own test, and pins can still change. Please don't wire ahead.</div>
 
   <div class="legend" aria-label="Wire colour legend">
     <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black)</span>
@@ -167,14 +167,14 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   { id: 'ov', tab: 'Overview', title: 'Whole system (draft)', status: 'draft', statusText: 'Draft · big picture', overview: true,
     purpose: 'How the parts connect at the end. Each link is built and tested on its own first.',
     rows: [
-      ['PC', 'ESP32 USB-C', 'usb', 'Power + programming + serial monitor during all tests'],
+      ['Raspberry Pi 5 USB (laptop during tests)', 'ESP32 USB-C', 'usb', 'Power for the ESP32 + data link (docs/PROTOCOL.md)'],
       ['AMT102-V A / B / X (5 V)', '74LVC245 → GPIO34 / 35 / 32 (3.3 V)', 'encA', 'T3 + T4'],
       ['ESP32 5V pin', 'Encoder 5V', 'v5', 'Encoder needs only ~6 mA'],
       ['ESP32 GPIO4 / GPIO17', 'TMC2209 PDN (both drivers)', 'uart', 'Settings + current over UART'],
       ['ESP32 GPIO25/26 and 27/14', 'STEP / DIR of driver 1 and driver 2', 'step', ''],
       ['ESP32 GPIO13', 'EN of both drivers', 'en', 'One pin switches both drivers'],
       ['Supply 12–24 V → fuse', 'VM of both drivers', 'vm', 'Motor power never touches the ESP32'],
-      ['Buck converter 5 V', 'ESP32 power at the end (no USB)', 'v5', 'Decided at Assembly; tested alone in T2']
+      ['Buck converter 5 V', 'not used anymore', 'v5', 'The Pi powers the ESP32 over USB (decided 2026-10-14)']
     ], checks: [], todo: ['E-stop, touchscreen and motor 3 have reserved pins (docs/PIN_PLAN.md) but no wiring yet.'] },
 
   { id: 't1', tab: 'T1 Board', title: 'T1 · ESP32 board bring-up', status: 'go', statusText: 'Ready · wire now',
@@ -187,8 +187,8 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     rows: [['w1', 'PC USB port', 'ESP32 USB-C', 'usb', 'Must be a data cable (a charge-only cable shows no COM port).']],
     checks: ['Nothing is connected to any pin.', 'Board on a non-conductive surface (not metal, not black foam).', 'Use a data USB-C cable.'], todo: [] },
 
-  { id: 't2', tab: 'T2 Buck', title: 'T2 Part A · Buck converter → 5.0 V', status: 'go', statusText: 'Ready · wire now',
-    purpose: 'Set the buck output to 5.0 V with the multimeter. Nothing else is connected to the output. Supply at 12 V.', vb: [790, 160],
+  { id: 't2', tab: 'T2 Buck', title: 'T2 Part A · Buck converter → 5.0 V', status: 'go', statusText: 'Done · no longer needed',
+    purpose: 'Kept for the record. Since 2026-10-14 the Pi powers the ESP32 over USB, so the buck converter is not used anymore.', vb: [790, 160],
     comps: [
       { id: 'psu', x: 30, y: 40, w: 160, title: 'Bench supply', sub: '12 V (or 24 V)', R: [['p', '+ (red)'], ['n', '− (black)']] },
       { id: 'f1', kind: 'part', x: 250, y: 62, w: 80, title: 'F1 fuse 1–2 A', L: [['a', '']], R: [['b', '']] },
@@ -210,8 +210,8 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     checks: ['Supply OFF while wiring. Check IN+ / IN− polarity twice.', 'Supply current limit low (≈0.3 A) if it has one.', 'Nothing but the meter on the output.', 'Input at least 1 V above the output.'],
     todo: [] },
 
-  { id: 't2b', tab: 'T2 Part B', title: 'T2 Part B · ESP32 powered by the buck', status: 'go', statusText: 'Ready · after Part A',
-    purpose: 'The buck (already set to 5.0 V) powers the ESP32 through its 5V pin. USB is UNPLUGGED. The meter watches the voltage while Wi-Fi scans.', vb: [900, 270],
+  { id: 't2b', tab: 'T2 Part B', title: 'T2 Part B · ESP32 powered by the buck', status: 'go', statusText: 'Done · no longer needed',
+    purpose: 'Kept for the record, not needed anymore: the Pi now powers the ESP32 over USB. Never use this together with USB.', vb: [900, 270],
     comps: [
       { id: 'psu', x: 30, y: 40, w: 160, title: 'Bench supply', sub: '12 V, limit 0.5 A', R: [['p', '+ (red)'], ['n', '− (black)']] },
       { id: 'f1', kind: 'part', x: 250, y: 62, w: 80, title: 'F1 fuse 1 A', L: [['a', '']], R: [['b', '']] },
@@ -620,9 +620,8 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     box(400, 130, 170, 110, 'ESP32', 'Freenove WROOM-32E');
     box(620, 130, 150, 110, 'TMC2209 ×2', 'drivers');
     box(820, 130, 100, 110, 'Motors', 'M1 + M2');
-    box(400, 20, 170, 50, 'PC', 'USB (tests only)');
+    box(400, 20, 170, 50, 'Raspberry Pi 5', 'USB: power + data');
     box(620, 20, 150, 50, 'Supply 12–24 V', 'through fuse F1');
-    box(210, 20, 140, 50, 'Buck 5 V', 'final ESP32 power', true);
     box(400, 280, 370, 40, 'Reserved: E-stop · touchscreen · motor 3', '', true);
     line('M160 172 H208', 'encA'); line('M160 185 H208', 'encB'); line('M160 198 H208', 'encX'); lbl(184, 162, 'A B X');
     line('M350 172 H398', 'encA'); line('M350 185 H398', 'encB'); line('M350 198 H398', 'encX'); lbl(374, 162, '3.3 V');
@@ -633,7 +632,6 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     line('M570 200 H618', 'dir'); lbl(594, 194, 'DIR');
     line('M570 224 H618', 'en'); lbl(594, 218, 'EN');
     line('M770 165 H818', 'ck'); line('M770 205 H818', 'ck'); lbl(794, 158, 'coils');
-    line('M280 70 V100 H440 V128', 'v5', 'dash'); lbl(360, 94, 'later');
     line('M430 240 V262 H90 V222', 'v5', 'dash'); lbl(260, 256, 'ESP32 5V → encoder');
   }
 

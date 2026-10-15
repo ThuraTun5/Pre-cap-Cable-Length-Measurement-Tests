@@ -13,7 +13,7 @@ safety) → 3. Build (one small PlatformIO project) → 4. Verify (compile, logi
 |---|---|---|
 | T0 | Setup: folders, git, PlatformIO, safety rules | Delivered |
 | T1 | ESP32 board bring-up (USB only) | Signed off by user 2026-10-13 (no test results reported) |
-| T2 | Buck converter set to 5.0 V + ESP32 as load | Signed off by user 2026-10-13 (no test results reported) |
+| T2 | Buck converter set to 5.0 V + ESP32 as load | Signed off 2026-10-13. **No longer needed** since 2026-10-14: the Pi powers the ESP32 over USB |
 | T3 | 74LVC245 level shifter (meter + ESP32 reads 3 channels) | Passed 2026-10-13: B1 = 3.3 V with 5 V in; ESP32 read HIGH/LOW on GPIO35 (one-channel check) |
 | T4 | AMT102-V encoder → counts, degrees, index check (8192/turn) | Passed 2026-10-14: voltages OK (meter), counting + index check OK |
 | T5 | Encoder → mm (GT2 20T, 40 mm/turn), zero (end stop + z), calibration, offset, direction (saved in NVS) | Part A passed 2026-10-14 (by hand: 40 mm/turn, calibration, saved settings OK). Part B (real calibration on the belt) moves to Assembly |

@@ -26,15 +26,17 @@ include a short "before you power on" checklist that builds on this page.
    have verified the board's power circuit. Freenove does not publish the board
    schematic, so we cannot confirm a protection diode exists. Back-feeding can
    damage your PC's USB port or the board.
-   - During tests: power the ESP32 from **USB only**.
-   - Other modules (encoder, level shifter) may be powered from the buck
-     converter as long as **grounds are shared** and the buck's 5 V is **not**
-     connected to the ESP32's 5V pin.
+   - Always power the ESP32 from **USB only**: the laptop during tests, the Raspberry Pi
+     in the finished jig. The buck converter is no longer used for the ESP32.
+   - The encoder takes its 5 V from the ESP32's 5V pin (fed by USB), and the
+     74LVC245 takes 3.3 V from the ESP32's 3V3 pin. No other 5 V source may
+     touch the ESP32's 5V pin.
 3. Avoid using strapping pins (GPIO 0, 2, 5, 12, 15) for external signals unless
    a test says so. They change how the ESP32 boots.
 4. GPIO 34, 35, 36 (VP), 39 (VN) are **input only**.
 
 ## 3. Power supply and buck converter rules
+(The buck rules matter only if the buck converter is used again. The supply rules apply to the 24 V motor supply.)
 1. **Set the buck converter output (≈5.0 V) with the multimeter BEFORE
    connecting anything to its output.**
 2. Re-measure the output every time the input supply voltage changes
