@@ -1,0 +1,189 @@
+<title>T09 Motor Commands</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: bench notebook - sticky contents rail (desktop), one reading column, copper accent; same family as the earlier test pages */
+:root{
+  --bg:#F4F6F4; --surface:#FFFFFF; --sunk:#E8ECE9; --fg:#1C2321; --muted:#56615D; --line:#CBD3CF;
+  --copper:#A8551F; --copper-soft:#F6E6DA; --signal:#1F5FA8; --signal-soft:#E1ECF8;
+  --ok:#2E7D4F; --ok-soft:#E0F2E7; --bad:#B23A32; --bad-soft:#F9E3E1; --warn:#8C6200; --warn-soft:#FBF0D3;
+  --v12:#E06A00; --v5:#D7322C; --gnd:#1F2421; --ind:#1F5FA8;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --v12:#FFA552; --v5:#FF6F69; --gnd:#C9D1CD; --ind:#7DB2EE;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.65;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-inline:20px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:16px;padding-inline:16px}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:14px;line-height:1.4}
+nav.toc .lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-size:13px;margin-bottom:8px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:4px 10px;color:var(--muted);text-decoration:none;margin-left:-2px;border-left:2px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--copper);border-left-color:var(--copper)}
+@media (max-width:900px){nav.toc{position:static}nav.toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border-left:0}nav.toc a{border:1px solid var(--line);border-radius:6px;margin:0}}
+main{min-width:0;max-width:760px}
+header.hero{padding-bottom:18px;border-bottom:2px solid var(--copper);margin-bottom:8px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--copper);font-size:14px;font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,48px);line-height:1.05;margin:6px 0 12px;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.15;margin:56px 0 10px;text-wrap:balance;scroll-margin-top:16px}
+h2 .tag{font-size:15px;font-weight:600;color:var(--copper);letter-spacing:.06em;display:block;text-transform:uppercase}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;margin:26px 0 6px}
+p{margin:0 0 12px}
+.goal{font-size:19px}
+.assume{font-size:14px;color:var(--muted);background:var(--sunk);border-radius:6px;padding:8px 12px;display:inline-block}
+.why{background:var(--signal-soft);border-left:4px solid var(--signal);padding:10px 14px;margin:12px 0}
+.one{background:var(--copper-soft);border-left:4px solid var(--copper);padding:10px 14px;margin:16px 0;font-weight:700}
+.details{border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;font-size:15.5px}
+.details b.h{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.extra{display:inline-block;font-size:12px;font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 7px;vertical-align:middle;margin-left:6px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--sunk);padding:1px 5px;border-radius:4px}
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+figure{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure .sc{overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--fg)}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.codebox{position:relative;margin:14px 0}
+pre{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:13.5px;line-height:1.55;margin:0}
+.copy{position:absolute;top:8px;right:8px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.copy:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.step{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;margin:14px 0}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--copper);color:var(--surface);display:grid;place-items:center;font-family:var(--f-display);font-weight:700}
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0}
+.sim label{font-size:15px;display:block;margin:8px 0 2px}
+.sim input[type=range]{width:100%;accent-color:var(--copper)}
+.readout{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.readout div{flex:1 1 150px;background:var(--sunk);border-radius:8px;padding:8px 12px;font-size:14px}
+.readout b{display:block;font-family:var(--f-mono);font-size:19px;font-variant-numeric:tabular-nums}
+.readout .bad b{color:var(--bad)}
+.traps li{margin-bottom:10px}
+.quiz .q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0}
+.quiz .qt{font-weight:700;margin-bottom:8px}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left;font:inherit;font-size:15.5px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.opts button:hover{border-color:var(--copper)}
+.opts button.right{background:var(--ok-soft);border-color:var(--ok)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.numrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.numrow input{font:inherit;width:150px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.btn{font:inherit;font-size:15px;background:var(--copper);color:var(--surface);border:0;border-radius:8px;padding:7px 16px;cursor:pointer}
+.fb{margin-top:10px;font-size:15px;padding:8px 12px;border-radius:8px}
+.fb.ok{background:var(--ok-soft)}.fb.no{background:var(--bad-soft)}
+.err{color:var(--bad);font-size:13px}
+.score{font-family:var(--f-display);font-size:22px;font-weight:600}
+.check label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+.check input{margin-top:6px;accent-color:var(--copper);width:18px;height:18px;flex:none}
+svg .t{font-family:var(--f-body);font-size:12px;fill:currentColor}
+svg .tb{font-family:var(--f-display);font-size:14px;font-weight:600;fill:currentColor}
+svg .tm{font-family:var(--f-mono);font-size:11px;fill:currentColor}
+svg .box{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
+svg .boxc{fill:var(--copper-soft);stroke:var(--copper);stroke-width:1.6}
+svg .ln{stroke:currentColor;stroke-width:1.4;fill:none}
+svg .w12{stroke:var(--v12);stroke-width:2.6;fill:none}
+svg .w5{stroke:var(--v5);stroke-width:2.6;fill:none}
+svg .wg{stroke:var(--gnd);stroke-width:2.2;fill:none}
+svg .wi{stroke:var(--ind);stroke-width:2.6;fill:none}
+svg .wc{stroke:var(--copper);stroke-width:2;fill:none}
+svg .grid{stroke:var(--line);stroke-width:1}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">On this page</div>
+  <ol>
+    <li><a href="#states">1 · The states</a></li>
+    <li><a href="#reset">2 · Reset unwinds</a></li>
+    <li><a href="#watchdog">3 · The watchdog</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+  </ol>
+</nav>
+<main>
+<header class="hero">
+  <div class="eyebrow">Capstone 2026PUZ1 · Test T09</div>
+  <h1>Motor commands from the Pi</h1>
+  <p class="goal">After this page you can explain what S, P, R and X do, which state the motors are in, why Reset never twists the cable, and why the motors stop when the link is silent.</p>
+  <p class="assume">Short page. Details for the Pi programmer are in <code>docs/PROTOCOL.md</code> (v2).</p>
+</header>
+
+<h2 id="states"><span class="tag">Section 1 · the hard idea</span>The motor states</h2>
+<p>The program is a <b>state machine</b>: the motors are always in exactly one state, and a command moves them to another. Every change is reported to the Pi at once.</p>
+<figure><div class="sc">
+<svg viewBox="0 0 720 260" role="img" aria-label="State diagram: idle goes to running on S. Running goes to stopping on P, then paused. Paused goes back to running on S. From running, stopping or paused, X goes to resetting, which ends in idle. R reverses the direction while running.">
+  <defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9z" fill="currentColor"/></marker></defs>
+  <rect class="box" x="20" y="100" width="120" height="56" rx="8"/><text class="tb" x="80" y="124" text-anchor="middle">idle</text><text class="t" x="80" y="142" text-anchor="middle">turns = 0, holding</text>
+  <rect class="boxc" x="230" y="100" width="130" height="56" rx="8"/><text class="tb" x="295" y="124" text-anchor="middle">running</text><text class="t" x="295" y="142" text-anchor="middle">10 rpm, counting</text>
+  <rect class="box" x="450" y="30" width="120" height="56" rx="8"/><text class="tb" x="510" y="54" text-anchor="middle">stopping</text><text class="t" x="510" y="72" text-anchor="middle">slowing down</text>
+  <rect class="box" x="580" y="100" width="120" height="56" rx="8"/><text class="tb" x="640" y="124" text-anchor="middle">paused</text><text class="t" x="640" y="142" text-anchor="middle">holding</text>
+  <rect class="box" x="300" y="190" width="150" height="56" rx="8"/><text class="tb" x="375" y="214" text-anchor="middle">resetting</text><text class="t" x="375" y="232" text-anchor="middle">turning back to 0</text>
+  <line class="ln" x1="140" y1="128" x2="228" y2="128" marker-end="url(#m1)"/><text class="t" x="184" y="120" text-anchor="middle">S</text>
+  <path class="ln" d="M360 110 L448 66" marker-end="url(#m1)"/><text class="t" x="398" y="80">P</text>
+  <path class="ln" d="M570 66 L620 98" marker-end="url(#m1)"/>
+  <path class="ln" d="M580 140 L362 140" marker-end="url(#m1)"/><text class="t" x="470" y="134" text-anchor="middle">S (continues counting)</text>
+  <path class="ln" d="M640 156 V218 H452" marker-end="url(#m1)"/><text class="t" x="560" y="212">X</text>
+  <path class="ln" d="M295 156 V206 H298" marker-end="url(#m1)"/><text class="t" x="278" y="186">X</text>
+  <path class="ln" d="M300 232 H80 V158" marker-end="url(#m1)"/><text class="t" x="190" y="226" text-anchor="middle">back at start</text>
+  <path class="wc" d="M262 100 C 262 70, 328 70, 328 100" marker-end="url(#m1)"/><text class="t" x="295" y="60" text-anchor="middle" style="fill:var(--copper)">R: turn round</text>
+</svg></div>
+<figcaption>Two more states exist: <code>off</code> (drivers not answering, for example motor power off) and <code>fault</code> (overheat or short circuit: motors switched off).</figcaption></figure>
+<p class="one">In one sentence: S runs, P stops and holds, S continues, X goes all the way back to the start.</p>
+
+<h2 id="reset"><span class="tag">Section 2</span>Why Reset unwinds every turn</h2>
+<p>The program counts every step since Start. Reset tells both motors "go to step 0", so they turn back exactly as many turns as they made, in the opposite direction. The shortest way back would leave the cable rotated by whole turns.</p>
+<p>Reverse doesn't confuse this: turning backwards simply counts down. If you made 5 turns forward and 2 back, Reset turns back 3.</p>
+
+<h2 id="watchdog"><span class="tag">Section 3</span>The link watchdog</h2>
+<p>A watchdog is a timer that someone must keep "feeding". Here the Pi feeds it: any line it sends (at least the tiny keep-alive <code>.</code>) restarts a 2-second timer. If the timer runs out while the motors turn, the ESP32 stops them and reports a <code>fault</code>.</p>
+<p>Why: the Pi's screen is the only way to control the motors. If the Pi program crashes or the cable comes loose, nobody could press Stop. The motors then stop by themselves and keep holding, so Reset still works afterwards.</p>
+<p class="one">In one sentence: no message from the Pi for 2 s means the motors stop by themselves.</p>
+
+<h2 id="quiz"><span class="tag">Test yourself</span>Quiz</h2>
+<div class="quiz" id="quizbox"></div>
+<div id="scorebox" class="score" aria-live="polite"></div>
+</main>
+</div>
+<script>
+(function () {
+  var Q = [
+    { t: 'The motors made 3 turns, you sent P, then S, and 2 more turns happened. What does turns show?', o: ['2', '5', '0', '3'], a: 1, e: 'Stop keeps the count; Start after a stop continues counting: 3 + 2 = 5.' },
+    { t: 'After 5 turns forward and 2 turns backward (R), how many turns does Reset turn back?', o: ['5', '7', '3', '2'], a: 2, e: 'The counter is 5 − 2 = 3, so Reset turns back 3.' },
+    { t: 'The Pi program crashes while the motors turn. What happens?', o: ['They keep turning forever', 'After 2 s without any line, they stop and hold (fault: link watchdog)', 'The ESP32 restarts', 'The motors go limp'], a: 1, e: 'That is the link watchdog. Holding keeps the angle, so Reset still works later.' }
+  ];
+  var box = document.getElementById('quizbox'), results = new Array(Q.length);
+  Q.forEach(function (q, i) {
+    var d = document.createElement('div'); d.className = 'q';
+    var t = document.createElement('div'); t.className = 'qt'; t.textContent = (i + 1) + '. ' + q.t; d.appendChild(t);
+    var fb = document.createElement('div'); fb.setAttribute('aria-live', 'polite');
+    var o = document.createElement('div'); o.className = 'opts';
+    q.o.forEach(function (txt, j) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = txt;
+      b.addEventListener('click', function () {
+        if (results[i] !== undefined) return;
+        var ok = j === q.a; results[i] = ok;
+        b.classList.add(ok ? 'right' : 'wrong'); if (!ok) o.children[q.a].classList.add('right');
+        fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. ') + q.e;
+        var right = results.filter(function (x) { return x === true; }).length, done = results.filter(function (x) { return x !== undefined; }).length;
+        document.getElementById('scorebox').textContent = 'Score: ' + right + ' / ' + Q.length + (done < Q.length ? '  (' + (Q.length - done) + ' left)' : '');
+      });
+      o.appendChild(b);
+    });
+    d.appendChild(o); d.appendChild(fb); box.appendChild(d);
+  });
+})();
+</script>

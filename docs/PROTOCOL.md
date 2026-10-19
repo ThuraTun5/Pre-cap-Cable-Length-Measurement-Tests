@@ -1,10 +1,13 @@
-# ESP32 ↔ Raspberry Pi — Serial Protocol v1
+# ESP32 ↔ Raspberry Pi — Serial Protocol v2
 
 For the teammate who writes the Raspberry Pi program. The ESP32 measures the
 slider (encoder → mm). The Pi stores the data in SQL and shows it.
 
-**Status:** v1, delivered in test T06 (2026-10-14). Motor fields will be *added*
-in later tests; existing fields will not change meaning.
+**Status:** v2 (2026-10-19). v1 = encoder (T06), v2 adds the clamp-head motors (T09).
+Existing fields never change meaning; new ones are only added.
+
+> Test programs: `tests/T06_usb_link` sends only the encoder messages, `tests/T09_motor_commands`
+> only the motor messages. The final firmware (Assembly) sends both on the same link.
 
 ---
 
@@ -51,7 +54,7 @@ Every message has these three fields:
 
 | Field | Type | Meaning |
 |---|---|---|
-| `type` | string | `"pos"`, `"hb"`, `"hello"` or `"ack"` |
+| `type` | string | `"pos"`, `"hb"`, `"hello"`, `"ack"`, `"motor"` or `"fault"` |
 | `seq` | integer | message number, +1 for every line. A gap = a lost line. Restarts at 1 after an ESP32 restart. |
 | `t_ms` | integer | ESP32 time since start-up in ms (wraps after 49.7 days). **Use the Pi's clock for the real timestamp** when you store a row. |
 
@@ -86,12 +89,42 @@ Sent after every ESP32 start-up and on command `i`.
 | `offset_mm` | cable length when the slider is at zero |
 | `dir` | +1 normal, −1 flipped |
 
+### `motor` — clamp-head motors (v2)
+Sent on **every state change**, **5 times per second** while the motors move, and
+**once per second** while they stand still (this is also the motor heartbeat).
+```json
+{"type":"motor","seq":88,"t_ms":40210,"state":"running","dir":1,"rpm":10,"turns":2.350,"clamp_deg":846.0,"steps":7520,"diff_steps":0,"watchdog":true}
+```
+| Field | Meaning |
+|---|---|
+| `state` | `off` (drivers not answering, e.g. motor power off) · `idle` (at start position, holding) · `running` · `stopping` · `paused` (stopped away from start, holding) · `resetting` · `fault` (motors switched off) |
+| `dir` | +1 forward, −1 backward (direction for running) |
+| `rpm` | turning speed (constant) |
+| `turns` | turns since Start (+/−); 0 at the start position |
+| `clamp_deg` | clamp-head angle since Start = turns × 360 (clamp heads sit directly on the motor shafts) |
+| `steps` | raw motor 1 microsteps (3200 per turn) |
+| `diff_steps` | motor 1 − motor 2 steps; must be 0 (both in sync) |
+| `watchdog` | link watchdog on/off |
+
+### `fault` — something stopped the motors (v2)
+```json
+{"type":"fault","seq":90,"t_ms":41000,"reason":"link watchdog: no line from the Pi for 2 s, motors stopped"}
+```
+Reasons: link watchdog (motors stop and hold, state `stopping` → `paused`), driver
+over-temperature or short circuit (motors switched **off**, state `fault`; after a
+fault the angle is unknown: fix the cause, send `D`, which sets the counter to 0).
+
+### `hello` in v2
+The motor firmware's hello has `fw`, `proto` (= 2), `rpm`, `steps_per_turn`, `current_ma`,
+`mirror2`, `drivers_ok`. The encoder fields (v1) appear when the firmware has the encoder.
+**Only `fw` and `proto` are guaranteed in every hello.**
+
 ### `ack` — answer to a command
 ```json
 {"type":"ack","seq":60,"t_ms":13502,"cmd":"z","ok":true,"msg":"zero set"}
 ```
 `ok` = false means the command was refused; `msg` says why. Every command gets exactly one `ack`
-(except `i` → `hello`, and `p` → `pos`).
+(except `i` → `hello`, `p` → `pos`, `Q` → `motor`, and `.` → nothing).
 
 ---
 
@@ -111,9 +144,24 @@ One command per line, ending with `\n`. Plain text, not JSON.
 | `p` | send one `pos` now | pos |
 | `h` | list commands | ack |
 
-**Reserved for later tests (motors):** upper-case letters (for example Start/Pause/
-Reverse/Reset of the clamp-head motors) will be added in T9. Lower-case letters
-above keep their meaning.
+**Motor commands (v2, upper-case):**
+
+| Command | Meaning | Reply |
+|---|---|---|
+| `S` | **Start**: both clamp-head motors turn at the constant speed. From the start position the turn counter begins at 0; after a stop, Start continues counting | ack + motor |
+| `P` | **Stop**: slow down and stop, motors keep **holding** | ack + motor |
+| `R` | **Reverse** the direction (while turning: slows down, turns round, speeds up) | ack + motor |
+| `X` | **Reset**: turn back **every** turn since Start, to the start angle; then state `idle` | ack + motor |
+| `M` | mirror motor 2 on/off (only in `idle`), saved | ack |
+| `D` | re-check both drivers (only in `idle`, `off` or `fault`); sets the counter to 0 | ack + motor |
+| `Q` | send one `motor` line now | motor |
+| `W 0` / `W 1` | link watchdog off / on (off = for testing only) | ack |
+| `.` | **keep-alive**, no answer (see the watchdog below) | — |
+
+**Link watchdog:** while the motors turn (`running`, `resetting`), the ESP32 must
+receive **at least one line every 2 s**. Otherwise it stops the motors (they hold)
+and sends a `fault`. So the Pi app should send `.` every 0.5 s while the motors turn
+(or always, which is simplest).
 
 ---
 
@@ -128,6 +176,7 @@ ser.dtr = ser.rts = False
 ser.open()
 
 ser.write(b"i\n")                       # ask for hello
+# while the motors turn, also send b".\n" every 0.5 s (link watchdog), e.g. from a timer/thread
 while True:
     raw = ser.readline().decode("utf-8", "replace").strip()
     if not raw.startswith("{"):
@@ -146,3 +195,4 @@ while True:
 | Version | Date | Change |
 |---|---|---|
 | 1 | 2026-10-14 | First version: pos, hb, hello, ack; commands z o c d r i p h |
+| 2 | 2026-10-19 | Motors: messages motor, fault; commands S P R X M D Q W and keep-alive `.`; 2 s link watchdog; hello fields depend on firmware (only fw, proto guaranteed) |

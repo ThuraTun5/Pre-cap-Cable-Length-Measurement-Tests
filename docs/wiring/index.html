@@ -435,7 +435,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     checks: ['Motor connected BEFORE the supply is switched on. Never unplug a motor while VM is on.', 'Capacitor polarity: stripe to GND.', 'Coil pairs: ≈4 Ω within a pair, open between pairs.', 'Power on: USB first, then VM. Power off: VM first.', 'Heatsink on; keep fingers off.'],
     todo: ['Meter check (power off): the two driver GND pins should read 0 Ω to each other.', 'Your motor cable colours may not match the datasheet: find the 2 pairs with the meter (about 4 Ω each).'] },
 
-  { id: 't8', tab: 'T8 Two drivers', title: 'T8 · Add driver 2 (synchronised)', status: 'go', statusText: 'Ready · after T7',
+  { id: 't8', tab: 'T8 + T9 Two drivers', title: 'T8 + T9 · Add driver 2 (same wiring for T9)', status: 'go', statusText: 'Ready · after T7',
     purpose: 'Driver 1 stays wired exactly as in T7 (shown here only by the pins driver 2 shares). Driver 2 shares EN, UART, VM and motor GND with driver 1, and gets its own STEP / DIR and address 1.', vb: [930, 600],
     comps: [
       { id: 'd1', x: 440, y: 102, w: 170, title: 'Driver 1 (as in T7)', L: [['en', 'EN'], ['_1', ''], ['_2', ''], ['pdn1', 'PDN']], R: [['vm', 'VM'], ['gnd1', 'GND']] },
