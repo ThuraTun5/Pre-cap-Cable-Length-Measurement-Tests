@@ -19,3 +19,7 @@ desktop.ini
 # Sponsor / university material: keep local, never publish
 Project Contents.pdf
 Chasis/
+
+# Python cache
+__pycache__/
+*.pyc
