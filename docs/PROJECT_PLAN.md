@@ -20,7 +20,7 @@ safety) → 3. Build (one small PlatformIO project) → 4. Verify (compile, logi
 | T6 | **USB serial** link to the Pi + data format (docs/PROTOCOL.md v1) — Wi-Fi postponed by user | Signed off by user 2026-10-15 (no test results reported) |
 | T7 | One TMC2209 + one motor (UART check, 700 mA software current, RMT step pulses) | Passed 2026-10-19 (user: everything OK) |
 | T8 | Second driver (address 1), two synchronized motors, motor 2 mirrored | Passed 2026-10-19 (user: everything OK) |
-| T9 | Motor commands from the Pi over USB: start / stop (hold) / reverse / reset (unwind every turn), motor state to the Pi, 2 s link watchdog | Delivered (code compiled, PROTOCOL v2, test tool updated) — waiting for your test |
+| T9 | Motor commands from the Pi over USB: start / stop (hold) / reverse / reset (unwind every turn), motor state to the Pi, 2 s link watchdog | Passed 2026-10-20 (S/P/X smooth, test tool on COM7) |
 | T10 | **Whole wiring together** (encoder + level shifter + both drivers on one breadboard, all running at once). Replaces the old web-page T10 (Wi-Fi postponed). Then: perfboard soldering plan | Not started |
 | A | Assembly: full firmware, calibration procedure, docs | Not started |
 
