@@ -20,7 +20,7 @@ afterwards: we use the test tool instead (it sends the keep-alive the motors nee
 
 ## 2. Start the test tool (VS Code terminal, use your COM number)
 ```
-& "$env:USERPROFILE\.platformio\penv\Scripts\python.exe" "C:\Claude\Stepper Motors and Rotary Encoder	ools\serial_check.py" COM5
+& "$env:USERPROFILE\.platformio\penv\Scripts\python.exe" "C:\Claude\Stepper Motors and Rotary Encoder\tools\serial_check.py" COM5
 ```
 Then **motor power ON**. Within 3 s you should see `MOTOR idle ...` lines
 (once per second). If it stays `off`, type `D` + Enter.

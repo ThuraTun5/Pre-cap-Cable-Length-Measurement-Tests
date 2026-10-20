@@ -26,7 +26,7 @@ message and command.
 1. **Close the Serial Monitor** (trash-can icon on its terminal tab). Only one program can use the port.
 2. In VS Code: **Terminal → New Terminal**, then run (use your COM number):
    ```
-   & "$env:USERPROFILE\.platformio\penv\Scripts\python.exe" "C:\Claude\Stepper Motors and Rotary Encoder	ools\serial_check.py" COM5
+   & "$env:USERPROFILE\.platformio\penv\Scripts\python.exe" "C:\Claude\Stepper Motors and Rotary Encoder\tools\serial_check.py" COM5
    ```
 3. Type `z` + Enter, turn the encoder. You should see:
    ```

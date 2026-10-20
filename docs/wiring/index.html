@@ -100,7 +100,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   <h1>Cable Jig Wiring Atlas</h1>
   <p>One wiring drawing per test. Every connection is drawn as a real wire from pin to pin, or from a pin to a breadboard rail. <b>Hover or tap a row</b> in a wire list to light up that wire. Hover a wire to find its row.</p>
 
-  <div class="banner"><b>T1 and T3–T8 are ready to wire</b> (T2, the buck converter, is no longer needed).</div>
+  <div class="banner"><b>T1 and T3–T10 are ready to wire</b> (T2, the buck converter, is no longer needed).</div>
 
   <div class="legend" aria-label="Wire colour legend">
     <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black)</span>
@@ -474,7 +474,62 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['c3', 'C3 100 µF ≥35 V', 'VM ↔ GND at driver 2', 'vm', 'Each driver gets its own capacitor.'],
       ['wm', 'A2 A1 B1 B2', 'Motor 2 green, black, red, blue', 'ck', 'Check the pairs first.']
     ],
-    checks: ['All T7 checks, for both drivers (motor connected before power, power order, current limit ~1 A).', 'Driver 2 MS1 really goes to 3.3 V (otherwise both answer to address 0).', 'Find motor 2 coil pairs with the meter first.', 'Run out of ESP32 GND / 3.3V pins? Several wires may share one ESP32 pin's breadboard row.', 'Both motors free to turn, nothing clamped yet.'],
+    checks: ['All T7 checks, for both drivers (motor connected before power, power order, current limit ~1 A).', 'Driver 2 MS1 really goes to 3.3 V (otherwise both answer to address 0).', 'Find motor 2 coil pairs with the meter first.', 'Run out of ESP32 GND / 3.3V pins? Several wires may share one breadboard row (T10 uses rails for this).', 'Both motors free to turn, nothing clamped yet.'],
+    todo: [] },
+
+  { id: 't10', tab: 'T10 All together', title: 'T10 · Everything on one breadboard (power rails)', status: 'go', statusText: 'Ready · after T9',
+    purpose: 'Encoder + chip (T4) and both drivers (T8) on one breadboard, one program. Every signal wire stays exactly as before. New: a 3V3 rail and a GND rail, because the ESP32 has too few 3.3V / GND pins for everything. This drawing shows the rails and the encoder wires. Driver signals (EN, UART, STEP, DIR) and the motor side stay as in the T7 and T8 tabs. Driver pins are grouped by rail here, not in board order.', vb: [1070, 350],
+    bars: [
+      { id: 'r3', net: 'v33', x1: 4, x2: 1066, y: 30, label: '3V3 rail' },
+      { id: 'rg', net: 'gnd', x1: 4, x2: 1066, y: 320, label: 'GND rail' }
+    ],
+    comps: [
+      { id: 'esp', x: 30, y: 80, w: 150, title: 'ESP32 (on USB)', L: [['3v3', '3V3']], R: [['_0', ''], ['_1', ''], ['5v', '5V'], ['g34', 'GPIO34'], ['g35', 'GPIO35'], ['g32', 'GPIO32'], ['gnd', 'GND']] },
+      { id: 'enc', x: 270, y: 80, w: 180, title: 'Encoder + 74LVC245', sub: 'chip pins · rest as T4', L: [['vcc', '20 VCC'], ['dir', '1 DIR'], ['5v', 'Encoder 5V'], ['b2', '17 B2'], ['b1', '18 B1'], ['b3', '16 B3']], R: [['oe', '19 OE'], ['gnd', '10 GND + 5–9'], ['g', 'Encoder G']] },
+      { id: 'd1', x: 560, y: 80, w: 170, title: 'Driver 1', sub: 'address 0 · rest as T7', L: [['vdd', 'VDD'], ['r2', 'R2 10 kΩ (to EN)']], R: [['ms1', 'MS1'], ['ms2', 'MS2'], ['clk', 'CLK'], ['gnd2', 'GND (logic)']] },
+      { id: 'd2', x: 850, y: 80, w: 150, title: 'Driver 2', sub: 'address 1 · rest as T8', L: [['vdd', 'VDD'], ['ms1', 'MS1']], R: [['ms2', 'MS2'], ['clk', 'CLK'], ['gnd2', 'GND (logic)']] }
+    ],
+    wires: [
+      { id: 'f3', a: 'esp:3v3', b: [10, 30], net: 'v33', via: [[10, 114]] },
+      { id: 'fg', a: 'esp:gnd', b: [204, 320], net: 'gnd', via: [[204, 246]] },
+      { id: 'w5', a: 'esp:5v', b: 'enc:5v', net: 'v5' },
+      { id: 'wa', a: 'esp:g34', b: 'enc:b2', net: 'encA' },
+      { id: 'wb', a: 'esp:g35', b: 'enc:b1', net: 'encB' },
+      { id: 'wx', a: 'esp:g32', b: 'enc:b3', net: 'encX' },
+      { id: 'ev', a: 'enc:vcc', b: [246, 30], net: 'v33', via: [[246, 114]] },
+      { id: 'ev', a: 'enc:dir', b: [234, 30], net: 'v33', via: [[234, 136]] },
+      { id: 'eg', a: 'enc:oe', b: [498, 320], net: 'gnd', via: [[498, 114]] },
+      { id: 'eg', a: 'enc:gnd', b: [486, 320], net: 'gnd', via: [[486, 136]] },
+      { id: 'eg', a: 'enc:g', b: [474, 320], net: 'gnd', via: [[474, 158]] },
+      { id: 'd1v', a: 'd1:vdd', b: [536, 30], net: 'v33', via: [[536, 114]] },
+      { id: 'd1v', a: 'd1:r2', b: [524, 30], net: 'v33', via: [[524, 136]] },
+      { id: 'd1g', a: 'd1:ms1', b: [790, 320], net: 'gnd', via: [[790, 114]] },
+      { id: 'd1g', a: 'd1:ms2', b: [778, 320], net: 'gnd', via: [[778, 136]] },
+      { id: 'd1g', a: 'd1:clk', b: [766, 320], net: 'gnd', via: [[766, 158]] },
+      { id: 'd1g', a: 'd1:gnd2', b: [754, 320], net: 'gnd', via: [[754, 180]] },
+      { id: 'd2v', a: 'd2:vdd', b: [826, 30], net: 'v33', via: [[826, 114]] },
+      { id: 'd2v', a: 'd2:ms1', b: [814, 30], net: 'v33', via: [[814, 136]] },
+      { id: 'd2g', a: 'd2:ms2', b: [1048, 320], net: 'gnd', via: [[1048, 114]] },
+      { id: 'd2g', a: 'd2:clk', b: [1036, 320], net: 'gnd', via: [[1036, 136]] },
+      { id: 'd2g', a: 'd2:gnd2', b: [1024, 320], net: 'gnd', via: [[1024, 158]] }
+    ],
+    rows: [
+      ['f3', 'ESP32 3V3', '3V3 rail', 'v33', 'The only wire that feeds the 3V3 rail.'],
+      ['fg', 'ESP32 GND', 'GND rail', 'gnd', 'Feeds the GND rail. A second ESP32 GND → rail wire is fine too.'],
+      ['w5', 'ESP32 5V', 'Encoder 5V', 'v5', 'As T4. 5 V never goes on a rail.'],
+      ['wa', 'GPIO34', 'Chip 17 (B2)', 'encA', 'Encoder signals: as T4.'],
+      ['wb', 'GPIO35', 'Chip 18 (B1)', 'encB', ''],
+      ['wx', 'GPIO32', 'Chip 16 (B3)', 'encX', ''],
+      ['ev', 'Chip 20 (VCC), chip 1 (DIR)', '3V3 rail', 'v33', 'In T4 these went to the ESP32 3V3 pin. C1 100 nF stays across chip pins 20 and 19.'],
+      ['eg', 'Chip 19 (OE), chip 10 + 5–9, encoder G', 'GND rail', 'gnd', ''],
+      ['d1v', 'Driver 1 VDD, R2 top leg', '3V3 rail', 'v33', 'In T7 these went to ESP32 3.3V pins. R2’s other leg stays on the EN wire.'],
+      ['d1g', 'Driver 1 MS1, MS2, CLK, GND (logic side)', 'GND rail', 'gnd', 'In T7 these went to ESP32 GND pins.'],
+      ['d2v', 'Driver 2 VDD, MS1', '3V3 rail', 'v33', 'MS1 on 3.3 V = address 1 (as T8).'],
+      ['d2g', 'Driver 2 MS2, CLK, GND (logic side)', 'GND rail', 'gnd', ''],
+      ['', 'GPIO13, 4, 17 (1 kΩ), 25, 26, 27, 14', 'Driver EN, PDN, STEP, DIR', 'step', 'Not drawn here: wire exactly as in the T7 and T8 tabs.'],
+      ['', 'Motor supply, fuse, VM, power GND, motors, 100 µF', 'Drivers (power side)', 'vm', 'Not drawn here: as T7 + T8. Never on the 3V3 / GND rails.']
+    ],
+    checks: ['Mark the rails with tape: 3V3 (yellow) and GND (black).', 'Before plugging in the chip and drivers: USB on, meter on the rails. 3V3 rail ≈ 3.3 V (never 5 V).', 'Driver 2 MS1 on the 3V3 rail, driver 1 MS1 on the GND rail.', 'Encoder 5V from the ESP32 5V pin only, not from a rail.', 'Motors connected before motor power. USB first, motor power last; off: motor power first.'],
     todo: [] }
   ];
 

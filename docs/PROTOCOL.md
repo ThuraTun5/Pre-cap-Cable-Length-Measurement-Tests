@@ -7,7 +7,8 @@ slider (encoder → mm). The Pi stores the data in SQL and shows it.
 Existing fields never change meaning; new ones are only added.
 
 > Test programs: `tests/T06_usb_link` sends only the encoder messages, `tests/T09_motor_commands`
-> only the motor messages. The final firmware (Assembly) sends both on the same link.
+> only the motor messages. `tests/T10_all_together` (`"fw":"T10"`) sends **both** on the same
+> link, exactly as the final firmware (Assembly) will. Its hello has the encoder fields and the motor fields.
 
 ---
 
