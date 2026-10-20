@@ -477,61 +477,133 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     checks: ['All T7 checks, for both drivers (motor connected before power, power order, current limit ~1 A).', 'Driver 2 MS1 really goes to 3.3 V (otherwise both answer to address 0).', 'Find motor 2 coil pairs with the meter first.', 'Run out of ESP32 GND / 3.3V pins? Several wires may share one breadboard row (T10 uses rails for this).', 'Both motors free to turn, nothing clamped yet.'],
     todo: [] },
 
-  { id: 't10', tab: 'T10 All together', title: 'T10 · Everything on one breadboard (power rails)', status: 'go', statusText: 'Ready · after T9',
-    purpose: 'Encoder + chip (T4) and both drivers (T8) on one breadboard, one program. Every signal wire stays exactly as before. New: a 3V3 rail and a GND rail, because the ESP32 has too few 3.3V / GND pins for everything. This drawing shows the rails and the encoder wires. Driver signals (EN, UART, STEP, DIR) and the motor side stay as in the T7 and T8 tabs. Driver pins are grouped by rail here, not in board order.', vb: [1070, 350],
+  { id: 't10a', tab: 'T10 ① Chip + encoder', title: 'T10 step 1 of 3 · Encoder + 74LVC245 (same as T4)', status: 'go', statusText: 'Ready · wire first',
+    purpose: 'Exactly your T4 wiring: if it is still on the breadboard, keep it. Chip: notch at the top. Left legs top to bottom = pins 1–10, right legs top to bottom = pins 20–11. The GND rail made here is used again by both drivers in steps 2 and 3.',
+    rows: [
+      ['w5', 'ESP32 5V (left row, bottom)', 'Encoder 5V', 'v5', 'Encoder power. Not on any rail.'],
+      ['wg', 'Encoder G', 'GND rail', 'gnd', ''],
+      ['wge', 'ESP32 GND (left row, between 12 and 13)', 'GND rail', 'gnd', 'Feeds the GND rail. The drivers use this rail too.'],
+      ['wb', 'Encoder B', 'Chip pin 2 (A1)', 'encB', 'Left side, 2nd leg from the top.'],
+      ['wa', 'Encoder A', 'Chip pin 3 (A2)', 'encA', 'Left side, 3rd leg.'],
+      ['wx', 'Encoder X', 'Chip pin 4 (A3)', 'encX', 'Left side, 4th leg.'],
+      ['wb2', 'Chip pin 18 (B1)', 'GPIO35', 'encB', 'Right side, 3rd leg from the top.'],
+      ['wa2', 'Chip pin 17 (B2)', 'GPIO34', 'encA', 'Right side, 4th leg.'],
+      ['wx2', 'Chip pin 16 (B3)', 'GPIO32', 'encX', 'Right side, 5th leg.'],
+      ['wvcc', 'Chip pin 20 (VCC)', 'ESP32 3V3 (left row, top)', 'v33', 'Right side, top leg. 3.3 V, never 5 V.'],
+      ['wdir', 'Chip pin 1 (DIR)', 'VCC wire (3.3 V)', 'v33', 'Left side, top leg (next to the notch).'],
+      ['woe', 'Chip pin 19 (OE)', 'ESP32 GND (right row)', 'gnd', 'Right side, 2nd leg.'],
+      ['c1', 'C1 100 nF', 'Across pins 20 and 19', 'v33', 'Use a real 100 nF now (marked 104).'],
+      ['wcomb', 'Chip pins 5, 6, 7, 8, 9, 10', 'GND rail', 'gnd', 'Left side, the bottom six legs. Pin 10 = chip ground; 5–9 are unused inputs.']
+    ],
+    checks: ['Chip notch at the top. Pin 20 goes to 3V3, never 5V.', 'Encoder labels B / 5V / A / X / G read from the encoder itself.', 'Right-side legs 11–15 (bottom five) stay empty.'],
+    todo: [] },
+
+  { id: 't10b', tab: 'T10 ② Driver 1', title: 'T10 step 2 of 3 · Driver 1 + motor 1', status: 'go', statusText: 'Ready · after step 1',
+    purpose: 'Hold the driver with the word TOP readable (potentiometer at the top). Left column, top to bottom: EN, MS1, MS2, PDN, PDN, CLK, STEP, DIR. Right column, top to bottom: VM, GND, A2, A1, B1, B2, VDD, GND. Same as T7, except: MS1, MS2 and CLK share one ESP32 GND pin, and VDD / logic GND go to the rails.', vb: [930, 505],
     bars: [
-      { id: 'r3', net: 'v33', x1: 4, x2: 1066, y: 30, label: '3V3 rail' },
-      { id: 'rg', net: 'gnd', x1: 4, x2: 1066, y: 320, label: 'GND rail' }
+      { id: 'rg', net: 'gnd', x1: 260, x2: 642, y: 450, label: 'GND rail (from step 1)', lx: 470, ly: 440 },
+      { id: 'r3', net: 'v33', x1: 230, x2: 670, y: 476, label: '3V3 rail' }
     ],
     comps: [
-      { id: 'esp', x: 30, y: 80, w: 150, title: 'ESP32 (on USB)', L: [['3v3', '3V3']], R: [['_0', ''], ['_1', ''], ['5v', '5V'], ['g34', 'GPIO34'], ['g35', 'GPIO35'], ['g32', 'GPIO32'], ['gnd', 'GND']] },
-      { id: 'enc', x: 270, y: 80, w: 180, title: 'Encoder + 74LVC245', sub: 'chip pins · rest as T4', L: [['vcc', '20 VCC'], ['dir', '1 DIR'], ['5v', 'Encoder 5V'], ['b2', '17 B2'], ['b1', '18 B1'], ['b3', '16 B3']], R: [['oe', '19 OE'], ['gnd', '10 GND + 5–9'], ['g', 'Encoder G']] },
-      { id: 'd1', x: 560, y: 80, w: 170, title: 'Driver 1', sub: 'address 0 · rest as T7', L: [['vdd', 'VDD'], ['r2', 'R2 10 kΩ (to EN)']], R: [['ms1', 'MS1'], ['ms2', 'MS2'], ['clk', 'CLK'], ['gnd2', 'GND (logic)']] },
-      { id: 'd2', x: 850, y: 80, w: 150, title: 'Driver 2', sub: 'address 1 · rest as T8', L: [['vdd', 'VDD'], ['ms1', 'MS1']], R: [['ms2', 'MS2'], ['clk', 'CLK'], ['gnd2', 'GND (logic)']] }
+      { id: 'esp', x: 20, y: 58, w: 200, title: 'ESP32 (on USB)', R: [['3v3a', '3.3V (a free one)'], ['_1', ''], ['g13', 'GPIO13 → EN'], ['gnd1', 'GND (a free one)'], ['_2', ''], ['g4', 'GPIO4 (RX)'], ['g17', 'GPIO17 (TX)'], ['_3', ''], ['g25', 'GPIO25 → STEP'], ['g26', 'GPIO26 → DIR'], ['_4', ''], ['3v3b', '3.3V (another one)']] },
+      { id: 'r1', kind: 'part', x: 270, y: 212, w: 66, title: 'R1 1 kΩ', L: [['a', '']], R: [['b', '']], tin: true },
+      { id: 'drv', x: 440, y: 102, w: 170, title: 'TMC2209 #1', sub: 'address 0 · TOP side up', L: drvL, R: drvR },
+      { id: 'mot', x: 760, y: 146, w: 150, title: 'Motor 1', sub: 'pairs ≈ 4 Ω', L: motL },
+      { id: 'f1', kind: 'part', x: 675, y: 48, w: 50, title: 'F1 fuse*', L: [['a', '']], R: [['b', '']], ttop: true },
+      { id: 'psu', x: 750, y: 26, w: 150, title: 'Motor supply', sub: '12–24 V', L: [['p', '+'], ['n', '−']] }
+    ],
+    vparts: [
+      { id: 'r2', kind: 'res', x: 300, y1: 92, y2: 136, label: 'R2 10 kΩ', side: 'R' },
+      { id: 'c2', kind: 'cap', x: 640, y1: 136, y2: 158, label: 'C2 100 µF', polar: true, lx: 648, ly: 173 }
     ],
     wires: [
-      { id: 'f3', a: 'esp:3v3', b: [10, 30], net: 'v33', via: [[10, 114]] },
-      { id: 'fg', a: 'esp:gnd', b: [204, 320], net: 'gnd', via: [[204, 246]] },
-      { id: 'w5', a: 'esp:5v', b: 'enc:5v', net: 'v5' },
-      { id: 'wa', a: 'esp:g34', b: 'enc:b2', net: 'encA' },
-      { id: 'wb', a: 'esp:g35', b: 'enc:b1', net: 'encB' },
-      { id: 'wx', a: 'esp:g32', b: 'enc:b3', net: 'encX' },
-      { id: 'ev', a: 'enc:vcc', b: [246, 30], net: 'v33', via: [[246, 114]] },
-      { id: 'ev', a: 'enc:dir', b: [234, 30], net: 'v33', via: [[234, 136]] },
-      { id: 'eg', a: 'enc:oe', b: [498, 320], net: 'gnd', via: [[498, 114]] },
-      { id: 'eg', a: 'enc:gnd', b: [486, 320], net: 'gnd', via: [[486, 136]] },
-      { id: 'eg', a: 'enc:g', b: [474, 320], net: 'gnd', via: [[474, 158]] },
-      { id: 'd1v', a: 'd1:vdd', b: [536, 30], net: 'v33', via: [[536, 114]] },
-      { id: 'd1v', a: 'd1:r2', b: [524, 30], net: 'v33', via: [[524, 136]] },
-      { id: 'd1g', a: 'd1:ms1', b: [790, 320], net: 'gnd', via: [[790, 114]] },
-      { id: 'd1g', a: 'd1:ms2', b: [778, 320], net: 'gnd', via: [[778, 136]] },
-      { id: 'd1g', a: 'd1:clk', b: [766, 320], net: 'gnd', via: [[766, 158]] },
-      { id: 'd1g', a: 'd1:gnd2', b: [754, 320], net: 'gnd', via: [[754, 180]] },
-      { id: 'd2v', a: 'd2:vdd', b: [826, 30], net: 'v33', via: [[826, 114]] },
-      { id: 'd2v', a: 'd2:ms1', b: [814, 30], net: 'v33', via: [[814, 136]] },
-      { id: 'd2g', a: 'd2:ms2', b: [1048, 320], net: 'gnd', via: [[1048, 114]] },
-      { id: 'd2g', a: 'd2:clk', b: [1036, 320], net: 'gnd', via: [[1036, 136]] },
-      { id: 'd2g', a: 'd2:gnd2', b: [1024, 320], net: 'gnd', via: [[1024, 158]] }
+      { id: 'w3a', a: 'esp:3v3a', b: [300, 92], net: 'v33', nodot: true },
+      { id: 'wen', a: 'esp:g13', b: 'drv:en', net: 'en' },
+      { id: 'wms', a: 'esp:gnd1', b: 'drv:ms1', net: 'gnd' },
+      { id: 'wms', a: 'drv:ms2', b: [412, 158], net: 'gnd', via: [[412, 180]] },
+      { id: 'wms', a: 'drv:clk', b: [412, 180], net: 'gnd', via: [[412, 246]] },
+      { id: 'wrx', a: 'esp:g4', b: 'drv:pdn1', net: 'uart' },
+      { id: 'wtx', a: 'esp:g17', b: 'r1:a', net: 'uart' },
+      { id: 'wtx', a: 'r1:b', b: [372, 202], net: 'uart', via: [[372, 224]] },
+      { id: 'wst', a: 'esp:g25', b: 'drv:step', net: 'step' },
+      { id: 'wdi', a: 'esp:g26', b: 'drv:dir', net: 'dir' },
+      { id: 'wf3', a: 'esp:3v3b', b: [245, 476], net: 'v33', via: [[245, 334]] },
+      { id: 'wlg', a: 'drv:gnd2', b: [635, 450], net: 'gnd', via: [[635, 290]] },
+      { id: 'wvdd', a: 'drv:vdd', b: [650, 476], net: 'v33', via: [[650, 268]] },
+      { id: 'wvm', a: 'drv:vm', b: 'f1:a', net: 'vm', via: [[660, 136], [660, 60]] },
+      { id: 'wvm', a: 'f1:b', b: 'psu:p', net: 'vm' },
+      { id: 'wpg', a: 'drv:gnd1', b: 'psu:n', net: 'gnd', via: [[700, 158], [700, 82]] },
+      { id: 'wm', a: 'drv:a2', b: 'mot:a2', net: 'cg' }, { id: 'wm', a: 'drv:a1', b: 'mot:a1', net: 'ck' },
+      { id: 'wm', a: 'drv:b1', b: 'mot:b1', net: 'cr' }, { id: 'wm', a: 'drv:b2', b: 'mot:b2', net: 'cb' }
     ],
     rows: [
-      ['f3', 'ESP32 3V3', '3V3 rail', 'v33', 'The only wire that feeds the 3V3 rail.'],
-      ['fg', 'ESP32 GND', 'GND rail', 'gnd', 'Feeds the GND rail. A second ESP32 GND → rail wire is fine too.'],
-      ['w5', 'ESP32 5V', 'Encoder 5V', 'v5', 'As T4. 5 V never goes on a rail.'],
-      ['wa', 'GPIO34', 'Chip 17 (B2)', 'encA', 'Encoder signals: as T4.'],
-      ['wb', 'GPIO35', 'Chip 18 (B1)', 'encB', ''],
-      ['wx', 'GPIO32', 'Chip 16 (B3)', 'encX', ''],
-      ['ev', 'Chip 20 (VCC), chip 1 (DIR)', '3V3 rail', 'v33', 'In T4 these went to the ESP32 3V3 pin. C1 100 nF stays across chip pins 20 and 19.'],
-      ['eg', 'Chip 19 (OE), chip 10 + 5–9, encoder G', 'GND rail', 'gnd', ''],
-      ['d1v', 'Driver 1 VDD, R2 top leg', '3V3 rail', 'v33', 'In T7 these went to ESP32 3.3V pins. R2’s other leg stays on the EN wire.'],
-      ['d1g', 'Driver 1 MS1, MS2, CLK, GND (logic side)', 'GND rail', 'gnd', 'In T7 these went to ESP32 GND pins.'],
-      ['d2v', 'Driver 2 VDD, MS1', '3V3 rail', 'v33', 'MS1 on 3.3 V = address 1 (as T8).'],
-      ['d2g', 'Driver 2 MS2, CLK, GND (logic side)', 'GND rail', 'gnd', ''],
-      ['', 'GPIO13, 4, 17 (1 kΩ), 25, 26, 27, 14', 'Driver EN, PDN, STEP, DIR', 'step', 'Not drawn here: wire exactly as in the T7 and T8 tabs.'],
-      ['', 'Motor supply, fuse, VM, power GND, motors, 100 µF', 'Drivers (power side)', 'vm', 'Not drawn here: as T7 + T8. Never on the 3V3 / GND rails.']
+      ['wen', 'GPIO13', 'EN (left, 1st)', 'en', 'LOW = motor on, HIGH = off.'],
+      ['r2', 'R2 10 kΩ', 'ESP32 3.3V ↔ EN wire', 'en', 'Keeps the drivers OFF while the ESP32 starts.'],
+      ['wms', 'ESP32 GND (a free one)', 'MS1 (left, 2nd), MS2 (3rd), CLK (6th)', 'gnd', 'One GND pin for all three, joined by short jumpers. MS1 + MS2 on GND = address 0. CLK on GND = internal clock.'],
+      ['wrx', 'GPIO4 (RX)', 'PDN (left, 4th)', 'uart', 'Direct. The 5th pin (also called PDN) stays EMPTY.'],
+      ['wtx', 'GPIO17 (TX)', 'R1 1 kΩ → PDN wire', 'uart', 'TX goes through 1 kΩ and joins the RX wire.'],
+      ['wst', 'GPIO25', 'STEP (left, 7th)', 'step', ''],
+      ['wdi', 'GPIO26', 'DIR (left, 8th = bottom)', 'dir', ''],
+      ['wf3', 'ESP32 3.3V (another one)', '3V3 rail', 'v33', 'Feeds the 3V3 rail. Driver 2 uses it too.'],
+      ['wvdd', 'VDD (right, 7th)', '3V3 rail', 'v33', 'Driver logic power, 3.3 V.'],
+      ['wlg', 'GND (right, 8th = bottom)', 'GND rail', 'gnd', 'Logic ground, shared with the ESP32.'],
+      ['wvm', 'Supply + → fuse F1*', 'VM (right, 1st = top)', 'vm', '12–24 V. *No fuse yet: set the supply current limit to about 1 A.'],
+      ['wpg', 'GND (right, 2nd)', 'Supply −', 'gnd', 'Motor current returns here. Not to the GND rail.'],
+      ['c2', 'C2 100 µF ≥35 V', 'VM ↔ GND (right 1st and 2nd)', 'vm', 'Right at the driver. Stripe = minus.'],
+      ['wm', 'A2 A1 B1 B2 (right, 3rd–6th)', 'Motor green, black, red, blue', 'ck', 'Check the pairs with the meter first (≈4 Ω).']
     ],
-    checks: ['Mark the rails with tape: 3V3 (yellow) and GND (black).', 'Before plugging in the chip and drivers: USB on, meter on the rails. 3V3 rail ≈ 3.3 V (never 5 V).', 'Driver 2 MS1 on the 3V3 rail, driver 1 MS1 on the GND rail.', 'Encoder 5V from the ESP32 5V pin only, not from a rail.', 'Motors connected before motor power. USB first, motor power last; off: motor power first.'],
+    checks: ['Driver: TOP side up, EN top-left, VM top-right.', 'The 5th left pin (second PDN) stays empty.', 'VM never touches the 3V3 or GND rail.', 'Motor connected BEFORE the supply is on. USB first, motor power last.'],
+    todo: [] },
+
+  { id: 't10c', tab: 'T10 ③ Driver 2', title: 'T10 step 3 of 3 · Driver 2 + motor 2', status: 'go', statusText: 'Ready · after step 2',
+    purpose: 'Same pin layout as driver 1 (TOP side up, EN top-left). Driver 2 shares EN, the UART wire, VM and the motor ground with driver 1. Its own: STEP / DIR, and MS1 on 3.3 V (= address 1). Driver 1 is shown only by the pins driver 2 connects to.', vb: [930, 615],
+    bars: [
+      { id: 'rg', net: 'gnd', x1: 420, x2: 642, y: 560, label: 'GND rail', lx: 520, ly: 550 },
+      { id: 'r3', net: 'v33', x1: 420, x2: 670, y: 586, label: '3V3 rail' }
+    ],
+    comps: [
+      { id: 'd1', x: 440, y: 102, w: 170, title: 'Driver 1 (step 2)', L: [['en', 'EN'], ['_1', ''], ['_2', ''], ['pdn1', 'PDN']], R: [['vm', 'VM'], ['gnd1', 'GND']] },
+      { id: 'esp', x: 20, y: 322, w: 200, title: 'ESP32 (on USB)', R: [['3v3a', '3.3V (a free one)'], ['gnd1', 'GND (a free one)'], ['_1', ''], ['_2', ''], ['_3', ''], ['g27', 'GPIO27 → STEP 2'], ['g14', 'GPIO14 → DIR 2']] },
+      { id: 'd2', x: 440, y: 300, w: 170, title: 'TMC2209 #2', sub: 'address 1 · TOP side up', L: drvL, R: drvR },
+      { id: 'm2', x: 760, y: 344, w: 150, title: 'Motor 2', sub: 'pairs ≈ 4 Ω', L: motL }
+    ],
+    vparts: [{ id: 'c3', kind: 'cap', x: 630, y1: 334, y2: 356, label: 'C3 100 µF', polar: true, lx: 662, ly: 373 }],
+    wires: [
+      { id: 'wen', a: 'd1:en', b: 'd2:en', net: 'en', via: [[410, 136], [410, 334]] },
+      { id: 'wua', a: 'd1:pdn1', b: 'd2:pdn1', net: 'uart', via: [[395, 202], [395, 400]] },
+      { id: 'wms1', a: 'esp:3v3a', b: 'd2:ms1', net: 'v33' },
+      { id: 'wms2', a: 'esp:gnd1', b: 'd2:ms2', net: 'gnd' },
+      { id: 'wms2', a: 'd2:clk', b: [418, 378], net: 'gnd', via: [[418, 444]] },
+      { id: 'wst', a: 'esp:g27', b: 'd2:step', net: 'step' },
+      { id: 'wdi', a: 'esp:g14', b: 'd2:dir', net: 'dir' },
+      { id: 'wlg', a: 'd2:gnd2', b: [635, 560], net: 'gnd', via: [[635, 488]] },
+      { id: 'wvdd', a: 'd2:vdd', b: [650, 586], net: 'v33', via: [[650, 466]] },
+      { id: 'wvm', a: 'd1:vm', b: 'd2:vm', net: 'vm', via: [[655, 136], [655, 334]] },
+      { id: 'wpg', a: 'd1:gnd1', b: 'd2:gnd1', net: 'gnd', via: [[640, 158], [640, 356]] },
+      { id: 'wm', a: 'd2:a2', b: 'm2:a2', net: 'cg' }, { id: 'wm', a: 'd2:a1', b: 'm2:a1', net: 'ck' },
+      { id: 'wm', a: 'd2:b1', b: 'm2:b1', net: 'cr' }, { id: 'wm', a: 'd2:b2', b: 'm2:b2', net: 'cb' }
+    ],
+    rows: [
+      ['wen', 'Driver 1 EN', 'Driver 2 EN (left, 1st)', 'en', 'Same EN signal (GPIO13) for both.'],
+      ['wms1', 'ESP32 3.3V (a free one)', 'MS1 (left, 2nd)', 'v33', 'MS1 on 3.3 V = address 1. The ONLY difference to driver 1.'],
+      ['wms2', 'ESP32 GND (a free one)', 'MS2 (left, 3rd), CLK (6th)', 'gnd', 'One GND pin for both, joined by a short jumper.'],
+      ['wua', 'Driver 1 PDN', 'Driver 2 PDN (left, 4th)', 'uart', 'Same UART wire for both. The 5th pin stays EMPTY.'],
+      ['wst', 'GPIO27', 'STEP (left, 7th)', 'step', ''],
+      ['wdi', 'GPIO14', 'DIR (left, 8th = bottom)', 'dir', 'Direction flipped in software (the motors face each other).'],
+      ['wvdd', 'VDD (right, 7th)', '3V3 rail', 'v33', 'Same 3V3 rail as driver 1.'],
+      ['wlg', 'GND (right, 8th = bottom)', 'GND rail', 'gnd', 'Same GND rail as the chip and driver 1.'],
+      ['wvm', 'Driver 1 VM', 'VM (right, 1st)', 'vm', 'Motor power shared from the fuse.'],
+      ['wpg', 'Driver 1 GND (right, 2nd)', 'GND (right, 2nd)', 'gnd', 'Motor ground shared.'],
+      ['c3', 'C3 100 µF ≥35 V', 'VM ↔ GND at driver 2', 'vm', 'Each driver gets its own. Stripe = minus.'],
+      ['wm', 'A2 A1 B1 B2 (right, 3rd–6th)', 'Motor 2 green, black, red, blue', 'ck', 'Check the pairs first.']
+    ],
+    checks: ['Driver 2 MS1 on 3.3V (driver 1 MS1 is on GND).', 'Both 5th left pins (second PDN) empty.', 'All four ESP32 3.3V pins are now used: chip VCC, R2, 3V3 rail, driver 2 MS1.', 'Motors connected before motor power. Off: motor power first, then USB.'],
     todo: [] }
   ];
+  (function () {
+    var t4 = STAGES.filter(function (s) { return s.id === 't4'; })[0], t = STAGES.filter(function (s) { return s.id === 't10a'; })[0];
+    ['vb', 'bars', 'comps', 'vparts', 'wires'].forEach(function (k) { t[k] = t4[k]; });
+  })();
 
   // ------------------------------------------------------------------ geometry
   function compH(c) {
@@ -584,7 +656,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     var col = NET[b.net][0], g = el('g', { 'class': 'bar', 'data-id': b.id, style: 'cursor:pointer' });
     g.appendChild(el('rect', { x: b.x1, y: b.y - 6, width: b.x2 - b.x1, height: 12, rx: 3, fill: col, opacity: .22, stroke: col, 'stroke-width': 1.4 }));
     g.appendChild(el('line', { x1: b.x1 + 3, y1: b.y, x2: b.x2 - 3, y2: b.y, stroke: col, 'stroke-width': 3 }));
-    var tx = b.x2 - 8, ty = b.y > 200 ? b.y + 20 : b.y - 10;
+    var tx = b.lx !== undefined ? b.lx : b.x2 - 8, ty = b.ly !== undefined ? b.ly : b.y > 200 ? b.y + 20 : b.y - 10;
     g.appendChild(el('text', { 'class': 'barl', x: tx, y: ty, 'text-anchor': 'end', fill: col }, b.label));
     svg.appendChild(g);
   }

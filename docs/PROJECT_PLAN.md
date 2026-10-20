@@ -21,7 +21,7 @@ safety) → 3. Build (one small PlatformIO project) → 4. Verify (compile, logi
 | T7 | One TMC2209 + one motor (UART check, 700 mA software current, RMT step pulses) | Passed 2026-10-19 (user: everything OK) |
 | T8 | Second driver (address 1), two synchronized motors, motor 2 mirrored | Passed 2026-10-19 (user: everything OK) |
 | T9 | Motor commands from the Pi over USB: start / stop (hold) / reverse / reset (unwind every turn), motor state to the Pi, 2 s link watchdog | Passed 2026-10-20 (S/P/X smooth, test tool on COM7) |
-| T10 | **Whole wiring together** (encoder + level shifter + both drivers on one breadboard, all running at once). Replaces the old web-page T10 (Wi-Fi postponed). Then: perfboard soldering plan | Delivered 2026-10-20 (`tests/T10_all_together`, atlas tab T10: 3V3 + GND rails), waiting for the hardware test |
+| T10 | **Whole wiring together** (encoder + level shifter + both drivers on one breadboard, all running at once). Replaces the old web-page T10 (Wi-Fi postponed). Then: perfboard soldering plan | Delivered 2026-10-20 (`tests/T10_all_together`, atlas tabs T10 ①–③ with every pin), waiting for the hardware test |
 | A | Assembly: full firmware, calibration procedure, docs | Not started |
 
 ## Reserved for later (room is left in pins + code)
