@@ -58,18 +58,26 @@ Now **motor power ON** → within 3 s the motor lines say `idle`.
 ## 3. Encoder alone
 Type `z` + Enter (zero), then turn the encoder by hand → `pos` lines, the length changes.
 
-## 4. Both at the same time (the real test)
+## 4. Noise check (encoder NOT touched)
+1. `z` (zero), then **don't touch the encoder**.
+2. `S` → both motors turn. Let them run **1 minute**.
+3. You should see only `hb` lines with `travel 0.00 mm`, once per second, and **no `pos` lines**.
+   A `pos` line here means motor noise is reaching the encoder wires. Tell me.
+4. `P` → motors stop and hold.
+
+## 5. Both at the same time (the real test)
 1. `S` → both motors turn at 10 rpm (`running`).
 2. **While they turn**, turn the encoder by hand → `pos` lines keep coming, length changes smoothly.
 3. `P` → motors stop and hold. `X` → they unwind back to the start (`idle`, `turns 0.000`).
 4. `diff` stays **0** the whole time, and at the end: `lost lines: 0`.
 
-## 5. Finish
+## 6. Finish
 `X` (back to start) → motor power OFF → USB.
 
 ---
 
 ## Send me
+- Noise check: any `pos` lines while the encoder was not touched?
 - Did `pos` lines keep coming while the motors turned? Any jumps in length?
 - `diff` always 0? `lost lines: 0`?
 - Did Reset end exactly at the start marks?
