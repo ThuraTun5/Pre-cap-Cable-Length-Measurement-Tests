@@ -34,5 +34,5 @@ safety) → 3. Build (one small PlatformIO project) → 4. Verify (compile, logi
   (e.g. <https://www.amazon.co.jp/dp/B01HNZPI8I>)
 - [ ] Perfboard for the soldered version: 9×15 cm double-sided FR4 (e.g. <https://www.amazon.co.jp/dp/B09L72LXC5>),
       female headers, a 20-pin DIP socket, 5.08 mm screw terminals — needed after T10
-- [ ] Inline fuse holder + fuses (1–3 A range) — needed before T7 (or T2 if the
+- [ ] (Skipped for now, user decision 2026-10-21: the perfboard gets a fuse spot with a wire bridge, fuse added later if needed) Inline fuse holder + fuses (1–3 A range) — needed before T7 (or T2 if the
       supply has no current limit)
