@@ -32,9 +32,9 @@ Source: [Freenove_ESP32_WROOM_Board_Pinout.pdf](https://github.com/Freenove/Free
 | Motor 2 STEP | 27 | T8 | RMT channel 1 |
 | Motor 2 DIR | 14 | T8 | GPIO14 toggles at boot → DIR only (harmless while drivers disabled); inverted in software (mirror) |
 | Drivers EN (shared) | 13 | T7 | 10 kΩ pull-up to 3V3 keeps the drivers OFF during boot |
-| **Reserved:** Motor 3 STEP / DIR | 33 / TBD | later | different driver model; second pin chosen when M3 is known |
-| **Reserved:** E-stop input | 36 (VP) | later | external pull-up needed; filter in software (errata 3.11) |
-| **Reserved:** Touchscreen (SPI) | 18, 19, 23, 5, 21, 22 | later | VSPI pins kept free |
+| Number display CLK | 21 | T11 | TM1637 6-digit module, powered from **3V3** (its own pull-ups go to VCC, so never 5 V) |
+| Number display DIO | 22 | T11 | bidirectional (the TM1637 answers with an ACK on DIO) |
+| Not used | 5, 18, 19, 23, 33, 36, 39 | — | Final circuit fixed by the user 2026-10-23: no motor 3, no E-stop button, no touchscreen. Nothing is reserved |
 | Spare | 0, 12, 15 | — | strapping, use with care |
 
 ## Draft wiring details (see the interactive [wiring atlas](wiring/index.html))

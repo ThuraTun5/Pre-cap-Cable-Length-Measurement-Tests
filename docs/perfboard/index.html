@@ -1,0 +1,282 @@
+<title>Jig Perfboard Layout</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header strip, view switcher, one big board drawing, wire table below. */
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --fg:#1d2420; --muted:#5d6760; --line:#d6dbd5; --accent:#1f7a4d; --accent-soft:#dcefe4;
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif; --f-body:"Barlow",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#121614;--surface:#1a201d;--fg:#e6ebe7;--muted:#9aa59e;--line:#2c3530;--accent:#5cc78f;--accent-soft:#1d3327;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121614;--surface:#1a201d;--fg:#e6ebe7;--muted:#9aa59e;--line:#2c3530;--accent:#5cc78f;--accent-soft:#1d3327;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55}
+.wrap{max-width:1240px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
+h1{font-family:var(--f-display);font-weight:600;font-size:34px;letter-spacing:.01em;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:0;max-width:70ch}
+.views{display:flex;flex-wrap:wrap;gap:8px}
+.views button{font:500 15px var(--f-body);padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.views button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.views button:focus-visible,.zoom:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{background:var(--accent-soft);border-radius:8px;padding:10px 14px;font-size:15px}
+.board{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.board svg{display:block;width:100%;min-width:760px;height:auto}
+.board.big svg{min-width:1700px}
+.tools{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.zoom{font:500 14px var(--f-body);padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:14px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:26px;height:0;border-top:4px solid}
+.legend i.dash{border-top-style:dashed}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+td.sw{white-space:nowrap}
+td.sw i{display:inline-block;width:22px;height:0;border-top:4px solid;vertical-align:middle;margin-right:6px}
+code{font-family:var(--f-mono);font-size:.9em}
+.pb text{font-family:var(--f-body)}
+.pb .lbl{font:600 17px var(--f-display);fill:#ffffff;letter-spacing:.02em}
+.pb .pin{font:500 12px var(--f-mono);fill:#e9ecef}
+.pb .pin.dk{fill:#1d2228}
+.pb .tag{font:500 13px var(--f-body);fill:#f4f6f2}
+.pb .dim{opacity:.12}
+@media (prefers-reduced-motion:no-preference){.pb .w,.pb .p{transition:opacity .25s}}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>Jig perfboard layout</h1>
+    <p class="sub">Top view of the 9 × 15 cm board, parts at real size on the 2.54 mm hole grid. Pick one view at a time: only that group of wires is shown, everything else fades out.</p>
+  </header>
+
+  <nav class="views" aria-label="Views">
+    <button data-v="parts" aria-pressed="true">1 · Parts</button>
+    <button data-v="enc" aria-pressed="false">2 · Encoder + chip</button>
+    <button data-v="drv" aria-pressed="false">3 · Drivers + motors</button>
+    <button data-v="pwr" aria-pressed="false">4 · Power</button>
+    <button data-v="all" aria-pressed="false">All together</button>
+  </nav>
+
+  <div class="note" id="note"></div>
+
+  <div class="tools">
+    <div class="legend">
+      <span><i style="border-color:#5a6b60"></i>wire on top</span>
+      <span><i class="dash" style="border-color:#5a6b60"></i>wire on the back side</span>
+    </div>
+    <button class="zoom" id="zoom" type="button">Zoom in</button>
+  </div>
+
+  <div class="board" id="board">
+    <svg class="pb" id="svg" viewBox="0 0 1144 724" role="img" aria-label="Perfboard layout drawing"></svg>
+  </div>
+
+  <div class="tbl"><table><thead><tr><th>Wire</th><th>From</th><th>To</th><th>Note</th></tr></thead><tbody id="rows"></tbody></table></div>
+
+  <p class="sub" style="font-size:14px">Concept stage, laid out after the perfboard best-practice research of 2026-10-23: parts first, short straight wires, nothing under the socketed ESP32, buses in a clear lane next to their users, 24 V isolated with capacitors at the drivers. A few crossings are unavoidable on one side; each becomes a two-hole hop to the back side. Exact hole-by-hole positions, the hops and the solder order come in the soldering plan, after T10 and T11 pass on the breadboard. ESP32 pin positions follow the printed labels on the Freenove board; the 5V pin position (USB end) is to be checked on the board.</p>
+</div>
+
+<script>
+const S=18, X=c=>50+S*c, Y=r=>60+S*r;
+const svg=document.getElementById('svg'), NS='http://www.w3.org/2000/svg';
+function el(p,t,a,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e}
+const G=(cls,v)=>el(svg,'g',{class:cls||'', 'data-v':v||''});
+
+/* board + holes */
+el(svg,'rect',{x:X(-1),y:Y(-1),width:60*S,height:36*S,rx:10,fill:'#2e5c3a',stroke:'#1b3a24','stroke-width':2});
+const holes=G('');
+for(let c=0;c<59;c++)for(let r=0;r<35;r++){el(holes,'circle',{cx:X(c),cy:Y(r),r:4.6,fill:'#7f948a',opacity:.55});el(holes,'circle',{cx:X(c),cy:Y(r),r:2,fill:'#16291c'})}
+
+/* ---------- wires (drawn under the parts' pin dots, over the board) ---------- */
+const WL=G('w-layer');
+function wire(v,pts,col,opt){opt=opt||{};
+  const d='M'+pts.map(p=>X(p[0])+' '+Y(p[1])).join(' L');
+  const g=el(WL,'g',{class:'w','data-v':v});
+  if(opt.halo!==false) el(g,'path',{d,fill:'none',stroke:opt.halo||'rgba(255,255,255,.7)','stroke-width':(opt.w||4)+3,'stroke-linecap':'round','stroke-linejoin':'round',opacity:opt.back?.35:1});
+  el(g,'path',{d,fill:'none',stroke:col,'stroke-width':opt.w||4,'stroke-linecap':'round','stroke-linejoin':'round','stroke-dasharray':opt.back?'10 7':'none'});
+  return g}
+function ribbon(v,pts,cols,label,lp){
+  const g=el(WL,'g',{class:'w','data-v':v});
+  const d='M'+pts.map(p=>X(p[0])+' '+Y(p[1])).join(' L');
+  el(g,'path',{d,fill:'none',stroke:'rgba(255,255,255,.75)','stroke-width':cols.length*5+6,'stroke-linecap':'round','stroke-linejoin':'round'});
+  el(g,'path',{d,fill:'none',stroke:'#3c4a42','stroke-width':cols.length*5+2,'stroke-linecap':'round','stroke-linejoin':'round'});
+  cols.forEach((c,i)=>{const off=(i-(cols.length-1)/2)*5;
+    el(g,'path',{d,fill:'none',stroke:c,'stroke-width':3,'stroke-linejoin':'round',transform:`translate(${off},${off})`})});
+  if(label){const t=el(g,'g',{});el(t,'rect',{x:X(lp[0])-6,y:Y(lp[1])-15,width:label.length*8+12,height:22,rx:5,fill:'#14231a',opacity:.88});el(t,'text',{class:'tag',x:X(lp[0]),y:Y(lp[1])+1},label)}
+  return g}
+
+/* view 2: encoder + chip (exact routes, no crossings) */
+wire('enc',[[34,1],[34,5]],'#1a1a1a',{halo:'rgba(255,255,255,.85)'});
+wire('enc',[[35,1],[35,5]],'#2F7FD8');
+wire('enc',[[36,1],[36,5]],'#1FA58A');
+wire('enc',[[37,1],[37,5]],'#B0632F');
+wire('enc',[[38,1],[38,0],[1.4,0],[1.4,16],[3,16]],'#E0403F');
+wire('enc',[[36,8],[36,10.2],[16,10.2],[16,16]],'#B0632F');
+wire('enc',[[35,8],[35,9.6],[17,9.6],[17,16]],'#1FA58A');
+wire('enc',[[34,8],[34,9],[18,9],[18,16]],'#2F7FD8');
+wire('enc',[[17,26],[17,29]],'#C94F9A');
+wire('enc',[[20,26],[20,27.4],[18,27.4],[18,29]],'#8A63D2');
+
+/* view 3: drivers + motors */
+ribbon('drv',[[11,16],[11,11.5],[39.6,11.5],[39.6,7.5],[41.4,7.5]],['#9aa3a8','#7FB3FF','#7EE0B5','#F2A6D6','#FFD27A'],'EN · STEP1 · DIR1 · STEP2 · DIR2  (open channel)',[20,11.2]);
+wire('drv',[[10,26],[10,30.4],[40.5,30.4],[40.5,12.2]],'#8A63D2',{w:4});
+wire('drv',[[40.5,12.2],[40.5,7],[42,7]],'#8A63D2',{w:4,back:true});
+wire('drv',[[40.5,8.4],[42,8.4]],'#8A63D2',{w:3,back:true});
+ribbon('drv',[[39.6,11.5],[39.6,12.2],[49.6,12.2],[49.6,9],[50.4,9]],['#9aa3a8','#7FB3FF','#7EE0B5','#F2A6D6','#FFD27A'],'to driver 2 (back side)',[41.5,16]);
+ribbon('drv',[[47.6,7.5],[48.4,7.5],[48.4,27],[45,27],[45,31]],['#3b9e46','#1a1a1a','#d83b3b','#2f6fd0'],'motor 1',[45.6,26.2]);
+ribbon('drv',[[56.6,7.5],[57.6,7.5],[57.6,27],[54,27],[54,31]],['#3b9e46','#1a1a1a','#d83b3b','#2f6fd0'],'motor 2',[54.6,26.2]);
+
+/* view 4: power */
+wire('pwr',[[3,13],[57,13]],'#E9A31B',{w:8,back:true,halo:false});
+wire('pwr',[[3,14.4],[57,14.4]],'#101010',{w:8,back:true,halo:'rgba(255,255,255,.9)'});
+wire('pwr',[[22,16],[22,13]],'#E9A31B',{w:4,back:true});
+wire('pwr',[[8,16],[8,14.4]],'#101010',{w:4,back:true,halo:'rgba(255,255,255,.9)'});
+wire('pwr',[[38,8],[38,13]],'#E9A31B',{w:4,back:true});
+wire('pwr',[[47,10],[47,13]],'#E9A31B',{w:4,back:true});
+wire('pwr',[[56,10],[56,13]],'#E9A31B',{w:4,back:true});
+wire('pwr',[[29,5],[29,14.4]],'#101010',{w:4,back:true,halo:'rgba(255,255,255,.9)'});
+wire('pwr',[[47.6,11],[47.6,14.4]],'#101010',{w:4,back:true,halo:'rgba(255,255,255,.9)'});
+wire('pwr',[[56.6,11],[56.6,14.4]],'#101010',{w:4,back:true,halo:'rgba(255,255,255,.9)'});
+wire('pwr',[[19,29],[19,28],[23.5,28],[23.5,13]],'#E9A31B',{w:4,back:true});
+wire('pwr',[[20,29],[20,27.6],[22,27.6],[22,26]],'#101010',{w:4,halo:'rgba(255,255,255,.9)'});
+wire('pwr',[[37,32],[37,28]],'#E0403F',{w:5});
+wire('pwr',[[37,26],[37,25],[49,25]],'#E0403F',{w:5,back:true});
+wire('pwr',[[49,25],[49,2],[47,2],[47,4]],'#E0403F',{w:5});
+wire('pwr',[[49,2],[56,2],[56,4]],'#E0403F',{w:5});
+wire('pwr',[[39,32],[39,24],[58,24],[58,5],[56,5]],'#101010',{w:5,back:true,halo:'rgba(255,255,255,.9)'});
+wire('pwr',[[48,24],[48,5],[47,5]],'#101010',{w:5,back:true,halo:'rgba(255,255,255,.9)'});
+
+/* ---------- parts ---------- */
+const P=G('p');
+function strip(g,c1,c2,r,rows){rows=rows||1;el(g,'rect',{x:X(c1)-8,y:Y(r)-8,width:(c2-c1)*S+16,height:16+(rows-1)*S,rx:2,fill:'#0e0e0e'})}
+function pins(g,c1,c2,r,col){for(let c=c1;c<=c2;c++)el(g,'circle',{cx:X(c),cy:Y(r),r:4,fill:col||'#d9b45a'})}
+
+/* ESP32 */
+const esp=el(P,'g',{class:'p'});
+strip(esp,3,22,16);strip(esp,3,22,26);
+el(esp,'rect',{x:X(0.4),y:Y(15),width:24.2*S,height:12*S,rx:6,fill:'#1d2228',opacity:.82});
+el(esp,'rect',{x:X(-1.7),y:Y(19.4),width:2.6*S,height:3.2*S,rx:5,fill:'#c3c8cd'});
+el(esp,'rect',{x:X(15.6),y:Y(17.9),width:7.6*S,height:6.4*S,rx:3,fill:'#b2b8be'});
+el(esp,'rect',{x:X(23.3),y:Y(15.6),width:1.1*S,height:10.8*S,fill:'#3a4048'});
+el(esp,'text',{class:'lbl',x:X(6),y:Y(20.6),style:'font-size:24px'},'ESP32');
+el(esp,'text',{class:'tag',x:X(3),y:Y(22.1)},'USB-C to the Pi ←');
+el(esp,'text',{class:'pin dk',x:X(19.4),y:Y(21.4),'text-anchor':'middle',style:'font-size:13px'},'WROOM-32E');
+pins(esp,3,22,16);pins(esp,3,22,26);
+[[3,'5V'],[8,'GND'],[10,'13'],[11,'14'],[12,'27'],[13,'26'],[14,'25'],[16,'32'],[17,'35'],[18,'34'],[22,'3V3']].forEach(([c,t])=>el(esp,'text',{class:'pin',x:X(c),y:Y(17.1),'text-anchor':'middle'},t));
+[[10,'4'],[12,'17'],[17,'21'],[20,'22'],[22,'GND']].forEach(([c,t])=>el(esp,'text',{class:'pin',x:X(c),y:Y(25.2),'text-anchor':'middle'},t));
+
+/* encoder plug */
+const enc=el(P,'g',{class:'p'});
+strip(enc,34,38,1);pins(enc,34,38,1,'#e8e8e8');
+el(enc,'text',{class:'lbl',x:X(33.3),y:Y(1.35),'text-anchor':'end'},'Encoder plug');
+[['G',34],['A',35],['B',36],['X',37],['5V',38]].forEach(([t,c])=>el(enc,'text',{class:'pin',x:X(c),y:Y(2.75),'text-anchor':'middle',style:'font-size:11px'},t));
+
+/* chip */
+const chip=el(P,'g',{class:'p'});
+el(chip,'rect',{x:X(28.5),y:Y(4.4),width:10*S,height:4.2*S,rx:3,fill:'#3c3c3c'});
+el(chip,'rect',{x:X(28.8),y:Y(5.55),width:9.4*S,height:1.9*S,rx:3,fill:'#121212'});
+el(chip,'circle',{cx:X(38.2),cy:Y(6.5),r:7,fill:'#3c3c3c'});
+el(chip,'text',{class:'lbl',x:X(33.3),y:Y(6.85),'text-anchor':'middle',style:'font-size:16px'},'74LVC245  (notch →)');
+pins(chip,29,38,5,'#d6d8d4');pins(chip,29,38,8,'#d6d8d4');
+el(chip,'rect',{x:X(39.1),y:Y(7.5),width:12,height:20,rx:2,fill:'#e2b04a'});
+el(chip,'text',{class:'tag',x:X(39.1),y:Y(9.7),style:'font-size:12px'},'100 nF');
+
+/* drivers */
+function driver(c0,name,addr){const g=el(P,'g',{class:'p'});
+  strip(g,c0,c0,4,8);strip(g,c0+5,c0+5,4,8);
+  el(g,'rect',{x:X(c0-0.6),y:Y(3.3),width:6.2*S,height:8.4*S,rx:4,fill:'#1d2228',opacity:.95});
+  el(g,'rect',{x:X(c0+1),y:Y(4.4),width:3*S,height:6.2*S,rx:2,fill:'#2f6fd0'});
+  pins(g,c0,c0,4);for(let r=4;r<=11;r++){el(g,'circle',{cx:X(c0),cy:Y(r),r:4,fill:'#d9b45a'});el(g,'circle',{cx:X(c0+5),cy:Y(r),r:4,fill:'#d9b45a'})}
+  el(g,'text',{class:'lbl',x:X(c0+2.5),y:Y(2.3),'text-anchor':'middle'},name);
+  el(g,'text',{class:'tag',x:X(c0+2.5),y:Y(12.6),'text-anchor':'middle',style:'font-size:12px'},addr);
+  el(g,'text',{class:'pin',x:X(c0),y:Y(3.05),'text-anchor':'middle',style:'font-size:11px'},'EN');
+  el(g,'text',{class:'pin',x:X(c0+5),y:Y(3.05),'text-anchor':'middle',style:'font-size:11px'},'VM');
+  return g}
+driver(42,'Driver 1','address 0');driver(51,'Driver 2','address 1');
+
+/* 100 µF caps */
+[[46,0.6],[55,0.6]].forEach(([c,r])=>{const g=el(P,'g',{class:'p'});el(g,'circle',{cx:X(c),cy:Y(r),r:11,fill:'#2b2464',stroke:'#b8b0f0','stroke-width':1.5});el(g,'rect',{x:X(c)+4,y:Y(r)-10,width:4,height:20,fill:'#b8b0f0'})});
+el(P,'text',{class:'tag',x:X(50.5),y:Y(0.95),'text-anchor':'middle',style:'font-size:12px'},'100 µF + 100 nF');
+
+/* R1, R2 */
+const rr=el(P,'g',{class:'p'});
+[[40.6,9.8],[40.6,10.8]].forEach(([c,r])=>{el(rr,'rect',{x:X(c)-12,y:Y(r)-5,width:24,height:10,rx:3,fill:'#d9c8a0'});});
+el(rr,'text',{class:'tag',x:X(38.8),y:Y(10.6),'text-anchor':'end',style:'font-size:12px'},'R1 R2');
+
+/* display plug */
+const dp=el(P,'g',{class:'p'});
+strip(dp,17,20,29);pins(dp,17,20,29,'#e8e8e8');
+el(dp,'text',{class:'lbl',x:X(21.2),y:Y(29.35)},'Number display plug');
+el(dp,'text',{class:'tag',x:X(21.2),y:Y(30.3),style:'font-size:12px'},'pins left → right: CLK · DIO · VCC · GND');
+
+/* terminals + fuse */
+function term(c1,n,label){const g=el(P,'g',{class:'p'});
+  el(g,'rect',{x:X(c1)-17,y:Y(31.2),width:(n-1)*2*S+34,height:2.2*S,rx:3,fill:'#2f9e5b'});
+  for(let i=0;i<n;i++){const x=X(c1+2*i);el(g,'circle',{cx:x,cy:Y(32.2),r:9,fill:'#d6d8d4'});el(g,'line',{x1:x-6,y1:Y(32.2),x2:x+6,y2:Y(32.2),stroke:'#555','stroke-width':2})}
+  el(g,'text',{class:'lbl',x:X(c1+(n-1)),y:Y(34.4),'text-anchor':'middle'},label)}
+term(37,2,'24 V in');term(42,4,'Motor 1');term(51,4,'Motor 2');
+const fz=el(P,'g',{class:'p'});
+el(fz,'circle',{cx:X(37),cy:Y(28),r:6,fill:'#e8e8e8'});el(fz,'circle',{cx:X(37),cy:Y(26),r:6,fill:'#e8e8e8'});
+el(fz,'line',{x1:X(37),y1:Y(28),x2:X(37),y2:Y(26),stroke:'#b9b9b9','stroke-width':4});
+el(fz,'text',{class:'tag',x:X(35.8),y:Y(27.3),'text-anchor':'end'},'fuse spot (wire bridge for now)');
+
+
+/* wires on top of the parts so routes under the ESP32 stay visible */
+svg.appendChild(WL);
+/* bus labels */
+const bl=el(svg,'g',{class:'w','data-v':'pwr'});
+el(bl,'text',{class:'tag',x:X(3),y:Y(12.4)},'3V3 bus (bare wire, back side)');
+el(bl,'text',{class:'tag',x:X(3),y:Y(15.4)},'GND bus (bare wire, back side)');
+const ch=el(svg,'g',{class:'w','data-v':'parts'});
+el(ch,'rect',{x:X(2),y:Y(8.5),width:38*S,height:3.6*S,rx:6,fill:'none',stroke:'#c6e39a','stroke-width':1.2,'stroke-dasharray':'6 5'});
+el(ch,'text',{class:'tag',x:X(3),y:Y(9.3),style:'fill:#c6e39a'},'open wiring channel: every signal wire runs here, visible, not under the ESP32');
+
+/* ---------- views ---------- */
+const VIEWS={
+ parts:{note:'All the parts and where they sit. The ESP32 sits low so that a 4-row wiring channel stays open between its GPIO row and the chip / drivers: no wire hides under the module. Small parts plug in: the ESP32 and both drivers sit in female headers, the chip in a DIP socket, the encoder and display use male pin plugs.',rows:[
+  ['#888','ESP32','left side','USB-C at the board edge','Plugs into two 20-pin female headers.'],
+  ['#888','74LVC245','middle, under the encoder plug','in a 20-pin DIP socket','Notch points right. 100 nF capacitor right next to it.'],
+  ['#888','Driver 1 / 2','right side','two 8-pin female headers each','TOP side up: EN top-left, VM top-right. A 100 µF capacitor sits above each one.'],
+  ['#888','Screw terminals','bottom right','24 V in, motor 1, motor 2','Strip the wire, push it in, tighten. No crimping.'],
+  ['#888','Display plug','under the ESP32','4 male pins: CLK, DIO, VCC, GND','Jumper cable to the TM1637 6-digit display on the jig (test T11).']]},
+ enc:{note:'Encoder signals go straight down into the chip, then along the open channel to GPIO34 / 35 / 32: three nested U-shapes, no crossing between them. Where the driver bundle crosses these three wires, each one hops to the back side for one hole (marked in the hole-by-hole plan). The chip channels are ordered so the program does not change.',rows:[
+  ['#2F7FD8','Encoder A','plug pin A','chip leg 4 (A3) → leg 16 (B3) → GPIO34',''],
+  ['#1FA58A','Encoder B','plug pin B','chip leg 3 (A2) → leg 17 (B2) → GPIO35',''],
+  ['#B0632F','Encoder X','plug pin X','chip leg 2 (A1) → leg 18 (B1) → GPIO32',''],
+  ['#1a1a1a','Encoder G','plug pin G','chip leg 5 (joined to GND)',''],
+  ['#E0403F','Encoder 5V','plug pin 5V','ESP32 5V pin','Runs along the top edge.'],
+  ['#C94F9A','Display CLK','display plug CLK','GPIO21','The module has its own pull-ups to VCC.'],
+  ['#8A63D2','Display DIO','display plug DIO','GPIO22','']]},
+ drv:{note:'The five control wires leave the ESP32 upward into the open channel as a bundle and reach driver 1. The UART (purple) comes round the bottom of the ESP32 and finishes on the back side to both PDN pins; R1 and R2 sit next to driver 1. Driver 2 gets its bundle on the back side. Each motor has its own 4-wire bundle down to its screw terminal.',rows:[
+  ['#9aa3a8','EN','GPIO13','EN of both drivers','R2 10 kΩ to 3V3 keeps them off at boot.'],
+  ['#7FB3FF','STEP 1 / DIR 1','GPIO25 / 26','driver 1 STEP / DIR',''],
+  ['#7EE0B5','STEP 2 / DIR 2','GPIO27 / 14','driver 2 STEP / DIR','Back side to driver 2.'],
+  ['#8A63D2','UART','GPIO4 (RX), GPIO17 (TX through R1 1 kΩ)','PDN (4th pin) of both drivers','The 5th pin stays empty.'],
+  ['#3b9e46','Motor 1','driver 1 A2 A1 B1 B2','Motor 1 terminal','green, black, red, blue'],
+  ['#3b9e46','Motor 2','driver 2 A2 A1 B1 B2','Motor 2 terminal','green, black, red, blue']]},
+ pwr:{note:'Two bare wires on the back side carry 3V3 and GND in a clear lane right below the drivers, so most power drops are 1–5 holes (chip VCC, driver VDD and logic GND, the ESP32 3V3 / GND feeds). The display takes GND from an ESP32 GND pin and 3V3 from the bus on the back side. 24 V comes in at the bottom right, passes the fuse spot, and goes up the gap between the drivers as a + / − pair to both VM / GND pins, with 100 µF + 100 nF at each driver.',rows:[
+  ['#E9A31B','3V3 bus','ESP32 3.3V pin','chip legs 20 + 1, both driver VDD, driver 2 MS1, R2, display VCC','Never 5 V on this bus.'],
+  ['#101010','GND bus','ESP32 GND pins','chip legs 5–10 + 19, encoder G, driver logic GND, driver 1 MS1/MS2/CLK, driver 2 MS2/CLK, display GND',''],
+  ['#E0403F','24 V +','24 V terminal +','fuse spot → VM of both drivers','Fuse spot = wire bridge for now.'],
+  ['#101010','Motor GND','24 V terminal −','power GND (2nd right pin) of both drivers','Kept separate from the logic bus until the driver.'],
+  ['#E9A31B','Display VCC','display plug VCC','3V3 bus (back side)','3.3 V only, never 5 V.'],
+  ['#101010','Display GND','display plug GND','ESP32 GND pin (bottom row)','Shortest path.'],
+  ['#5a4fc0','100 µF + 100 nF','at each driver','VM ↔ GND','Both right at the driver pins. Stripe = minus.']]}
+};
+VIEWS.all={note:'Everything at once. Use the numbered views to see one group clearly.',rows:[].concat(VIEWS.enc.rows,VIEWS.drv.rows,VIEWS.pwr.rows)};
+
+const note=document.getElementById('note'), rows=document.getElementById('rows');
+function show(v){
+  document.querySelectorAll('.views button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v?'true':'false'));
+  svg.querySelectorAll('.w').forEach(w=>{const on=v==='all'||w.dataset.v===v; w.style.display=on?'':'none'});
+  note.textContent=VIEWS[v].note;
+  rows.innerHTML=VIEWS[v].rows.map(r=>`<tr><td class="sw"><i style="border-color:${r[0]}"></i>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join('');
+  try{localStorage.setItem('pb-view',v)}catch(e){}
+}
+document.querySelectorAll('.views button').forEach(b=>b.addEventListener('click',()=>show(b.dataset.v)));
+const zb=document.getElementById('zoom'), board=document.getElementById('board');
+zb.addEventListener('click',()=>{const big=board.classList.toggle('big');zb.textContent=big?'Zoom out':'Zoom in'});
+let start='parts';try{start=localStorage.getItem('pb-view')||'parts'}catch(e){}
+show(VIEWS[start]?start:'parts');
+</script>

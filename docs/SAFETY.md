@@ -34,6 +34,9 @@ include a short "before you power on" checklist that builds on this page.
 3. Avoid using strapping pins (GPIO 0, 2, 5, 12, 15) for external signals unless
    a test says so. They change how the ESP32 boots.
 4. GPIO 34, 35, 36 (VP), 39 (VN) are **input only**.
+5. **Number display (TM1637 module, T11): VCC on 3.3 V only.** The module has its own
+   pull-up resistors from CLK and DIO to its VCC pin. Powered from 5 V, it would push 5 V
+   into GPIO21 / 22.
 
 ## 3. Power supply and buck converter rules
 (The buck rules matter only if the buck converter is used again. The supply rules apply to the 24 V motor supply.)
@@ -57,10 +60,9 @@ include a short "before you power on" checklist that builds on this page.
 5. Clamp heads rotate: keep fingers, hair, sleeves and loose cables away.
    Start every new motor test at **low speed**.
 
-## 5. Not implemented yet (reserved for later)
-- Physical emergency-stop button (hardware cut to driver EN pins)
-- Connection-loss watchdog
-- Angle-uncertain warning after an E-stop
+## 5. Emergency stop
+- No hardware E-stop button: the final circuit was fixed without one (user decision 2026-10-23).
+- Connection-loss watchdog: done in firmware (T9). If the Pi sends nothing for 2 s, the motors stop.
 
-Until these exist, **the power switch of the motor supply is your emergency stop.**
+**The power switch (or plug) of the 24 V motor supply is your emergency stop.**
 Keep it within reach during every motor test.

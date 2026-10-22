@@ -92,3 +92,63 @@ community discussions second.
 ## Fuse (shopping)
 - Inline 5×20 mm fuse holders + glass fuse assortment (0.1–20 A, incl. 1 A, 2 A, 3 A):
   <https://www.amazon.co.jp/dp/B098JVN9V1>
+
+## Wire management study page (2026-10-22)
+- Adafruit Guide to Excellent Soldering (iron ≥ 25 W, keep the joint still, fumes/lead, students ask their lab):
+  <https://learn.adafruit.com/adafruit-guide-excellent-soldering>
+- Tip temperatures (third-party, sources differ): 63/37 ≈ 320–350 °C, SAC305 ≈ 350–380 °C:
+  <https://www.lcsc.com/blog/solder-melting-point-guide/>
+- Same Sky AMT10 datasheet (CMOS 2 mA, VOH ≥ VDD − 0.8 V, mating plug Molex 50-57-9405):
+  <https://www.sameskydevices.com/product/resource/amt10.pdf>
+- Tinned ends cold-flow in screw clamps (EN 60204-1); use ferrules: Altech ferrule datasheet
+  <https://datasheets.globalspec.com/ds/Altech/2776-0/b68971fe-f141-4ad8-8778-38d94fda948a>,
+  RepRap <https://reprap.org/wiki/Wire_termination_for_screw_terminals>
+- Solder wicking → flex point at the wicking edge: US 4385341 <https://patents.google.com/patent/US4385341>
+- Strain relief (loop through holes, ties, no glue on pads):
+  <https://www.eevblog.com/forum/manufacture/what-is-acceptable-ways-of-soldering-wires-directly-to-pcb/msg2496603/>,
+  <https://forum.arcadecontrols.com/index.php/topic,3534.0.html>
+- Perfboard technique: <https://en.wikipedia.org/wiki/Perfboard>,
+  <https://www.digikey.com/en/maker/blogs/2022/start-building-cleaner-perfboard-projects-using-these-simple-tips>
+- Stranded vs solid fatigue: <https://blog.epectec.com/what-is-the-difference-between-a-stranded-cable-and-solid-cable>
+- NASA workmanship, cable bend radius (multi-core: 6× min, 10× long-term) and tie rules:
+  <https://workmanship.nasa.gov/lib/insp/2%20books/links/sections/401%20General%20Requirements.html>
+- igus drag chain length LK = S/2 (+ ΔM) + K, K = πR + 2T (T = pitch), fixed end in the middle:
+  <https://www.igus.com/info/e-chain-designing-calculation>, <https://www.igus.com/info/e-chain-designing-terms>,
+  bend factor <https://blog.igus.co.uk/?p=12439>
+- Analog Devices / Trinamic, long motor cables (keep coil pairs apart; shielded twisted pairs or GND between pairs):
+  <https://ez.analog.com/other-products/a/documents/do23379/how-can-i-fix-reduced-trinamic-motor-performance-and-increased-motor-noise-and-vibration-when-using-long-cables>
+- Separate motor and encoder cables, shield drain at one end, one signal per pair:
+  <https://forum.linuxcnc.org/49-basic-configuration/45218-encoder-wiring>,
+  <https://buildbotics.com/archive/cad_cam_edm_dro/messages/49800.html>,
+  <https://www.plctalk.net/threads/stepper-motor-cabling.119448/>
+- Computed (not looked up): AWG diameter/resistance from the AWG formula and ρCu = 1.724e-8 Ω·m; 24 V supply
+  current ≈ 0.34 A (4 coils × 0.7² A² × 4.1 Ω / 24 V); PCNT filter 100 ticks / 80 MHz = 1.25 µs.
+
+## T11 — Number display (TM1637, 6 digits) (2026-10-23)
+- Titan Micro TM1637 datasheet V2.4: VDD "typical 5 V", electrical tables only for VDD 4.5–5.5 V, absolute max 7 V,
+  VIH = 0.7 VDD (CLK, DIO), clock < 250 kHz, typical circuit with 10 kΩ pull-ups + 100 pF on CLK/DIO,
+  note: blue LEDs (~3 V drop) need a 5 V supply: <https://akizukidenshi.com/goodsaffix/TM1637_V2.4_EN.PDF>
+  → At 3.3 V the chip runs outside the datasheet's tested range; community reports it works with red LEDs (slightly
+  dimmer). At 5 V the ESP32's 3.3 V signals are below VIH (3.5 V) and the module pull-ups would feed 5 V into the
+  ESP32. Decision: power the module from 3V3.
+- ESP32 + TM1637 powered from 3.3 V: <https://lastminuteengineers.com/esp32-tm1637-tutorial/>,
+  <https://www.letscontrolit.com/forum/viewtopic.php?p=63945>
+- Pull-ups on CLK/DIO needed (TeWu library tested with 10 kΩ at 3.3 V): <https://github.com/TeWu/TM1637>,
+  Espressif component readme <https://components.espressif.com/components/heronet/tm1637/versions/1.0.2/readme>
+- 6-digit modules can show digits out of order ([2][1][0][5][4][3]); TM1637TinyDisplay6 remaps them:
+  <https://forums.parallax.com/discussion/comment/1570642>, <https://forum.arduino.cc/t/tm1637-6-digit-led-display/702875>
+- Chosen module (red, 0.56", decimal points, loose 4-pin header; back side shows 4 small parts next to the chip,
+  most likely the datasheet's 2 pull-ups + 2 capacitors): <https://www.amazon.co.jp/dp/B0BPSP9557>
+
+## Perfboard layout best practice (2026-10-23)
+- Digi-Key: parts first, short straight insulated wire on top with 90° bends, component legs as links, sockets for parts
+  you may replace: <https://www.digikey.com/en/maker/blogs/2022/start-building-cleaner-perfboard-projects-using-these-simple-tips>
+- Wikipedia perfboard: bare wire only for buses with a clear lane, insulated solid wire elsewhere: <https://en.wikipedia.org/wiki/Perfboard>
+- Arduino forum, breadboard → perfboard (keep wires horizontal/vertical, bottom links short):
+  <https://forum.arduino.cc/t/from-breadboard-to-perfboard/108643>
+- Don't hide wires under a socketed module (probing/debugging): <https://industrialmonitordirect.com/no/blogs/knowledgebase/esp32-module-wiring-perfboard-vs-wire-wrap-vs-custom-pcb-methods>,
+  <https://learn.sparkfun.com/tutorials/esp32-thing-hookup-guide/assembly-tips>
+- Watterott SilentStepStick: 100 µF low-ESR at every driver, VIO before STEP/DIR/EN: <https://learn.watterott.com/silentstepstick/pinconfig/>
+- Bare bus wire next to pad rows = short-circuit risk: <https://forum.allaboutcircuits.com/threads/how-much-current-can-a-tin-solder-track-handle.171525/post-1534393>
+→ Layout v2 (docs/perfboard): ESP32 moved down, 4-row open wiring channel, buses in a clear lane right below the drivers,
+  unavoidable crossings become two-hole hops to the back side (plated through-holes).

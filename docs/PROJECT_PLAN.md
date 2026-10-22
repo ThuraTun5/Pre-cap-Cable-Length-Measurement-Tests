@@ -22,14 +22,24 @@ safety) → 3. Build (one small PlatformIO project) → 4. Verify (compile, logi
 | T8 | Second driver (address 1), two synchronized motors, motor 2 mirrored | Passed 2026-10-19 (user: everything OK) |
 | T9 | Motor commands from the Pi over USB: start / stop (hold) / reverse / reset (unwind every turn), motor state to the Pi, 2 s link watchdog | Passed 2026-10-20 (S/P/X smooth, test tool on COM7) |
 | T10 | **Whole wiring together** (encoder + level shifter + both drivers on one breadboard, all running at once). Replaces the old web-page T10 (Wi-Fi postponed). Then: perfboard soldering plan | Delivered 2026-10-20 (`tests/T10_all_together`, atlas tabs T10 ①–③ with every pin), waiting for the hardware test |
+| T11 | **Number display**: TM1637 6-digit red module (0.56", decimal point on every digit) shows the cable length, e.g. `1003.4`. GPIO21 CLK / GPIO22 DIO, powered from 3V3 | Wiring ready 2026-10-23 (atlas tab T11, perfboard plan). Code after T10 passes |
 | A | Assembly: full firmware, calibration procedure, docs | Not started |
 
-## Reserved for later (room is left in pins + code)
-- Emergency stop, connection watchdog, post-E-stop angle warning
-- Touchscreen (final UI)
-- Motor 3 (camera rail, different driver)
+## Extra study pages (outside the test order)
+- **Wire management** (soldering the perfboard + cables across the jig): `learn/wire_management/index.html`,
+  published 2026-10-22. Open choices for the user, to feed the soldering plan and Assembly: moving-cable
+  method (drag chain recommended), screw-terminal ends (ferrules recommended), encoder cable (shielded,
+  drain at the box only), motor 2 cable (ready-made 2.5 m). Worked example: 1 m travel → 720 mm chain
+  (R 55, pitch 20), moving cables ≈ 2.0 m.
+
+## Final scope (user decision 2026-10-23)
+- Final circuit: encoder + 74LVC245, two TMC2209 drivers + motors, TM1637 number display, USB link to the Pi.
+- Dropped: hardware E-stop button, touchscreen, motor 3. Nothing is reserved on the ESP32 pins or the perfboard.
+- Connection-loss watchdog: done in firmware (T9, 2 s).
 
 ## Shopping list
+- [ ] TM1637 6-digit LED display module, red, 0.56" (<https://www.amazon.co.jp/dp/B0BPSP9557>): needed for T11.
+      Comes with a loose 4-pin header to solder on.
 - [x] 100 nF (0.1 µF, "104") ceramic capacitors, through-hole, 50 V, a pack of ~100: needed before T4
   (e.g. <https://www.amazon.co.jp/dp/B01HNZPI8I>)
 - [ ] Perfboard for the soldered version: 9×15 cm double-sided FR4 (e.g. <https://www.amazon.co.jp/dp/B09L72LXC5>),

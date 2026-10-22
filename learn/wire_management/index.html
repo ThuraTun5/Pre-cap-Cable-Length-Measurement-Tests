@@ -1,0 +1,1601 @@
+<title>Jig Wire Management</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: bench notebook - sticky contents rail (desktop), one reading column, copper accent; same family as the T01-T09 study pages */
+:root{
+  --bg:#F4F6F4; --surface:#FFFFFF; --sunk:#E8ECE9; --fg:#1C2321; --muted:#56615D; --line:#CBD3CF;
+  --copper:#A8551F; --copper-soft:#F6E6DA; --signal:#1F5FA8; --signal-soft:#E1ECF8;
+  --ok:#2E7D4F; --ok-soft:#E0F2E7; --bad:#B23A32; --bad-soft:#F9E3E1; --warn:#8C6200; --warn-soft:#FBF0D3;
+  --p24:#C62828; --v33:#D97706; --mot:#6B4FB8; --gnd:#1F2421;
+  --fr4:#CFDDB8; --fr4-edge:#9DB083; --pad:#C8873A; --solder:#A3ACB4; --solder-dull:#8A8C84; --lead:#7D858C;
+  --wood:#E3C9A0; --burn:#7A4A1E; --chain:#3A3F44;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --p24:#FF7A72; --v33:#F2A65A; --mot:#B49CF5; --gnd:#C9D1CD;
+  --fr4:#3E5537; --fr4-edge:#5B7650; --pad:#E0A060; --solder:#C3CBD2; --solder-dull:#8E918B; --lead:#A9B0B6;
+  --wood:#6E5638; --burn:#C08050; --chain:#AEB6BD;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1A201E; --sunk:#232B28; --fg:#E4EAE7; --muted:#9AA6A1; --line:#34403B;
+  --copper:#E39260; --copper-soft:#3A2618; --signal:#7DB2EE; --signal-soft:#18283A;
+  --ok:#6CCB93; --ok-soft:#173425; --bad:#F08A80; --bad-soft:#3A1B18; --warn:#E6C062; --warn-soft:#33290F;
+  --p24:#FF7A72; --v33:#F2A65A; --mot:#B49CF5; --gnd:#C9D1CD;
+  --fr4:#3E5537; --fr4-edge:#5B7650; --pad:#E0A060; --solder:#C3CBD2; --solder-dull:#8E918B; --lead:#A9B0B6;
+  --wood:#6E5638; --burn:#C08050; --chain:#AEB6BD;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.65;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 80px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;font-size:14px;line-height:1.4;max-height:calc(100vh - 32px);overflow-y:auto}
+nav.toc .lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-size:13px;margin:12px 0 6px}
+nav.toc .lbl:first-child{margin-top:0}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:3px 10px;color:var(--muted);text-decoration:none;margin-left:-2px;border-left:2px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--copper);border-left-color:var(--copper)}
+@media (max-width:900px){nav.toc{position:static;max-height:none}nav.toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border-left:0}nav.toc a{border:1px solid var(--line);border-radius:6px;margin:0}}
+main{min-width:0;max-width:780px}
+header.hero{padding-bottom:18px;border-bottom:2px solid var(--copper);margin-bottom:8px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--copper);font-size:14px;font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,48px);line-height:1.05;margin:6px 0 12px;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:30px;line-height:1.15;margin:56px 0 10px;text-wrap:balance;scroll-margin-top:16px}
+h2 .tag{font-size:15px;font-weight:600;color:var(--copper);letter-spacing:.06em;display:block;text-transform:uppercase}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;margin:26px 0 6px}
+.part{font-family:var(--f-display);font-size:15px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--surface);background:var(--copper);display:inline-block;padding:4px 12px;border-radius:4px;margin-top:64px}
+.part + h2{margin-top:16px}
+p{margin:0 0 12px}
+ul,ol{padding-left:22px;margin:0 0 12px}
+li{margin-bottom:4px}
+.goal{font-size:19px}
+.assume{font-size:14px;color:var(--muted);background:var(--sunk);border-radius:6px;padding:8px 12px;display:inline-block}
+.why{background:var(--signal-soft);border-left:4px solid var(--signal);padding:10px 14px;margin:12px 0}
+.one{background:var(--copper-soft);border-left:4px solid var(--copper);padding:10px 14px;margin:16px 0;font-weight:700}
+.details{border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:14px 0;font-size:15.5px}
+.details b.h{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+.details ul{margin-bottom:0}
+.extra{display:inline-block;font-size:12px;font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:1px 7px;vertical-align:middle;margin-left:6px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--sunk);padding:1px 5px;border-radius:4px}
+a{color:var(--signal)}
+.tbl{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px;border:1px solid var(--line)}
+figure{margin:18px 0;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure .sc{overflow-x:auto}
+figure svg{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--fg)}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.codebox{position:relative;margin:14px 0}
+pre{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font-family:var(--f-mono);font-size:13.5px;line-height:1.55;margin:0}
+.copy{position:absolute;top:8px;right:8px;font-family:var(--f-body);font-size:13px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.copy:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,.cab:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.step{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;margin:14px 0}
+.step .n{width:30px;height:30px;border-radius:50%;background:var(--copper);color:var(--surface);display:grid;place-items:center;font-family:var(--f-display);font-weight:700}
+.step .why-n{font-size:14.5px;color:var(--muted);font-style:italic;display:block}
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:16px 0}
+.sim label{font-size:15px;display:block;margin:8px 0 2px}
+.sim input[type=range]{width:100%;accent-color:var(--copper)}
+.sim select{font:inherit;font-size:15px;padding:4px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.ctrls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 18px}
+.readout{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.readout div{flex:1 1 150px;background:var(--sunk);border-radius:8px;padding:8px 12px;font-size:14px}
+.readout b{display:block;font-family:var(--f-mono);font-size:19px;font-variant-numeric:tabular-nums}
+.readout .bad b{color:var(--bad)} .readout .good b{color:var(--ok)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.tg{font:inherit;font-size:14.5px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+.tg[aria-pressed="true"]{background:var(--copper);border-color:var(--copper);color:var(--surface)}
+.btn{font:inherit;font-size:15px;background:var(--copper);color:var(--surface);border:0;border-radius:8px;padding:7px 16px;cursor:pointer}
+.btn.ghost{background:var(--bg);color:var(--fg);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+.stepbox{background:var(--sunk);border-radius:8px;padding:10px 14px;margin-top:10px;min-height:96px}
+.stepbox .cnt{font-family:var(--f-display);font-weight:600;color:var(--copper);text-transform:uppercase;letter-spacing:.06em;font-size:13px}
+.jgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:6px}
+@media (max-width:560px){.jgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.jgrid button{font:inherit;font-size:14px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px;cursor:pointer;display:grid;gap:2px;justify-items:center}
+.jgrid button svg{width:100%;max-width:120px;height:auto;color:var(--fg)}
+.jgrid button[aria-pressed="true"]{border-color:var(--copper);box-shadow:0 0 0 2px var(--copper)}
+.jcard{background:var(--sunk);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:15.5px}
+.jcard b{font-family:var(--f-display);font-size:18px}
+.jcard dl{display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 10px;margin:6px 0 0}
+.jcard dt{color:var(--muted);font-size:14px}
+.jcard dd{margin:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:15.5px}
+.card h4{font-family:var(--f-display);font-size:18px;margin:0 0 4px}
+.card .rec{font-size:12px;font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;color:var(--ok);background:var(--ok-soft);border-radius:4px;padding:1px 7px;margin-left:4px}
+.traps li{margin-bottom:12px}
+.traps .spot{display:block;font-size:15px;color:var(--muted)}
+.quiz .q{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:14px 0}
+.quiz .qt{font-weight:700;margin-bottom:8px}
+.quiz .qimg{margin:6px 0 10px;overflow-x:auto}
+.quiz .qimg svg{display:block;width:100%;max-width:600px;height:auto;color:var(--fg)}
+.quiz .qimg .row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;max-width:520px}
+.quiz .qimg .row div{text-align:center;font-family:var(--f-display);font-weight:600}
+.opts{display:grid;gap:6px}
+.opts button{text-align:left;font:inherit;font-size:15.5px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.opts button:hover{border-color:var(--copper)}
+.opts button.right{background:var(--ok-soft);border-color:var(--ok)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.numrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.numrow input{font:inherit;width:150px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg)}
+.fb{margin-top:10px;font-size:15px;padding:8px 12px;border-radius:8px}
+.fb.ok{background:var(--ok-soft)}.fb.no{background:var(--bad-soft)}
+.score{font-family:var(--f-display);font-size:22px;font-weight:600}
+.check label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+.check input{margin-top:6px;accent-color:var(--copper);width:18px;height:18px;flex:none}
+.src li{font-size:15px;margin-bottom:6px}
+mjx-container{overflow-x:auto;overflow-y:hidden;max-width:100%}
+svg .t{font-family:var(--f-body);font-size:12px;fill:currentColor}
+svg .ts{font-family:var(--f-body);font-size:11px;fill:currentColor}
+svg .tb{font-family:var(--f-display);font-size:14px;font-weight:600;fill:currentColor}
+svg .tm{font-family:var(--f-mono);font-size:11px;fill:currentColor}
+svg .box{fill:var(--surface);stroke:currentColor;stroke-width:1.2}
+svg .boxc{fill:var(--copper-soft);stroke:var(--copper);stroke-width:1.6}
+svg .soft{fill:var(--sunk);stroke:currentColor;stroke-width:1}
+svg .ln{stroke:currentColor;stroke-width:1.4;fill:none}
+svg .dash{stroke-dasharray:5 4}
+svg .fr4{fill:var(--fr4);stroke:var(--fr4-edge);stroke-width:1}
+svg .pad{fill:var(--pad)}
+svg .sold{fill:var(--solder)}
+svg .sdull{fill:var(--solder-dull)}
+svg .lead{fill:var(--lead)}
+svg .wood{fill:var(--wood);stroke:currentColor;stroke-width:1}
+svg .burn{fill:var(--burn)}
+svg .hl{fill:none;stroke:var(--surface);stroke-width:2;opacity:.75}
+svg .okf{fill:var(--ok)} svg .badf{fill:var(--bad)}
+svg .bad-s{stroke:var(--bad);fill:none;stroke-width:2.2}
+svg .ok-s{stroke:var(--ok);fill:none;stroke-width:2.2}
+svg .w24{stroke:var(--p24);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+svg .wgn{stroke:var(--gnd);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+svg .wsig{stroke:var(--signal);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+svg .wmot{stroke:var(--mot);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+svg .w33{stroke:var(--v33);stroke-width:3;fill:none}
+svg .wsol{stroke:var(--solder);stroke-width:3;fill:none;stroke-linecap:round}
+svg .zl{fill:var(--signal-soft)} svg .zp{fill:var(--bad-soft)}
+svg .loop{fill:var(--p24);opacity:.14}
+svg .chain{fill:none;stroke:var(--chain);stroke-width:9;stroke-linejoin:round}
+svg .chain2{fill:none;stroke:var(--surface);stroke-width:4;stroke-dasharray:3 4}
+svg .mk{fill:currentColor}
+svg .cab{cursor:pointer}
+svg .cab .hit{stroke:transparent;stroke-width:16;fill:none;pointer-events:stroke}
+svg.sel .cab:not(.on),svg.sel .chainmap:not(.on){opacity:.28}
+svg .cab.on .vis{stroke-width:5}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="badf" d="M0 0L10 5L0 10z"/></marker>
+    <g id="hole"><rect class="pad" x="-12" y="106" width="24" height="4"/><rect class="pad" x="-12" y="128" width="24" height="4"/><rect class="pad" x="-6" y="106" width="2" height="26"/><rect class="pad" x="4" y="106" width="2" height="26"/></g>
+  </defs>
+</svg>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="lbl">Start</div>
+  <ol><li><a href="#map">Map</a></li><li><a href="#words">Key words</a></li></ol>
+  <div class="lbl">Part 1 · Board</div>
+  <ol>
+    <li><a href="#tools">Tools + safe bench</a></li>
+    <li><a href="#joint">One good joint</a></li>
+    <li><a href="#wires">Wires for the board</a></li>
+    <li><a href="#plan">Plan the perfboard</a></li>
+    <li><a href="#check">Check before power</a></li>
+  </ol>
+  <div class="lbl">Part 2 · Jig</div>
+  <ol>
+    <li><a href="#jigmap">Cable map</a></li>
+    <li><a href="#noise">Noise</a></li>
+    <li><a href="#moving">Moving cables ★</a></li>
+    <li><a href="#ends">Cable ends</a></li>
+    <li><a href="#relief">Strain relief</a></li>
+    <li><a href="#labels">Labels + drawings</a></li>
+    <li><a href="#assemble">Assemble + test</a></li>
+  </ol>
+  <div class="lbl">Practice</div>
+  <ol>
+    <li><a href="#examples">Worked examples</a></li>
+    <li><a href="#code">Code: cable planner</a></li>
+    <li><a href="#traps">Mistakes to avoid</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+    <li><a href="#summary">Visual summary</a></li>
+    <li><a href="#checklist">Checklist</a></li>
+    <li><a href="#choices">Your choices</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Study page · Assembly preparation</div>
+  <h1>Wire management: board and jig</h1>
+  <p class="goal">After this page you can solder a clean, safe perfboard. You can also plan every cable on the jig so that it does not break, come loose, or add noise to the encoder.</p>
+  <p class="assume">Your answers: one page with two parts · new to soldering · you have solid and stranded wire · electronics box at the fixed-support end.</p>
+</header>
+
+<!-- ================= MAP ================= -->
+<h2 id="map"><span class="tag">Start</span>Map of this page</h2>
+<p>Your wiring will only grow. T10 already needs three atlas tabs, and the E-stop, the touchscreen and motor 3 come later. This page has two parts: the wires <b>on</b> the soldered board, and the cables <b>across</b> the 1 m jig.</p>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 724 200" role="img" aria-label="Map: part 1 has five steps on the board, then the board goes into the box; part 2 has six steps across the jig. Moving cables is the hard idea.">
+    <text class="tb" x="10" y="18">Part 1 · On the board</text>
+    <rect class="box" x="10" y="28" width="124" height="48" rx="6"/><text class="t" x="72" y="49" text-anchor="middle">Tools +</text><text class="t" x="72" y="65" text-anchor="middle">safe bench</text>
+    <rect class="box" x="152" y="28" width="124" height="48" rx="6"/><text class="t" x="214" y="49" text-anchor="middle">One good</text><text class="t" x="214" y="65" text-anchor="middle">solder joint</text>
+    <rect class="box" x="294" y="28" width="124" height="48" rx="6"/><text class="t" x="356" y="49" text-anchor="middle">Wires for</text><text class="t" x="356" y="65" text-anchor="middle">the board</text>
+    <rect class="box" x="436" y="28" width="124" height="48" rx="6"/><text class="t" x="498" y="49" text-anchor="middle">Plan the</text><text class="t" x="498" y="65" text-anchor="middle">perfboard</text>
+    <rect class="box" x="578" y="28" width="124" height="48" rx="6"/><text class="t" x="640" y="49" text-anchor="middle">Check before</text><text class="t" x="640" y="65" text-anchor="middle">power</text>
+    <path class="ln" d="M134 52H150" marker-end="url(#arr)"/><path class="ln" d="M276 52H292" marker-end="url(#arr)"/><path class="ln" d="M418 52H434" marker-end="url(#arr)"/><path class="ln" d="M560 52H576" marker-end="url(#arr)"/>
+    <path class="ln" d="M640 76V98H62V124" marker-end="url(#arr)"/>
+    <text class="t" x="350" y="93" text-anchor="middle">the finished board goes into the box</text>
+    <text class="tb" x="80" y="118">Part 2 · Across the jig</text>
+    <text class="tb" x="302" y="120" text-anchor="middle" style="fill:var(--copper)">★ hard idea</text>
+    <rect class="box" x="10" y="126" width="104" height="58" rx="6"/><text class="t" x="62" y="151" text-anchor="middle">Cable</text><text class="t" x="62" y="167" text-anchor="middle">map</text>
+    <rect class="box" x="130" y="126" width="104" height="58" rx="6"/><text class="t" x="182" y="151" text-anchor="middle">Noise: loud</text><text class="t" x="182" y="167" text-anchor="middle">vs quiet</text>
+    <rect class="boxc" x="250" y="126" width="104" height="58" rx="6"/><text class="t" x="302" y="151" text-anchor="middle">Moving</text><text class="t" x="302" y="167" text-anchor="middle">cables</text>
+    <rect class="box" x="370" y="126" width="104" height="58" rx="6"/><text class="t" x="422" y="151" text-anchor="middle">Cable ends</text><text class="t" x="422" y="167" text-anchor="middle">(plugs, terminals)</text>
+    <rect class="box" x="490" y="126" width="104" height="58" rx="6"/><text class="t" x="542" y="151" text-anchor="middle">Strain relief</text><text class="t" x="542" y="167" text-anchor="middle">+ labels</text>
+    <rect class="box" x="610" y="126" width="104" height="58" rx="6"/><text class="t" x="662" y="151" text-anchor="middle">Assemble</text><text class="t" x="662" y="167" text-anchor="middle">+ test</text>
+    <path class="ln" d="M114 155H128" marker-end="url(#arr)"/><path class="ln" d="M234 155H248" marker-end="url(#arr)"/><path class="ln" d="M354 155H368" marker-end="url(#arr)"/><path class="ln" d="M474 155H488" marker-end="url(#arr)"/><path class="ln" d="M594 155H608" marker-end="url(#arr)"/>
+  </svg>
+  </div>
+  <figcaption>The two parts share one idea: keep loud wires (24 V, motor) away from quiet wires (encoder, logic). The hard idea is the <b>moving cables</b>: motor 2 and the encoder ride on the slider, so their cables bend every time you move it.</figcaption>
+</figure>
+
+<!-- ================= WORDS ================= -->
+<h2 id="words"><span class="tag">Start</span>Key words</h2>
+<div class="tbl"><table>
+<thead><tr><th>Word</th><th>Simple meaning</th><th>Symbol / unit</th></tr></thead>
+<tbody>
+<tr><td>Solder</td><td>A metal mix that melts at about 183–220 °C and joins metal parts.</td><td>°C</td></tr>
+<tr><td>Flux</td><td>A chemical that cleans the metal while you solder. "Rosin-core" solder has flux inside.</td><td>—</td></tr>
+<tr><td>Tinning</td><td>Putting a thin layer of solder on the iron tip or on a wire end.</td><td>—</td></tr>
+<tr><td>Wetting</td><td>Solder flowing out and sticking to a surface, like water spreading on clean glass.</td><td>—</td></tr>
+<tr><td>Fillet</td><td>The small cone of solder around a leg.</td><td>—</td></tr>
+<tr><td>Cold joint</td><td>A joint that was not hot enough, or moved while it froze. Dull and weak.</td><td>—</td></tr>
+<tr><td>Bridge</td><td>Solder that joins two pads by mistake.</td><td>—</td></tr>
+<tr><td>Pad</td><td>The copper ring around a hole.</td><td>—</td></tr>
+<tr><td>Plated hole</td><td>A hole with copper inside, joining the top pad and the back pad. Your double-sided board has these.</td><td>—</td></tr>
+<tr><td>Perfboard</td><td>A board with a grid of holes.</td><td>pitch 2.54 mm</td></tr>
+<tr><td>Bus (rail)</td><td>One wire that many pins connect to, for example the 3V3 bus and the GND bus.</td><td>—</td></tr>
+<tr><td>Jumper</td><td>A short wire from one hole to another.</td><td>—</td></tr>
+<tr><td>Solid-core wire</td><td>Wire with one copper core.</td><td>—</td></tr>
+<tr><td>Stranded wire</td><td>Wire with many thin copper strands.</td><td>—</td></tr>
+<tr><td>AWG</td><td>American Wire Gauge, a wire size. A bigger number means a thinner wire.</td><td>AWG</td></tr>
+<tr><td>Heat shrink</td><td>A plastic tube that gets smaller with heat and covers a joint.</td><td>—</td></tr>
+<tr><td>Ferrule</td><td>A small metal tube that you press onto a stranded wire end.</td><td>mm²</td></tr>
+<tr><td>Crimp</td><td>To press a metal part onto a wire with a tool. No solder.</td><td>—</td></tr>
+<tr><td>Strain relief</td><td>Anything that takes the pull on a cable, so the joint does not.</td><td>—</td></tr>
+<tr><td>Service loop</td><td>A little extra cable left near an end, so you can cut and redo the end later.</td><td>mm</td></tr>
+<tr><td>Drag chain</td><td>A chain of plastic links that guides a moving cable. Also: cable carrier, energy chain, e-chain.</td><td>—</td></tr>
+<tr><td>Travel</td><td>How far the slider moves.</td><td>\(S\), mm</td></tr>
+<tr><td>Bend radius</td><td>The radius of the curve a cable is bent around.</td><td>\(R\), mm</td></tr>
+<tr><td>Bend factor</td><td>A number from the cable datasheet. Smallest allowed radius = factor × cable diameter.</td><td>\(k\), no unit</td></tr>
+<tr><td>Pitch (chain)</td><td>The length of one chain link.</td><td>\(T\), mm</td></tr>
+<tr><td>Twisted pair</td><td>Two wires twisted together so that their fields cancel.</td><td>—</td></tr>
+<tr><td>Shield / drain wire</td><td>Foil or braid around the inner wires, and the bare wire that connects it to GND.</td><td>—</td></tr>
+<tr><td>Coupling (crosstalk)</td><td>A signal jumping from one wire into a wire next to it.</td><td>—</td></tr>
+<tr><td>Loop area</td><td>The area between a wire and its return wire. A bigger area sends and picks up more noise.</td><td>cm²</td></tr>
+<tr><td>Ground loop</td><td>Two GND paths that form a loop where unwanted current can flow.</td><td>—</td></tr>
+<tr><td>Beep test</td><td>The meter's continuity mode. It beeps when two points are connected.</td><td>Ω</td></tr>
+<tr><td>Harness</td><td>A set of cables made and labelled to a plan.</td><td>—</td></tr>
+</tbody></table></div>
+
+<!-- ================= PART 1 ================= -->
+<div class="part">Part 1 · On the board</div>
+
+<h2 id="tools"><span class="tag">Section 1</span>Tools and a safe bench</h2>
+<p class="why"><b>Why this matters:</b> A good iron makes good joints easy. A weak iron makes them hard, even for experts. You have the wire already; this section is what to get before you start.</p>
+<div class="tbl"><table>
+<thead><tr><th>Tool</th><th>Why</th><th>Tip</th></tr></thead>
+<tbody>
+<tr><td><b>Iron with temperature control</b></td><td>Heats the joint fast and recovers between joints.</td><td>A soldering station of 50 W or more is best. At least 25–30 W with a temperature knob. Adafruit: a weak iron costs you more in ruined parts.</td></tr>
+<tr><td>Chisel tip, about 2 mm</td><td>A flat tip moves heat into the pad and the leg.</td><td>Very thin pointed tips heat slowly.</td></tr>
+<tr><td>Rosin-core solder, 0.6–0.8 mm</td><td>Has flux inside.</td><td>Leaded 63/37 is the easiest. Lead-free needs more heat and more flux.</td></tr>
+<tr><td>Brass wool tip cleaner</td><td>Cleans the tip without cooling it.</td><td>A damp sponge also works.</td></tr>
+<tr><td>Flux pen</td><td>Helps when you redo a joint or solder wires.</td><td>—</td></tr>
+<tr><td>Solder wick + solder pump</td><td>Removes extra solder and bridges.</td><td>—</td></tr>
+<tr><td>Flush cutters, wire stripper</td><td>Cut legs; strip wire without cutting strands.</td><td>A cut strand is a weak spot.</td></tr>
+<tr><td>Board holder ("third hand")</td><td>Keeps the board still.</td><td>A board that moves while solder freezes gives a cold joint.</td></tr>
+<tr><td>Heat shrink set + heat gun</td><td>Covers wire joints.</td><td>A lighter burns the tube.</td></tr>
+<tr><td>Fan or fume extractor, safety glasses</td><td>Fumes away from your face. Cut legs fly.</td><td>—</td></tr>
+<tr><td>Multimeter</td><td>Beep test, ohms, volts.</td><td>You have one.</td></tr>
+</tbody></table></div>
+
+<h3>Temperature</h3>
+<div class="tbl"><table>
+<thead><tr><th>Solder</th><th>Start at</th><th>Range from sources</th></tr></thead>
+<tbody>
+<tr><td>Leaded, 63/37 (Sn63Pb37)</td><td class="num">330 °C</td><td class="num">320–350 °C</td></tr>
+<tr><td>Lead-free (SAC305)</td><td class="num">360 °C</td><td class="num">350–380 °C</td></tr>
+</tbody></table></div>
+<p>The sources give slightly different numbers. Start at the value in the middle column. If the solder does not flow within 2–3 seconds, go up 10–20 °C. If the board turns brown, go down.</p>
+
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 640 230" role="img" aria-label="Bench from above: fan on the far side pulls fumes away from your face, board in a holder in the middle, iron stand on your writing-hand side, solder and tools within reach.">
+    <rect class="soft" x="6" y="6" width="628" height="218" rx="10"/>
+    <text class="tb" x="20" y="28">Your bench, seen from above</text>
+    <rect class="box" x="30" y="50" width="80" height="54" rx="6"/><circle class="ln" cx="70" cy="77" r="19"/><path class="ln" d="M70 60V94M53 77H87"/>
+    <text class="t" x="70" y="122" text-anchor="middle">fan / extractor</text>
+    <path class="ln dash" d="M250 100Q180 82 118 80" marker-end="url(#arr)"/>
+    <text class="t" x="186" y="72" text-anchor="middle">fumes go away</text>
+    <rect class="fr4" x="250" y="78" width="150" height="80" rx="4"/>
+    <text class="t" x="325" y="116" text-anchor="middle">board in a</text><text class="t" x="325" y="132" text-anchor="middle">holder</text>
+    <rect class="box" x="455" y="56" width="150" height="40" rx="8"/>
+    <path d="M470 76H590" style="stroke:var(--muted);stroke-width:8;stroke-linecap:round"/>
+    <text class="t" x="530" y="112" text-anchor="middle">iron: always back in the stand</text>
+    <text class="ts" x="530" y="128" text-anchor="middle">(on your writing-hand side)</text>
+    <rect class="box" x="455" y="146" width="56" height="30" rx="6"/><text class="t" x="483" y="192" text-anchor="middle">brass wool</text>
+    <circle class="box" cx="180" cy="160" r="22"/><circle class="ln" cx="180" cy="160" r="8"/><text class="t" x="180" y="198" text-anchor="middle">solder</text>
+    <text class="t" x="572" y="156" text-anchor="middle">cutters</text><text class="t" x="572" y="172" text-anchor="middle">stripper</text><text class="t" x="572" y="188" text-anchor="middle">meter</text>
+    <path class="box" d="M272 224A53 32 0 0 1 378 224Z"/>
+    <text class="t" x="325" y="216" text-anchor="middle">you, glasses on</text>
+  </svg>
+  </div>
+  <figcaption>The fan pulls the fumes away from your face, not into it. The iron always goes back into its stand.</figcaption>
+</figure>
+
+<h3>Safety (five rules)</h3>
+<ol>
+  <li>The tip is about 330 °C. Put the iron back in the stand every time. Never catch a falling iron.</li>
+  <li>Fumes: work with the fan or an open window (Adafruit).</li>
+  <li>Leaded solder: wash your hands after soldering. No food or drink at the bench.</li>
+  <li>Glasses on when you cut legs. Point the leg down when you cut.</li>
+  <li>Switch off and unplug the iron when you leave the bench.</li>
+</ol>
+<p class="one">In one sentence: a hot, clean tip, a board that does not move, and a fan are most of good soldering.</p>
+<div class="details"><b class="h">Small details</b>
+<ul>
+  <li>Normal rosin flux is "no-clean": you may leave it. Clean it with isopropyl alcohol if it is sticky, or when you want to inspect a joint closely.</li>
+  <li>Leaded or lead-free: your university lab may have a rule. Ask first (Adafruit gives the same advice to students).</li>
+  <li>Do not use a soldering gun, a gas torch or a "cold heat" iron on electronics (Adafruit).</li>
+</ul></div>
+
+<!-- ================= JOINT ================= -->
+<h2 id="joint"><span class="tag">Section 2</span>One good solder joint</h2>
+<p class="why"><b>Why this matters:</b> Every connection on the board is a joint. One bad joint can make the encoder skip or stop a driver.</p>
+<p><b>The idea in simple words.</b> Solder is not glue. It <b>wets</b>: it flows onto metal that is hot and clean, like water spreading on clean glass. So you heat the metal, and the hot metal melts the solder. The comparison stops here: water spreads on cold glass, but solder does not spread on cold metal. It only makes a ball.</p>
+
+<figure>
+  <div class="sc">
+  <svg id="js" viewBox="0 0 520 240" role="img" aria-label="Cross-section of one through-hole joint, solder side up, built step by step: tin the tip, heat pad and leg, feed solder, remove solder, remove iron.">
+    <rect class="fr4" x="90" y="150" width="340" height="24"/>
+    <rect class="soft" x="250" y="150" width="20" height="24"/>
+    <rect class="pad" x="222" y="146" width="76" height="4"/>
+    <rect class="pad" x="222" y="174" width="76" height="4"/>
+    <rect class="pad" x="246" y="146" width="4" height="32"/>
+    <rect class="pad" x="270" y="146" width="4" height="32"/>
+    <rect class="box" x="206" y="196" width="108" height="28" rx="4"/><text class="t" x="260" y="215" text-anchor="middle">part (other side)</text>
+    <rect class="lead" x="256" y="80" width="8" height="118"/>
+    <text class="t" x="86" y="166" text-anchor="end">board</text>
+    <text class="t" x="304" y="160">pad</text>
+    <text class="t" x="248" y="76" text-anchor="end">leg</text>
+    <g id="jsGlow"><circle cx="262" cy="146" r="30" style="fill:var(--copper);opacity:.16"/><circle cx="262" cy="146" r="16" style="fill:var(--copper);opacity:.22"/></g>
+    <path id="jsHalf" class="sold" d="M240 146Q254 143 256 130L264 130Q266 143 280 146Z"/>
+    <g id="jsFull"><path class="sold" d="M222 146Q252 141 256 106L264 106Q268 141 298 146Z"/><path class="hl" d="M232 144Q250 139 255 116"/></g>
+    <g id="jsCut"><path class="bad-s" d="M238 96H284" stroke-dasharray="4 3"/><text class="t" x="290" y="100">cut the leg here, later</text></g>
+    <g id="jsIron">
+      <path d="M328 66L430 6" style="stroke:var(--muted);stroke-width:12;stroke-linecap:round"/>
+      <polygon class="lead" points="266,146 276,144 334,72 320,62"/>
+      <circle id="jsDrop" class="sold" cx="272" cy="143" r="5"/>
+      <text class="t" x="350" y="88">iron tip</text>
+    </g>
+    <g id="jsWire"><path d="M100 46L244 140" style="stroke:var(--solder);stroke-width:6;stroke-linecap:round"/><text class="t" x="96" y="36">solder wire</text></g>
+  </svg>
+  </div>
+  <div class="stepbox" aria-live="polite"><div class="cnt" id="jsCnt"></div><div id="jsTxt"></div></div>
+  <div class="btnrow"><button class="btn ghost" type="button" id="jsPrev">Back</button><button class="btn" type="button" id="jsNext">Next step</button></div>
+  <figcaption>Press <b>Next step</b>. The whole joint takes about 2–4 seconds.</figcaption>
+</figure>
+
+<h3>Joint doctor</h3>
+<p>Click a joint to see what went wrong and how to fix it. Compare your real joints with these.</p>
+<figure>
+  <div class="jgrid" id="jgrid"></div>
+  <div class="jcard" id="jcard" aria-live="polite"></div>
+</figure>
+<p class="one">In one sentence: heat the pad and the leg together, feed solder into them, take the solder away, take the iron away, and keep still. That is 2–4 seconds.</p>
+<div class="details"><b class="h">Small details</b>
+<ul>
+  <li>Big metal parts (screw terminals, the 24 V wires, the GND bus) take more heat. Hold the tip longer (3–5 s) or raise the temperature a little. Do not press harder.</li>
+  <li>Wire to pad: tin the wire end first. Strip 3 mm, twist the strands, touch it with the iron and a little solder. Then put it on or through the pad and heat again.</li>
+  <li>Heat shrink goes onto the wire <b>before</b> you solder (see Section 9).</li>
+  <li>Cut legs after soldering, just above the cone. Do not cut into the solder.</li>
+</ul></div>
+
+<!-- ================= WIRES ================= -->
+<h2 id="wires"><span class="tag">Section 3</span>Wires for the board</h2>
+<p class="why"><b>Why this matters:</b> The wrong wire breaks, melts, or does not fit the holes.</p>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 600 180" role="img" aria-label="Solid core has one copper core and cracks after many bends; stranded wire has many thin strands and bends many times.">
+    <text class="tb" x="20" y="22">Solid core</text>
+    <circle class="soft" cx="60" cy="74" r="32"/><circle class="pad" cx="60" cy="74" r="18"/>
+    <path d="M110 80H170L200 50H270" style="stroke:var(--pad);stroke-width:5;fill:none;stroke-linejoin:miter"/>
+    <path class="bad-s" d="M162 66L172 72L164 78L174 86"/>
+    <text class="t" x="20" y="132">One copper core.</text>
+    <text class="t" x="20" y="150">Stays where you bend it.</text>
+    <text class="t" x="20" y="168">Cracks after many bends.</text>
+    <text class="tb" x="320" y="22">Stranded</text>
+    <circle class="soft" cx="360" cy="74" r="32"/>
+    <circle class="pad" cx="360" cy="74" r="6"/><circle class="pad" cx="372" cy="74" r="6"/><circle class="pad" cx="366" cy="84.4" r="6"/><circle class="pad" cx="354" cy="84.4" r="6"/><circle class="pad" cx="348" cy="74" r="6"/><circle class="pad" cx="354" cy="63.6" r="6"/><circle class="pad" cx="366" cy="63.6" r="6"/>
+    <path d="M410 80C430 50 450 110 470 80S510 50 530 80S570 110 590 80" style="stroke:var(--pad);stroke-width:5;fill:none"/>
+    <text class="t" x="320" y="132">Many thin strands.</text>
+    <text class="t" x="320" y="150">Bends many times.</text>
+    <text class="t" x="320" y="168">Ends fray: tin them or use a ferrule.</text>
+  </svg>
+  </div>
+  <figcaption>Each bend makes copper a little harder and more brittle (metal fatigue). In stranded wire the bending is shared by many thin strands, so it lasts much longer.</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>Job on this project</th><th>Wire</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Jumpers on the perfboard (they never move)</td><td>Solid core, 24 AWG (you have it)</td><td>Stays flat and fits the 1 mm holes.</td></tr>
+<tr><td>3V3 and GND bus on the back</td><td>Bare solid wire, 22–24 AWG</td><td>You solder it at every pad it passes.</td></tr>
+<tr><td>Anything that leaves the board</td><td>Stranded</td><td>It moves during assembly and repairs.</td></tr>
+<tr><td>Moving cables (motor 2, encoder)</td><td>Fine-stranded, flexible cable</td><td>It bends every time the slider moves.</td></tr>
+<tr><td>24 V from the supply to the box</td><td>Stranded, 20–22 AWG</td><td>Strong, low resistance, room for motor 3 later.</td></tr>
+</tbody></table></div>
+
+<h3>Wire sizes</h3>
+<p>Diameter and resistance follow the AWG formula and the resistance of copper at 20 °C (computed for this page).</p>
+<div class="tbl"><table>
+<thead><tr><th>AWG</th><th>Copper diameter</th><th>Area</th><th>Resistance</th><th>Use here</th></tr></thead>
+<tbody>
+<tr><td class="num">20</td><td class="num">0.81 mm</td><td class="num">0.52 mm²</td><td class="num">33 mΩ/m</td><td>24 V supply into the box</td></tr>
+<tr><td class="num">22</td><td class="num">0.64 mm</td><td class="num">0.33 mm²</td><td class="num">53 mΩ/m</td><td>24 V on the board, motor cables</td></tr>
+<tr><td class="num">24</td><td class="num">0.51 mm</td><td class="num">0.20 mm²</td><td class="num">84 mΩ/m</td><td>Jumpers, buses, signals</td></tr>
+<tr><td class="num">26</td><td class="num">0.40 mm</td><td class="num">0.13 mm²</td><td class="num">134 mΩ/m</td><td>Encoder cable, signals</td></tr>
+<tr><td class="num">30</td><td class="num">0.25 mm</td><td class="num">0.05 mm²</td><td class="num">339 mΩ/m</td><td>Wire-wrap wire, short signal jumpers only</td></tr>
+</tbody></table></div>
+
+<h3>How much current does the 24 V wire carry?</h3>
+<p>The motor coils turn electric power into heat. Each coil has resistance \(R_c = 4.1\ \Omega\) (motor data). The driver keeps \(I = 0.7\ \text{A}\) in each coil (your T7 software current). There are \(n = 4\) coils: 2 motors × 2 coils.</p>
+\[ P = n\, I^2 R_c = 4 \times (0.7\ \text{A})^2 \times 4.1\ \Omega \approx 8\ \text{W} \]
+\[ I_{24} \approx \frac{P}{V} = \frac{8\ \text{W}}{24\ \text{V}} \approx 0.34\ \text{A} \]
+<p>The supply current is smaller than the coil current, because the driver chops the 24 V like a step-down converter. Add a little for the drivers: the real value is still well under 1 A. So <b>22 AWG is plenty</b> for 24 V on the board and in the motor cables.</p>
+
+<h3>Colour plan</h3>
+<div class="tbl"><table>
+<thead><tr><th>Colour</th><th>Means</th><th>Rule</th></tr></thead>
+<tbody>
+<tr><td><span class="sw" style="background:#111"></span>Black</td><td>GND</td><td>Every GND, logic and motor.</td></tr>
+<tr><td><span class="sw" style="background:#d22"></span>Red</td><td>24 V only</td><td>Red always means the most dangerous wire on the board.</td></tr>
+<tr><td><span class="sw" style="background:#f39200"></span>Orange</td><td>3.3 V</td><td>The 3V3 bus and every 3.3 V pin.</td></tr>
+<tr><td><span class="sw" style="background:#fff"></span>White</td><td>5 V</td><td>Only one wire: ESP32 5V pin → encoder plug.</td></tr>
+<tr><td><span class="sw" style="background:#2b6fd6"></span>Other colours</td><td>Signals</td><td>One colour per signal, the same on the board and in the drawing.</td></tr>
+</tbody></table></div>
+<p class="one">In one sentence: solid wire for fixed jumpers on the board, stranded wire for everything that leaves the board or moves, and 22 AWG carries our 24 V current easily.</p>
+<div class="details"><b class="h">Small details</b>
+<ul>
+  <li>Your perfboard draft draws the encoder 5 V wire in red. On the real board use white. I will change the drawing when we make the soldering plan.</li>
+  <li>The motor cable has the maker's colours (black, green, red, blue). Inside that cable, red is a coil wire, not 24 V. Do not rewire it; label the cable instead.</li>
+  <li>Wire-wrap wire (Kynar, 30 AWG) is a neat choice for short signal jumpers. Never use it for 24 V or the buses.</li>
+</ul></div>
+
+<!-- ================= PLAN ================= -->
+<h2 id="plan"><span class="tag">Section 4</span>Plan the perfboard</h2>
+<p class="why"><b>Why this matters:</b> On a perfboard you are the PCB designer. Without a plan, wires cross, pads get covered, and later changes become impossible. Your draft in <code>docs/perfboard</code> is a good start; this section gives the rules for turning it into a soldering plan.</p>
+
+<h3>Rule 1 · Sockets for every module</h3>
+<p>The ESP32 and both drivers sit in female headers. The 74LVC245 sits in a DIP socket. A broken part is then a 10-second swap, and the iron never touches the module.</p>
+
+<h3>Rule 2 · Two layers</h3>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 640 220" role="img" aria-label="Cross-section of the double-sided board: parts and insulated jumpers on top; bare bus wires and short solder links on the back; every hole is plated, so solder on the back also reaches the top pad.">
+    <text class="tb" x="20" y="24">TOP: parts + insulated jumpers</text>
+    <rect class="fr4" x="20" y="110" width="600" height="18"/>
+    <use href="#hole" x="60"/><use href="#hole" x="100"/><use href="#hole" x="140"/><use href="#hole" x="180"/><use href="#hole" x="220"/><use href="#hole" x="260"/><use href="#hole" x="300"/><use href="#hole" x="340"/><use href="#hole" x="380"/><use href="#hole" x="420"/><use href="#hole" x="460"/><use href="#hole" x="500"/><use href="#hole" x="540"/><use href="#hole" x="580"/>
+    <rect class="box" x="44" y="80" width="72" height="24" rx="3"/><text class="t" x="80" y="74" text-anchor="middle">socket</text>
+    <rect class="lead" x="58" y="100" width="4" height="36"/><rect class="lead" x="98" y="100" width="4" height="36"/>
+    <ellipse class="sold" cx="60" cy="135" rx="10" ry="4"/><ellipse class="sold" cx="100" cy="135" rx="10" ry="4"/>
+    <path d="M180 106V92Q180 78 194 78H326Q340 78 340 92V106" style="stroke:var(--signal);stroke-width:5;fill:none"/>
+    <text class="t" x="260" y="70" text-anchor="middle">insulated jumper (top)</text>
+    <rect class="lead" x="178.5" y="104" width="3" height="32"/><rect class="lead" x="338.5" y="104" width="3" height="32"/>
+    <ellipse class="sold" cx="180" cy="135" rx="10" ry="4"/><ellipse class="sold" cx="340" cy="135" rx="10" ry="4"/>
+    <path class="wsol" d="M380 137H580"/>
+    <ellipse class="sold" cx="380" cy="135" rx="9" ry="4"/><ellipse class="sold" cx="420" cy="135" rx="9" ry="4"/><ellipse class="sold" cx="460" cy="135" rx="9" ry="4"/><ellipse class="sold" cx="500" cy="135" rx="9" ry="4"/><ellipse class="sold" cx="540" cy="135" rx="9" ry="4"/><ellipse class="sold" cx="580" cy="135" rx="9" ry="4"/>
+    <text class="t" x="480" y="160" text-anchor="middle">bare bus wire: solder at every pad</text>
+    <rect class="sold" x="212" y="131" width="56" height="7" rx="3"/>
+    <text class="t" x="240" y="180" text-anchor="middle">solder bridge: short links only</text>
+    <ellipse class="sold" cx="140" cy="137" rx="16" ry="7"/><ellipse class="sold" cx="140" cy="104" rx="12" ry="4"/>
+    <circle class="bad-s" cx="140" cy="120" r="26"/>
+    <text class="t" x="110" y="198" text-anchor="middle">plated hole: a blob on the back</text>
+    <text class="t" x="110" y="214" text-anchor="middle">also reaches the top pad</text>
+    <text class="tb" x="380" y="206">BACK: bare buses + short links</text>
+  </svg>
+  </div>
+  <figcaption>Insulated wires go on top. Bare wires stay on the back, where nothing else touches them. On your double-sided board every hole is plated, so watch the top side when you solder the back.</figcaption>
+</figure>
+
+<h3>Rule 3 · Quiet area, loud area, small loops</h3>
+<p>Put the logic (ESP32, 74LVC245, encoder plug) in one area and the 24 V parts (drivers, terminals) in another. Your draft already does this. Then make the <b>loop</b> of the 24 V current small: the + wire and the − wire run side by side.</p>
+<figure>
+  <div class="sc">
+  <svg id="pb" viewBox="0 0 600 370" role="img" aria-label="Your perfboard draft as blocks: logic area on the left and middle, 24 V area on the right and bottom. Toggle the zones, a small 24 V loop, a big 24 V loop, and the quiet signal paths.">
+    <rect class="fr4" x="6" y="6" width="588" height="354" rx="8"/>
+    <g id="pbZones">
+      <rect class="zl" x="14" y="14" width="388" height="236" rx="6" opacity=".8"/>
+      <path class="zp" d="M408 14H586V352H356V258H408Z" opacity=".85"/>
+      <text class="tb" x="24" y="244">Logic area · 3.3 V · quiet</text>
+      <text class="tb" x="505" y="170">24 V + motor</text><text class="tb" x="505" y="186">current · loud</text>
+    </g>
+    <rect class="box" x="24" y="58" width="232" height="115" rx="6"/><text class="tb" x="140" y="112" text-anchor="middle">ESP32</text>
+    <rect class="soft" x="8" y="100" width="22" height="28" rx="3"/><text class="ts" x="40" y="146">USB → Pi</text>
+    <rect class="box" x="294" y="62" width="96" height="40" rx="3"/><text class="t" x="342" y="86" text-anchor="middle">74LVC245</text>
+    <rect class="soft" x="338" y="22" width="56" height="16" rx="2"/><text class="ts" x="332" y="34" text-anchor="end">encoder plug</text>
+    <rect class="box" x="417" y="52" width="60" height="81" rx="4"/><text class="t" x="447" y="98" text-anchor="middle">Driver 1</text>
+    <rect class="box" x="504" y="52" width="60" height="81" rx="4"/><text class="t" x="534" y="98" text-anchor="middle">Driver 2</text>
+    <circle class="soft" cx="430" cy="26" r="9"/><circle class="soft" cx="576" cy="26" r="9"/><text class="ts" x="503" y="22" text-anchor="middle">100 µF at each driver</text>
+    <rect class="soft" x="363" y="318" width="40" height="22" rx="3"/><text class="ts" x="383" y="357" text-anchor="middle">24 V in</text>
+    <rect class="soft" x="415" y="318" width="74" height="22" rx="3"/><text class="ts" x="452" y="357" text-anchor="middle">Motor 1</text>
+    <rect class="soft" x="502" y="318" width="74" height="22" rx="3"/><text class="ts" x="539" y="357" text-anchor="middle">Motor 2</text>
+    <rect class="soft" x="370" y="268" width="10" height="22" rx="2"/><text class="ts" x="364" y="284" text-anchor="end">fuse spot</text>
+    <rect x="30" y="265" width="269" height="77" rx="6" class="ln dash"/><text class="t" x="164" y="308" text-anchor="middle">reserved: E-stop · touchscreen · motor 3</text>
+    <g id="pbSig">
+      <path class="wsig" d="M350 38V62M366 38V62M382 38V62"/>
+      <path class="wsig" d="M310 102V118H256M326 102V126H256M342 102V134H256"/>
+      <path class="wsig" d="M256 150H300V160H417" stroke-dasharray="6 4"/>
+      <text class="ts" x="300" y="176">STEP · DIR · EN · UART</text>
+    </g>
+    <g id="pbSmall">
+      <path class="loop" d="M375 318V250H488V40H495V257H394V318Z"/>
+      <path class="w24" d="M375 318V290M375 268V250H488V40H462V52M488 40H545V52"/>
+      <path class="wgn dash" d="M394 318V257H495V46H470V52M495 46H555V52"/>
+    </g>
+    <g id="pbBig" hidden>
+      <path class="loop" d="M488 250V40H588V344H394V318H375V250Z"/>
+      <path class="w24" d="M375 318V290M375 268V250H488V40H462V52M488 40H545V52"/>
+      <path class="wgn dash" d="M394 340V344H588V14H555V52M588 14H470V52"/>
+    </g>
+  </svg>
+  </div>
+  <div class="btnrow" role="group" aria-label="Board layers">
+    <button class="tg" type="button" id="tgZones" aria-pressed="true">Zones</button>
+    <button class="tg" type="button" id="tgSmall" aria-pressed="true">24 V: small loop (right)</button>
+    <button class="tg" type="button" id="tgBig" aria-pressed="false">24 V: big loop (wrong)</button>
+    <button class="tg" type="button" id="tgSig" aria-pressed="true">Quiet signals</button>
+  </div>
+  <figcaption>Block view of your draft board (positions from <code>docs/perfboard</code>). Red = +24 V, dashed black = GND return on the back side, shaded = the loop the motor current runs around. A big loop acts like an antenna.</figcaption>
+</figure>
+
+<h3 id="pairfield">Why "side by side" works: the field of a wire pair <span class="extra">Extra</span></h3>
+<p>One wire with current \(I\) makes a magnetic field \(B = \dfrac{\mu_0 I}{2\pi r}\) at distance \(r\). The return wire carries the same current the other way. When the two wires are close together (spacing \(s\)), their fields almost cancel:</p>
+\[ \frac{B_{\text{pair}}}{B_{\text{one}}} = \frac{s\,r}{r^2 - s^2/4} \approx \frac{s}{r} \quad (\text{for } r \gg s) \]
+<p>\(s\) = spacing between the + and − wire (mm). \(r\) = distance to the wire that picks up noise (mm). The same rule works both ways: a small loop also <b>picks up</b> less noise. That is why we twist pairs.</p>
+<div class="sim">
+  <div class="sc">
+  <svg id="pf" viewBox="0 0 560 190" role="img" aria-label="A wire pair seen end-on with spacing s, and an encoder wire at distance r.">
+    <rect id="pfLoop" class="loop" x="60" y="90" width="20" height="10"/>
+    <circle id="pfA" class="soft" cx="70" cy="90" r="8"/><circle id="pfAd" class="mk" cx="70" cy="90" r="2.5"/>
+    <g id="pfB"><circle class="soft" cx="70" cy="100" r="8"/><path class="ln" d="M65 95L75 105M75 95L65 105"/></g>
+    <text class="ts" x="88" y="40" id="pfSl">s</text>
+    <circle id="pfP" cx="225" cy="95" r="7" style="fill:var(--signal)"/>
+    <text class="ts" x="225" y="80" id="pfPl" text-anchor="middle">encoder wire</text>
+    <path id="pfDim" class="ln" d="M70 168H225" marker-start="url(#arr)" marker-end="url(#arr)"/>
+    <text class="ts" x="148" y="184" id="pfRl" text-anchor="middle">r</text>
+    <text class="ts" x="20" y="22">+ wire (•) and − wire (×), seen end-on</text>
+  </svg>
+  </div>
+  <div class="ctrls">
+    <div><label for="pfS">Spacing between + and − wire, s: <b id="pfSv"></b></label><input type="range" id="pfS" min="1" max="60" value="2"></div>
+    <div><label for="pfR">Distance to the encoder wire, r: <b id="pfRv"></b></label><input type="range" id="pfR" min="40" max="300" value="100"></div>
+  </div>
+  <div class="readout">
+    <div id="pfO1">Field of the pair, compared with one wire alone<b id="pfRatio"></b></div>
+    <div>Loop area for 1 m of cable<b id="pfArea"></b></div>
+    <div id="pfO3">Verdict<b id="pfVerd"></b></div>
+  </div>
+</div>
+
+<h3>Rule 4 · Ground: two returns meet only at the drivers</h3>
+<p>The motor current returns to the 24 V terminal through its own GND wire. The logic GND bus carries only small currents. In your draft they meet only at the drivers. Keep it that way: the big motor current never flows through the logic GND bus.</p>
+
+<h3>Rule 5 · Neat routing</h3>
+<ul>
+  <li>Short wires along the grid. Straight lines, 90° bends.</li>
+  <li>No wire over a pad you still need to solder.</li>
+  <li>Leave one empty hole between different nets.</li>
+  <li>Decoupling capacitors right at their pins: 100 nF at the chip, 100 µF at each driver.</li>
+</ul>
+
+<h3>Rule 6 · Solder order: low parts first, wires last</h3>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 640 170" role="img" aria-label="Solder order by height: 1 resistors and 100 nF, 2 DIP socket, 3 female headers, 4 terminals and 100 µF capacitors, 5 wires.">
+    <path class="ln" d="M10 120H630"/>
+    <circle cx="70" cy="30" r="13" style="fill:var(--copper)"/><text class="tb" x="70" y="35" text-anchor="middle" style="fill:var(--surface)">1</text>
+    <circle cx="190" cy="30" r="13" style="fill:var(--copper)"/><text class="tb" x="190" y="35" text-anchor="middle" style="fill:var(--surface)">2</text>
+    <circle cx="310" cy="30" r="13" style="fill:var(--copper)"/><text class="tb" x="310" y="35" text-anchor="middle" style="fill:var(--surface)">3</text>
+    <circle cx="440" cy="30" r="13" style="fill:var(--copper)"/><text class="tb" x="440" y="35" text-anchor="middle" style="fill:var(--surface)">4</text>
+    <circle cx="570" cy="30" r="13" style="fill:var(--copper)"/><text class="tb" x="570" y="35" text-anchor="middle" style="fill:var(--surface)">5</text>
+    <path class="ln" d="M85 30H173" marker-end="url(#arr)"/><path class="ln" d="M205 30H293" marker-end="url(#arr)"/><path class="ln" d="M325 30H423" marker-end="url(#arr)"/><path class="ln" d="M455 30H553" marker-end="url(#arr)"/>
+    <path class="ln" d="M40 118H52M88 118H100"/><rect class="box" x="52" y="111" width="36" height="9" rx="4"/>
+    <rect class="box" x="160" y="100" width="60" height="20" rx="2"/>
+    <rect class="box" x="285" y="84" width="50" height="36" rx="2"/>
+    <rect class="box" x="402" y="74" width="40" height="46" rx="3"/><circle class="ln" cx="413" cy="86" r="5"/><circle class="ln" cx="431" cy="86" r="5"/>
+    <rect class="box" x="450" y="66" width="22" height="54" rx="5"/>
+    <path d="M530 120Q545 70 565 100T610 90" style="stroke:var(--signal);stroke-width:4;fill:none"/>
+    <text class="t" x="70" y="142" text-anchor="middle">resistors, 100 nF</text>
+    <text class="t" x="190" y="142" text-anchor="middle">DIP socket</text>
+    <text class="t" x="310" y="142" text-anchor="middle">female headers</text>
+    <text class="ts" x="310" y="158" text-anchor="middle">solder 2 corners first</text>
+    <text class="t" x="440" y="142" text-anchor="middle">terminals, 100 µF</text>
+    <text class="t" x="570" y="142" text-anchor="middle">wires last</text>
+  </svg>
+  </div>
+  <figcaption>Each new part is taller than the last, so the board lies flat when you turn it over. Put a book on the parts to keep them pressed in.</figcaption>
+</figure>
+<p><b>How to lay one wire</b> (five steps):</p>
+<ol>
+  <li>Strip 3 mm from a solid wire.</li>
+  <li>Push it through the hole from the top.</li>
+  <li>On the back, bend the end flat towards the next pad of the same net.</li>
+  <li>Solder the pad. For a bare bus, solder every pad it passes.</li>
+  <li>Cut the extra end. Beep-test the wire before the next one.</li>
+</ol>
+<p class="one">In one sentence: sockets for the modules, insulated wires on top and bare wires on the back, a quiet area and a loud area, and the 24 V + and − always side by side.</p>
+<div class="details"><b class="h">Small details</b>
+<ul>
+  <li><b>Female headers:</b> plug the module in to keep the headers straight. Solder two corner pins, unplug the module, then solder the rest.</li>
+  <li><b>From your draft:</b> driver 2's GND wire runs up the right edge (column 58), while its +24 V runs up column 49. The loop between them is about 2 cm × 5.5 cm. In the hole-by-hole plan we can run them side by side.</li>
+  <li><b>Test points:</b> leave a short bare loop of wire on 3V3, 5V, GND and 24 V. Then the meter probes have something safe to touch.</li>
+  <li><b>Reserved area:</b> keep it empty, and let the 3V3 and GND buses end near it, so the E-stop, touchscreen and motor 3 can connect later.</li>
+</ul></div>
+
+<!-- ================= CHECK ================= -->
+<h2 id="check"><span class="tag">Section 5</span>Check before power</h2>
+<p class="why"><b>Why this matters:</b> A short between 24 V and the 3.3 V bus can destroy the ESP32, both drivers and the Pi's USB port in one second. Checking takes ten minutes.</p>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 700 110" role="img" aria-label="Five checks in order: look, beep test, ohms between rails, power step by step with modules out, then plug in and run T10.">
+    <rect class="box" x="10" y="16" width="124" height="78" rx="6"/><text class="tb" x="72" y="40" text-anchor="middle">1 · Look</text><text class="t" x="72" y="60" text-anchor="middle">bright light,</text><text class="t" x="72" y="76" text-anchor="middle">phone zoom</text>
+    <rect class="box" x="148" y="16" width="124" height="78" rx="6"/><text class="tb" x="210" y="40" text-anchor="middle">2 · Beep test</text><text class="t" x="210" y="60" text-anchor="middle">every wire,</text><text class="t" x="210" y="76" text-anchor="middle">end to end</text>
+    <rect class="box" x="286" y="16" width="124" height="78" rx="6"/><text class="tb" x="348" y="40" text-anchor="middle">3 · Ohms</text><text class="t" x="348" y="60" text-anchor="middle">between rails:</text><text class="t" x="348" y="76" text-anchor="middle">never near 0 Ω</text>
+    <rect class="box" x="424" y="16" width="124" height="78" rx="6"/><text class="tb" x="486" y="40" text-anchor="middle">4 · Power</text><text class="t" x="486" y="60" text-anchor="middle">modules out,</text><text class="t" x="486" y="76" text-anchor="middle">measure volts</text>
+    <rect class="boxc" x="562" y="16" width="124" height="78" rx="6"/><text class="tb" x="624" y="40" text-anchor="middle">5 · Plug in</text><text class="t" x="624" y="60" text-anchor="middle">power off first,</text><text class="t" x="624" y="76" text-anchor="middle">then run T10</text>
+    <path class="ln" d="M134 55H146" marker-end="url(#arr)"/><path class="ln" d="M272 55H284" marker-end="url(#arr)"/><path class="ln" d="M410 55H422" marker-end="url(#arr)"/><path class="ln" d="M548 55H560" marker-end="url(#arr)"/>
+  </svg>
+  </div>
+  <figcaption>Steps 1–4 happen with the ESP32, chip and drivers <b>out</b> of their sockets, so a mistake cannot hurt them.</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>Check</th><th>Meter mode</th><th>Good</th><th>Bad</th></tr></thead>
+<tbody>
+<tr><td>Each wire, end to end</td><td>beep</td><td>beeps</td><td>no beep: open joint</td></tr>
+<tr><td>Pads next to each other</td><td>beep</td><td>silent</td><td>beeps: bridge</td></tr>
+<tr><td>3V3 bus ↔ GND bus</td><td>Ω</td><td>high (kΩ or OL)</td><td>near 0 Ω: short</td></tr>
+<tr><td>24 V+ ↔ GND</td><td>Ω</td><td>starts low, climbs (the 100 µF charges)</td><td>stays near 0 Ω</td></tr>
+<tr><td>24 V+ ↔ 3V3 bus</td><td>Ω</td><td>OL</td><td>any low value</td></tr>
+<tr><td>Power A: 24 V only, sockets empty</td><td>V</td><td>24 V at both VM pins, 0 V on the 3V3 bus</td><td>any voltage on the 3V3 bus</td></tr>
+<tr><td>Power B: 24 V off, ESP32 in, USB on</td><td>V</td><td>3.3 V on the bus, 5 V at the encoder plug</td><td>5 V on the 3V3 bus</td></tr>
+</tbody></table></div>
+<p class="one">In one sentence: look, beep, measure ohms, then power up in two small steps with the modules out, and only then plug everything in and run T10 again.</p>
+<div class="details"><b class="h">Small details</b>
+<ul>
+  <li>Many meters beep below about 30–50 Ω. With modules plugged in, a beep between 3V3 and GND can be normal. That is why the bus checks happen with the modules out.</li>
+  <li>Power order from <code>SAFETY.md</code> still holds: USB first, motor power last. Off: motor power first.</li>
+</ul></div>
+
+<!-- ================= PART 2 ================= -->
+<div class="part">Part 2 · Across the jig</div>
+
+<h2 id="jigmap"><span class="tag">Section 6</span>The cable map</h2>
+<p class="why"><b>Why this matters:</b> Seven cables will leave the box. Without a map they become a knot that nobody can fix or explain to the next team.</p>
+<p>Your box sits at the fixed-support end. So motor 1's cable (C3) is short and never moves. Motor 2 (C4) and the encoder (C5) ride on the slider: their cables are long and they move. Click a cable.</p>
+<figure>
+  <div class="sc">
+  <svg id="jm" viewBox="0 0 760 360" role="img" aria-label="Side view of the jig with the box at the fixed-support end and seven cables: USB, 24 V, motor 1, motor 2, encoder, and later motor 3 and E-stop. Motor 2 and encoder cables run through a drag chain to the slider.">
+    <rect class="wood" x="110" y="56" width="610" height="12"/>
+    <rect class="wood" x="710" y="68" width="10" height="194"/>
+    <rect class="box" x="360" y="68" width="28" height="22" rx="3"/><text class="ts" x="374" y="104" text-anchor="middle">camera</text>
+    <rect x="722" y="50" width="24" height="24" class="ln dash"/><text class="ts" x="734" y="66" text-anchor="middle">M3</text><text class="ts" x="734" y="88" text-anchor="middle">later</text>
+    <rect class="wood" x="110" y="262" width="610" height="24"/><text class="t" x="415" y="279" text-anchor="middle">base</text>
+    <rect class="wood" x="130" y="68" width="16" height="194"/>
+    <rect class="box" x="104" y="150" width="26" height="30" rx="2"/><text class="ts" x="117" y="169" text-anchor="middle">M1</text>
+    <rect class="box" x="146" y="158" width="22" height="14" rx="2"/>
+    <rect class="wood" x="578" y="248" width="56" height="14"/>
+    <rect class="wood" x="598" y="120" width="16" height="128"/>
+    <rect class="box" x="614" y="150" width="26" height="30" rx="2"/><text class="ts" x="627" y="169" text-anchor="middle">M2</text>
+    <rect class="box" x="576" y="158" width="22" height="14" rx="2"/>
+    <rect class="boxc" x="618" y="234" width="16" height="12" rx="2"/><text class="ts" x="627" y="229" text-anchor="middle">ENC</text>
+    <path class="ln" d="M168 165H576" style="stroke-width:2.5"/>
+    <text class="ts" x="372" y="157" text-anchor="middle">cable under test</text>
+    <path class="ln" d="M606 262V300"/>
+    <g class="chainmap" id="jmChain"><path class="chain" d="M431 318H639A9 9 0 0 0 639 300H606"/><path class="chain2" d="M431 318H639A9 9 0 0 0 639 300H606"/></g>
+    <rect class="boxc" x="427" y="313" width="8" height="12"/>
+    <text class="ts" x="436" y="350" text-anchor="middle">fixed end (middle of travel)</text>
+    <text class="ts" x="600" y="342" text-anchor="middle">drag chain</text>
+    <rect class="boxc" x="14" y="196" width="80" height="58" rx="4"/><text class="t" x="54" y="218" text-anchor="middle">Box</text><text class="ts" x="54" y="232" text-anchor="middle">ESP32 +</text><text class="ts" x="54" y="246" text-anchor="middle">drivers</text>
+    <rect class="box" x="14" y="120" width="80" height="44" rx="4"/><text class="ts" x="54" y="138" text-anchor="middle">Pi 5 +</text><text class="ts" x="54" y="152" text-anchor="middle">display</text>
+    <rect class="box" x="14" y="296" width="80" height="44" rx="4"/><text class="ts" x="54" y="314" text-anchor="middle">24 V supply</text><text class="ts" x="54" y="330" text-anchor="middle">switch = stop</text>
+    <circle cx="54" cy="94" r="10" class="ln dash"/><text class="ts" x="54" y="76" text-anchor="middle">E-stop (later)</text>
+    <g class="cab" data-c="C1" tabindex="0" role="button" aria-label="C1 USB cable"><path class="hit" d="M54 196V164"/><path class="wsig vis" d="M54 196V164"/></g>
+    <g class="cab" data-c="C2" tabindex="0" role="button" aria-label="C2 24 volt supply cable"><path class="hit" d="M54 296V254"/><path class="w24 vis" d="M54 296V254"/></g>
+    <g class="cab" data-c="C3" tabindex="0" role="button" aria-label="C3 motor 1 cable"><path class="hit" d="M94 206H117V180"/><path class="wmot vis" d="M94 206H117V180"/></g>
+    <g class="cab" data-c="C4" tabindex="0" role="button" aria-label="C4 motor 2 cable"><path class="hit" d="M94 236H106V326H428V320M609 300V288H652V165H640"/><path class="wmot vis" d="M94 236H106V326H428V320M609 300V288H652V165H640"/></g>
+    <g class="cab" data-c="C5" tabindex="0" role="button" aria-label="C5 encoder cable"><path class="hit" d="M94 246H100V334H434V320M603 300V240H618"/><path class="wsig vis" d="M94 246H100V334H434V320M603 300V240H618"/></g>
+    <g class="cab" data-c="C6" tabindex="0" role="button" aria-label="C6 motor 3 cable, later"><path class="hit" d="M94 200H100V46H734V50"/><path class="wmot vis dash" d="M94 200H100V46H734V50"/></g>
+    <g class="cab" data-c="C7" tabindex="0" role="button" aria-label="C7 E-stop cable, later"><path class="hit" d="M44 94H8V226H14"/><path class="wsig vis dash" d="M44 94H8V226H14"/></g>
+    <text class="tm" x="60" y="184">C1</text><text class="tm" x="60" y="280">C2</text><text class="tm" x="104" y="224">C3</text>
+    <text class="tm" x="200" y="350">C4 + C5 in a duct</text><text class="tm" x="400" y="40">C6 (later)</text><text class="tm" x="14" y="184">C7</text>
+  </svg>
+  </div>
+  <div class="btnrow" role="group" aria-label="Pick a cable" id="jmBtns"></div>
+  <div class="jcard" id="jmCard" aria-live="polite"></div>
+  <figcaption>Not to scale. Purple = motor cables (loud), blue = signal cables (quiet), red = 24 V supply, dashed = later.</figcaption>
+</figure>
+<p>The cables fall into three families: <b>power</b> (C2), <b>motor</b> (C3, C4, later C6; these are loud) and <b>signal</b> (C1, C5, later C7; these are quiet). The rule for the whole jig: <b>loud cables and quiet cables take different paths.</b></p>
+<p class="one">In one sentence: give every cable an ID, a route and a family before you cut anything; with the box at the fixed end, only C4 and C5 move.</p>
+
+<!-- ================= NOISE ================= -->
+<h2 id="noise"><span class="tag">Section 7</span>Noise: keep quiet wires away from loud ones</h2>
+<p class="why"><b>Why this matters:</b> Your T10 noise check asks one question: do the motor wires make the encoder count while nothing moves? On the finished jig, the answer depends mostly on how you route the cables.</p>
+<p><b>The idea in simple words.</b> The driver switches 24 V on and off thousands of times per second, and each switch is very fast. Noise can jump into a neighbour wire in two ways:</p>
+<ul>
+  <li><b>Electric (capacitive):</b> two wires side by side act like a tiny capacitor. Every fast voltage jump pushes a small current through it into the neighbour wire. This is the main problem for our encoder (see Worked example 2).</li>
+  <li><b>Magnetic:</b> current in a loop makes a magnetic field, and a nearby loop picks it up. Small loops make and pick up less (see the field of a wire pair in <a href="#pairfield">Section 4</a>).</li>
+</ul>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 660 160" role="img" aria-label="Three routes: motor and encoder cable tied together (bad), on separate paths at least 5 cm apart (good), crossing at 90 degrees where they must cross (good).">
+    <text class="tb" x="20" y="22" style="fill:var(--bad)">✗ Tied together</text>
+    <path class="wmot" d="M20 70H200" style="stroke-width:4"/><path class="wsig" d="M20 78H200" style="stroke-width:4"/>
+    <rect class="soft" x="60" y="62" width="6" height="24"/><rect class="soft" x="110" y="62" width="6" height="24"/><rect class="soft" x="160" y="62" width="6" height="24"/>
+    <text class="t" x="20" y="112">They share the whole length:</text><text class="t" x="20" y="130">noise jumps across all of it.</text>
+    <text class="tb" x="240" y="22" style="fill:var(--ok)">✓ Separate paths</text>
+    <path class="wmot" d="M240 54H420" style="stroke-width:4"/><path class="wsig" d="M240 104H420" style="stroke-width:4"/>
+    <path class="ln" d="M252 60V98" marker-start="url(#arr)" marker-end="url(#arr)"/>
+    <text class="t" x="262" y="84">5 cm or more</text>
+    <text class="t" x="240" y="130">Separate ties, separate routes.</text>
+    <text class="tb" x="460" y="22" style="fill:var(--ok)">✓ Must cross? At 90°</text>
+    <path class="wmot" d="M460 80H640" style="stroke-width:4"/><path class="wsig" d="M550 36V130" style="stroke-width:4"/>
+    <path class="ln" d="M550 68H562V80"/>
+    <text class="t" x="460" y="150">Only a tiny shared length.</text>
+  </svg>
+  </div>
+  <figcaption>Purple = motor cable, blue = encoder cable.</figcaption>
+</figure>
+<h3>Rules for this jig</h3>
+<ol>
+  <li>Motor cables and the encoder cable take <b>separate paths</b>, a few centimetres or more apart, with separate ties.</li>
+  <li>If they must cross, cross at <b>90°</b>.</li>
+  <li>In the drag chain they must share space: put them at <b>opposite sides</b> of the chain (use a separator if the chain has one), and use a <b>shielded</b> encoder cable.</li>
+  <li>Keep each motor coil's two wires together (A1 + A2, B1 + B2), twisted if you make the cable yourself.</li>
+  <li>Encoder cable: shield connected to GND <b>at the box end only</b>. Inside, pair each signal with a GND wire.</li>
+</ol>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 640 160" role="img" aria-label="Shielded encoder cable: the drain wire connects to ESP32 GND in the box; at the encoder end the shield is cut back, covered, and not connected.">
+    <rect class="boxc" x="10" y="30" width="100" height="100" rx="6"/><text class="tb" x="60" y="52" text-anchor="middle">box</text>
+    <text class="ts" x="60" y="92" text-anchor="middle">ESP32 GND</text>
+    <path class="ln" d="M80 112H100M84 117H96M88 122H92"/>
+    <path d="M118 100H90V112" style="stroke:var(--solder);stroke-width:2.5;fill:none"/>
+    <path class="ln dash" d="M110 62H492M110 102H492"/>
+    <text class="t" x="300" y="56" text-anchor="middle">shield (foil or braid)</text>
+    <path class="wsig" d="M110 74H530" style="stroke-width:2"/><path class="wgn" d="M110 82H530" style="stroke-width:2"/><path class="wsig" d="M110 90H530" style="stroke-width:2"/>
+    <rect x="492" y="58" width="16" height="48" rx="3" style="fill:var(--muted);opacity:.45"/>
+    <rect class="box" x="530" y="40" width="100" height="80" rx="6"/><text class="tb" x="580" y="84" text-anchor="middle">encoder</text>
+    <text class="t" x="14" y="150">drain wire → GND at the box only</text>
+    <text class="t" x="500" y="134" text-anchor="middle">shield cut back, covered,</text><text class="t" x="500" y="150" text-anchor="middle">NOT connected here</text>
+  </svg>
+  </div>
+  <figcaption>The grounded shield catches the noise current and sends it to GND before it reaches the signal wires. Connect it at one end only: with both ends connected, current can run around a loop through the shield.</figcaption>
+</figure>
+<p class="one">In one sentence: loud and quiet cables on separate paths, crossing at 90°, and a shielded encoder cable grounded at the box end only.</p>
+<div class="details"><b class="h">Small details</b>
+<ul>
+  <li><b>The firmware also helps.</b> T10 sets the encoder filter to 100 clock ticks at 80 MHz, so the counter ignores pulses shorter than 1.25 µs. Good wiring is still the first defence: bursts and ringing can be longer than that.</li>
+  <li>If you use network cable for the encoder, choose <b>stranded patch cable</b> (it bends), with a shield (S/FTP), not solid installation cable.</li>
+  <li>The stock motor cable is a flat ribbon with coil A and coil B side by side. For 1–2 m this is normally fine (3D printers use it). If a motor runs rough with a long cable, Analog Devices (Trinamic) suggests shielded twisted pairs, or a GND wire between the two coil pairs.</li>
+  <li>Keep cables only as long as needed. A big coil of spare cable is a big loop.</li>
+</ul></div>
+
+<!-- ================= MOVING ================= -->
+<h2 id="moving"><span class="tag">Section 8 · the hard idea</span>Moving cables</h2>
+<p class="why"><b>Why this matters:</b> A cable that bends again and again breaks inside its insulation. You see nothing from outside. The encoder just starts to skip at some slider positions, or a motor coil opens.</p>
+<p><b>The idea in simple words.</b> Bend a paper clip back and forth: it breaks at the bend after a few times. Copper does the same, just more slowly (metal fatigue). Two things help: <b>many thin strands</b> instead of one solid core, and a <b>gentle bend</b> (big radius) that always happens in the same controlled way. The comparison stops here: a paper clip is one solid wire; a good flexible cable is more like a rope.</p>
+
+<h3>Four ways to let a cable follow the slider</h3>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 720 220" role="img" aria-label="Four options with the slider at two positions: drag chain, free loop, overhead arc, coiled cable.">
+    <g>
+      <text class="tb" x="10" y="22">Drag chain</text>
+      <path class="ln" d="M20 170H175"/><rect class="boxc" x="10" y="140" width="22" height="30" rx="2"/>
+      <path class="ln dash" d="M32 168H110"/>
+      <path class="chain" style="stroke-width:6" d="M110 164H166A6 6 0 0 0 166 152H160"/>
+      <path class="ln dash" d="M110 164H116A6 6 0 0 0 116 152H60"/>
+      <rect class="box" x="142" y="112" width="18" height="58" rx="2"/><rect x="42" y="112" width="18" height="58" rx="2" class="ln dash"/>
+      <text class="t" x="10" y="194">✓ controls the bend</text><text class="t" x="10" y="210">✗ costs more, needs room</text>
+    </g>
+    <g>
+      <text class="tb" x="190" y="22">Free loop</text>
+      <path class="ln" d="M200 170H355"/><rect class="boxc" x="190" y="140" width="22" height="30" rx="2"/>
+      <path class="wmot" d="M212 150C230 196 310 196 322 150"/>
+      <path class="ln dash" d="M212 156C220 204 240 204 222 156"/>
+      <rect class="box" x="322" y="112" width="18" height="58" rx="2"/><rect x="222" y="112" width="18" height="58" rx="2" class="ln dash"/>
+      <text class="t" x="190" y="194">✓ cheap and simple</text><text class="t" x="190" y="210">✗ snags, gets pinched</text>
+    </g>
+    <g>
+      <text class="tb" x="370" y="22">Overhead arc</text>
+      <path class="ln" d="M380 170H535"/><rect class="boxc" x="370" y="140" width="22" height="30" rx="2"/>
+      <path class="wmot" d="M381 140C381 40 511 40 511 112"/>
+      <path class="ln dash" d="M386 140C386 70 411 70 411 112"/>
+      <rect class="box" x="502" y="112" width="18" height="58" rx="2"/><rect x="402" y="112" width="18" height="58" rx="2" class="ln dash"/>
+      <text class="t" x="370" y="194">✓ keeps the base clear</text><text class="t" x="370" y="210">✗ needs a high support</text>
+    </g>
+    <g>
+      <text class="tb" x="550" y="22">Coiled cable</text>
+      <path class="ln" d="M560 170H715"/><rect class="boxc" x="550" y="140" width="22" height="30" rx="2"/>
+      <path class="wmot" d="M572 150c3-12 7-12 10 0s7 12 10 0 7-12 10 0 7 12 10 0 7-12 10 0 7 12 10 0 7-12 10 0 7 12 10 0 7-12 10 0 7 12 10 0"/>
+      <path class="ln dash" d="M572 140c1-8 2-8 3 0s2 8 3 0 2-8 3 0 2 8 3 0 2-8 3 0 2 8 3 0 2-8 3 0 2 8 3 0 2-8 3 0 2 8 3 0"/>
+      <rect class="box" x="682" y="112" width="18" height="58" rx="2"/><rect x="602" y="112" width="18" height="58" rx="2" class="ln dash"/>
+      <text class="t" x="550" y="194">✓ compact</text><text class="t" x="550" y="210">✗ pulls on the slider</text>
+    </g>
+  </svg>
+  </div>
+  <figcaption>Solid outline = slider far from the box; dashed = slider near the box. Only the drag chain keeps the same, gentle bend at every position.</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>Option</th><th>Good</th><th>Problem for this jig</th><th>Fit for ~1 m travel</th></tr></thead>
+<tbody>
+<tr><td><b>Drag chain</b></td><td>Fixed bend radius, cables protected and tidy, common on 3D printers and CNC machines</td><td>Costs money, needs a strip of space along the base</td><td><b>Best</b></td></tr>
+<tr><td>Free loop</td><td>No parts</td><td>1 m of slack lies around: it snags, gets pinched under the slider, and can enter the camera view</td><td>Poor</td></tr>
+<tr><td>Overhead arc</td><td>Base stays clear</td><td>Needs a high support; the arc can hang into the camera's view</td><td>Possible</td></tr>
+<tr><td>Coiled cable</td><td>Compact</td><td>Its spring pulls on the hand-moved slider; few coiled cables are shielded</td><td>Poor</td></tr>
+</tbody></table></div>
+
+<h3>The math of a drag chain</h3>
+<p>Fix one end of the chain to the base, and the other end to the slider. igus (a chain maker) gives the chain length:</p>
+\[ L_K = \frac{S}{2} + K \qquad \text{(fixed end in the middle of the travel)} \]
+\[ L_K = \frac{S}{2} + \Delta M + K \qquad \text{(fixed end away from the middle)} \]
+\[ K = \pi R + 2T \]
+<p>and every cable inside needs a bend radius that is big enough:</p>
+\[ R \ \ge\ R_{\min} = k \cdot d \]
+<div class="tbl"><table>
+<thead><tr><th>Symbol</th><th>Meaning</th><th>Unit</th></tr></thead>
+<tbody>
+<tr><td>\(L_K\)</td><td>Chain length. Round up to whole links.</td><td>mm</td></tr>
+<tr><td>\(S\)</td><td>Travel of the slider. Yours is about 1 m (your T5 note); measure it on the frame.</td><td>mm</td></tr>
+<tr><td>\(\Delta M\)</td><td>How far the fixed end is from the middle of the travel.</td><td>mm</td></tr>
+<tr><td>\(K\)</td><td>Extra length for the U-bend. \(\pi R\) is the half circle; \(2T\) is one link on each side.</td><td>mm</td></tr>
+<tr><td>\(R\)</td><td>Bend radius of the chain (from its datasheet).</td><td>mm</td></tr>
+<tr><td>\(T\)</td><td>Pitch: the length of one link.</td><td>mm</td></tr>
+<tr><td>\(k\)</td><td>Bend factor of the cable, from its datasheet. Unknown? Use 10, the long-term value NASA's workmanship standard gives for multi-core cable. High-flex chain cables are often 7.5.</td><td>—</td></tr>
+<tr><td>\(d\)</td><td>Outer diameter of the cable.</td><td>mm</td></tr>
+</tbody></table></div>
+<p><b>Why the fixed end goes in the middle:</b> the U-bend moves at half the slider's speed, so the chain only has to cover half the travel each way. With the fixed end at one end of the travel, \(\Delta M = S/2\) and the chain becomes \(S + K\) long: about 70 % longer for your jig.</p>
+
+<div class="sim">
+  <div class="sc"><svg id="chSvg" viewBox="0 0 700 220" role="img" aria-label="Animated drag chain: the slider moves over the travel and the U-bend rolls along at half speed."></svg></div>
+  <div class="btnrow"><button class="btn" type="button" id="chPlay">Pause</button></div>
+  <div class="ctrls">
+    <div><label for="cPos">Slider position: <b id="cPosv"></b></label><input type="range" id="cPos" min="0" max="100" value="75"></div>
+    <div><label for="cS">Travel S: <b id="cSv"></b></label><input type="range" id="cS" min="300" max="1500" step="50" value="1000"></div>
+    <div><label for="cMid">Fixed end</label><select id="cMid"><option value="1">in the middle of the travel</option><option value="0">at the start of the travel (box side)</option></select></div>
+    <div><label for="cR">Chain bend radius R: <b id="cRv"></b></label><input type="range" id="cR" min="18" max="100" value="55"></div>
+    <div><label for="cT">Chain pitch T: <b id="cTv"></b></label><input type="range" id="cT" min="10" max="30" value="20"></div>
+    <div><label for="cD">Thickest cable d: <b id="cDv"></b></label><input type="range" id="cD" min="2" max="10" step="0.5" value="5"></div>
+    <div><label for="cK">Cable bend factor k</label><select id="cK"><option value="7.5">7.5 · high-flex chain cable</option><option value="10" selected>10 · normal flexible cable</option><option value="15">15 · unknown, play safe</option></select></div>
+  </div>
+  <div class="readout">
+    <div>Add-on K = πR + 2T<b id="oK"></b></div>
+    <div>Chain length L<sub>K</sub><b id="oL"></b></div>
+    <div>Chain to buy (whole links)<b id="oB"></b></div>
+    <div id="oRb">Cable needs R ≥ k·d<b id="oR"></b></div>
+    <div>Cut length per moving cable<b id="oC"></b></div>
+  </div>
+  <p style="font-size:14px;color:var(--muted);margin:10px 0 0">Cut length = 100 mm inside the box + box to the fixed end + chain + 200 mm on the slider + 2 × 100 mm spare loops, plus 10 %. The start of the travel is 100 mm from the box.</p>
+</div>
+
+<h3>Rules inside the chain</h3>
+<ul>
+  <li>Cables lie loose, side by side. Never twisted, never tied together inside.</li>
+  <li>Tie each cable firmly at <b>both chain ends</b>. Then the bend always happens inside the chain.</li>
+  <li>No joint, splice or plug inside the chain.</li>
+  <li>Motor cable on one side, encoder cable on the other side.</li>
+</ul>
+<p class="one">In one sentence: moving cables must be flexible and must bend in a controlled way, so put motor 2 and the encoder cable in a drag chain with its fixed end in the middle, and check R ≥ k·d.</p>
+<div class="details"><b class="h">Small details</b>
+<ul>
+  <li>A flat ribbon (like the stock motor cable) bends easily across its flat side. Lay it in the chain so it bends that way. For a flat cable, \(d\) is its thickness.</li>
+  <li>Check that the chain never touches the rotating clamp heads, and that it stays out of the camera's view.</li>
+  <li>You move the slider by hand, slowly and not very often, compared with a machine. A normal flexible cable with a good radius should last. Solid wire never will.</li>
+</ul></div>
+
+<!-- ================= ENDS ================= -->
+<h2 id="ends"><span class="tag">Section 9</span>Cable ends: plugs, terminals, splices</h2>
+<p class="why"><b>Why this matters:</b> Most cable failures happen at the ends, not in the middle.</p>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 690 218" role="img" aria-label="Left: a solder-tinned wire under a screw becomes loose. Middle: a crimped ferrule stays tight. Right: solder wicking makes a stiff zone, and the wire breaks at its edge.">
+    <text class="tb" x="10" y="22" style="fill:var(--bad)">✗ Tinned end under a screw</text>
+    <rect class="box" x="100" y="44" width="110" height="104" rx="4"/>
+    <circle class="soft" cx="155" cy="62" r="12"/><path class="ln" d="M147 62H163"/>
+    <rect class="lead" x="112" y="90" width="86" height="8"/>
+    <rect x="10" y="110" width="96" height="14" style="fill:var(--signal)"/>
+    <rect class="sdull" x="106" y="112" width="90" height="10"/>
+    <path class="bad-s" d="M120 101V109M150 101V109M180 101V109" style="stroke-width:1.5"/>
+    <text class="t" x="10" y="168">Solder slowly flows away</text><text class="t" x="10" y="184">under the pressure: gap →</text><text class="t" x="10" y="200">loose → hot.</text>
+    <text class="tb" x="240" y="22" style="fill:var(--ok)">✓ Ferrule, crimped</text>
+    <rect class="box" x="330" y="44" width="110" height="104" rx="4"/>
+    <circle class="soft" cx="385" cy="62" r="12"/><path class="ln" d="M377 62H393"/>
+    <rect class="lead" x="342" y="94" width="86" height="8"/>
+    <rect x="240" y="108" width="84" height="16" style="fill:var(--signal)"/>
+    <rect x="322" y="104" width="12" height="24" rx="2" style="fill:var(--signal-soft);stroke:var(--signal)"/>
+    <rect class="lead" x="334" y="102" width="92" height="20"/>
+    <path class="ln" d="M360 102V122M384 102V122M408 102V122" style="stroke-width:1"/>
+    <text class="t" x="240" y="168">The strands stay together</text><text class="t" x="240" y="184">and the screw stays tight.</text>
+    <text class="tb" x="470" y="22">Solder wicking</text>
+    <rect class="fr4" x="470" y="96" width="40" height="44"/>
+    <rect class="pad" x="490" y="92" width="20" height="4"/>
+    <ellipse class="sold" cx="504" cy="96" rx="12" ry="6"/>
+    <rect class="sdull" x="510" y="92" width="64" height="8"/>
+    <rect x="540" y="88" width="34" height="16" style="fill:var(--signal);opacity:.55"/>
+    <path d="M574 96Q610 96 626 140" style="stroke:var(--signal);stroke-width:16;fill:none"/>
+    <path class="bad-s" d="M572 80L580 88L572 94L580 102"/>
+    <text class="t" x="490" y="72">stiff: solder inside</text>
+    <text class="t" x="590" y="170" text-anchor="middle">bends here → breaks</text>
+    <text class="t" x="470" y="196">Fix: heat shrink over the stiff</text><text class="t" x="470" y="210">part + a tie just after it.</text>
+  </svg>
+  </div>
+  <figcaption>Ferrule maker Altech warns that solder "cold flows" under the clamp pressure, and cites EN 60204-1 against soldered ends in clamps. Solder that wicks up the strands makes a stiff zone; the flexing then concentrates at its edge.</figcaption>
+</figure>
+<h3>Rules</h3>
+<ul>
+  <li><b>Stranded wire into a screw terminal:</b> crimp a ferrule on it. Second choice: twist the bare strands and tighten again after a week. <b>Never tin it.</b></li>
+  <li><b>Plugs where you take the jig apart:</b> at motor 2 and the encoder on the slider. Use different pin counts for different jobs (motor 4 pins, encoder 5 pins) so they cannot be swapped. Motor 1 and motor 2 use the same plug: label them.</li>
+  <li><b>Never unplug a motor while the drivers have 24 V</b> (SAFETY 4.1). So a motor plug must not fall out by itself. The loose Dupont plug on the stock cable is not good enough; use the screw terminals from your draft, or a locking plug.</li>
+  <li><b>No solder joints in a moving part</b> of a cable.</li>
+</ul>
+<p><b>A wire splice</b> (five steps):</p>
+<ol>
+  <li>Slide the heat shrink onto one wire, far from the joint.</li>
+  <li>Strip 6–8 mm from both wires and twist the strands together.</li>
+  <li>Heat from below and feed solder until it flows through the strands.</li>
+  <li>Let it cool without moving.</li>
+  <li>Slide the tube over the joint and shrink it.</li>
+</ol>
+<p class="one">In one sentence: ferrules in screw terminals, locking or screwed motor connections, different plugs for different jobs, and heat shrink on before you solder.</p>
+<div class="details"><b class="h">Small details</b>
+<ul>
+  <li>Ferrule sizes: 0.25 mm² for 24 AWG, 0.34 mm² for 22 AWG, 0.5 mm² for 20 AWG (compare the areas in Section 3). For thinner wire, fold the strands double before you crimp.</li>
+  <li>The encoder's own plug is a Molex 50-57-9405 housing (5 pins, 2.54 mm), per the AMT10 datasheet.</li>
+  <li>A ferrule needs a ferrule crimping tool; pliers do not press it evenly.</li>
+</ul></div>
+
+<!-- ================= RELIEF ================= -->
+<h2 id="relief"><span class="tag">Section 10</span>Strain relief and fixing</h2>
+<p class="why"><b>Why this matters:</b> Someone will pull a cable: you, a teammate, or the slider. A tie decides whether the pull lands on plastic or on a solder joint.</p>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 680 170" role="img" aria-label="Left: a wire with no support, all the pulling force lands on the solder joint. Right: a tie on the board takes the pull, with a small loop between tie and joint.">
+    <text class="tb" x="20" y="22" style="fill:var(--bad)">✗ No support</text>
+    <rect class="fr4" x="20" y="60" width="120" height="70" rx="4"/>
+    <ellipse class="sold" cx="120" cy="95" rx="9" ry="6"/>
+    <path class="wsig" d="M126 95H300" style="stroke-width:5"/>
+    <path class="bad-s" d="M250 122H312" marker-end="url(#arrb)"/><text class="t" x="270" y="142">pull</text>
+    <circle class="bad-s" cx="120" cy="95" r="15"/>
+    <text class="t" x="20" y="158">All the force lands on the joint.</text>
+    <text class="tb" x="360" y="22" style="fill:var(--ok)">✓ Tie it near the joint</text>
+    <rect class="fr4" x="360" y="60" width="180" height="70" rx="4"/>
+    <ellipse class="sold" cx="460" cy="95" rx="9" ry="6"/>
+    <path class="wsig" d="M466 95C484 95 482 78 496 78S510 95 524 95H660" style="stroke-width:5"/>
+    <rect class="soft" x="516" y="82" width="10" height="26" rx="2"/>
+    <path class="ok-s" d="M600 122H662" marker-end="url(#arr)"/><text class="t" x="620" y="142">pull</text>
+    <text class="t" x="360" y="158">The tie takes the pull.</text>
+  </svg>
+  </div>
+  <figcaption>Tie every cable 2–3 cm from each joint or plug: at the box, on the slider, at each motor.</figcaption>
+</figure>
+<ul>
+  <li>Cables enter the box through a <b>grommet</b> or a cable gland. No sharp metal or wood edges.</li>
+  <li>Cable ties firm, not crushing. The insulation must not be dented (NASA workmanship rule).</li>
+  <li>Tie the <b>USB cable</b> to the box within a few cm of the ESP32, so the ESP32's USB socket never takes a pull.</li>
+  <li>Hot glue only as a last resort, and never over pads or bare joints.</li>
+  <li>Keep every cable away from the rotating clamp heads and out of the camera's view.</li>
+</ul>
+<p class="one">In one sentence: a tie near every end takes the pull, so joints and plugs never do.</p>
+
+<!-- ================= LABELS ================= -->
+<h2 id="labels"><span class="tag">Section 11</span>Labels and drawings</h2>
+<p class="why"><b>Why this matters:</b> In three months nobody remembers which grey cable is which. Labels and one cable table save hours, and help the next team.</p>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 640 120" role="img" aria-label="One cable with the same ID flag at both ends.">
+    <path class="wmot" d="M40 64H600" style="stroke-width:6"/>
+    <rect class="box" x="10" y="52" width="30" height="24" rx="3"/><rect class="box" x="600" y="52" width="30" height="24" rx="3"/>
+    <rect class="boxc" x="60" y="18" width="170" height="26" rx="4"/><text class="tm" x="68" y="35">C4 · MOTOR 2 · to box</text><path class="ln" d="M80 44V60"/>
+    <rect class="boxc" x="410" y="18" width="180" height="26" rx="4"/><text class="tm" x="418" y="35">C4 · MOTOR 2 · to motor</text><path class="ln" d="M570 44V60"/>
+    <text class="t" x="320" y="104" text-anchor="middle">same ID at both ends, in the wiring atlas, and in the cable table</text>
+  </svg>
+  </div>
+</figure>
+<p>Keep one <b>cable table</b> in the repo (next to the wiring atlas). Example rows:</p>
+<div class="tbl"><table>
+<thead><tr><th>ID</th><th>From → to</th><th>Wires</th><th>Length</th><th>Moves?</th><th>Ends</th></tr></thead>
+<tbody>
+<tr><td>C1</td><td>ESP32 → Pi 5</td><td>USB</td><td>≤ 1 m</td><td>no</td><td>USB plugs, tied at the box</td></tr>
+<tr><td>C2</td><td>24 V supply → box</td><td>red +, black −, 20 AWG</td><td>to measure</td><td>no</td><td>ferrules into "24 V in"</td></tr>
+<tr><td>C3</td><td>Box → motor 1</td><td>4 (2 coil pairs)</td><td>stock 1 m</td><td>no</td><td>ferrules into "Motor 1"; JST at the motor</td></tr>
+<tr><td>C4</td><td>Box → motor 2</td><td>4 (2 coil pairs), flexible</td><td>≈ 2.0 m</td><td><b>yes</b></td><td>ferrules into "Motor 2"; JST at the motor</td></tr>
+<tr><td>C5</td><td>Box → encoder</td><td>5 + shield, flexible</td><td>≈ 2.0 m</td><td><b>yes</b></td><td>board plug; Molex 5-pin at the encoder</td></tr>
+</tbody></table></div>
+<ul>
+  <li>Take photos before you close the box.</li>
+  <li>When you change a wire, change the drawing the same day.</li>
+</ul>
+<p class="one">In one sentence: one ID per cable, written at both ends, in the drawing and in the table.</p>
+
+<!-- ================= ASSEMBLE ================= -->
+<h2 id="assemble"><span class="tag">Section 12</span>Assembly order and final test</h2>
+<h3>Build (five steps)</h3>
+<ol>
+  <li>Mount the box, the supports and the drag chain.</li>
+  <li>Lay the fixed cables (C1, C2, C3) and tie them.</li>
+  <li>Pull C4 and C5 through the chain. Tie them at both chain ends.</li>
+  <li>Fit the ends (ferrules, plugs) and the labels.</li>
+  <li>Beep-test every cable end to end before it goes into the board.</li>
+</ol>
+<h3>Test (five steps)</h3>
+<ol>
+  <li>Power off: move the slider slowly over the full travel. Nothing pulls tight, rubs, or enters the camera view.</li>
+  <li>Power up in order: USB first, 24 V last.</li>
+  <li>T10 noise check on the real jig: encoder still, motors running 1 minute, no <code>pos</code> lines.</li>
+  <li>Move the slider while the motors run: the length changes smoothly.</li>
+  <li>Pull gently on each cable at the box: the tie takes it.</li>
+</ol>
+<p class="one">In one sentence: build fixed cables first and moving cables second, test every cable before it is connected, then repeat the T10 noise check on the real jig.</p>
+
+<!-- ================= EXAMPLES ================= -->
+<h2 id="examples"><span class="tag">Practice</span>Worked examples</h2>
+<h3>Example 1 · Plan the moving cables for your slider</h3>
+<p><b>Given:</b> travel \(S = 1000\) mm (your T5 note), start of travel 100 mm from the box. An example chain: \(R = 55\) mm, \(T = 20\) mm. Encoder cable \(d = 5\) mm (shielded), motor cable \(d = 4.5\) mm, bend factor \(k = 10\). On the slider, 200 mm of cable from the chain end to the parts. 100 mm inside the box. <b>Find:</b> chain length, radius check, cable cut length.</p>
+<div class="step"><div class="n">1</div><div><span class="why-n">Why: the middle needs the shortest chain (igus).</span>Fixed end in the middle of the travel: \(x_f = 100 + 1000/2 = 600\) mm from the box.</div></div>
+<div class="step"><div class="n">2</div><div><span class="why-n">Why: the U-bend needs extra length.</span>\(K = \pi R + 2T = \pi \cdot 55 + 2 \cdot 20 = 172.8 + 40 = 212.8\) mm</div></div>
+<div class="step"><div class="n">3</div><div><span class="why-n">Why: the chain covers half the travel plus the bend.</span>\(L_K = S/2 + K = 500 + 212.8 = 712.8\) mm → round up to whole links: \(\lceil 712.8/20 \rceil = 36\) links \(= 720\) mm.</div></div>
+<div class="step"><div class="n">4</div><div><span class="why-n">Why: the thickest cable sets the minimum radius.</span>\(R_{\min} = k\,d = 10 \cdot 5 = 50\) mm \(\le 55\) mm ✓. (Motor cable: \(10 \cdot 4.5 = 45\) mm ✓.) A smaller chain with \(R = 38\) mm would fail.</div></div>
+<div class="step"><div class="n">5</div><div><span class="why-n">Why: add every piece of the route, then spare.</span>\(100 + 600 + 720 + 200 + 2 \cdot 100 = 1820\) mm; \(+10\,\% \Rightarrow 2002\) mm \(\approx 2.0\) m per moving cable.</div></div>
+<p><b>Check:</b> all lengths are in mm ✓. The chain (720 mm) is a bit more than half the travel, as expected. With the fixed end at the box side, the chain would be \(S + K = 1213\) mm → 1220 mm: 500 mm more. A 2.0 m cable on a jig about 1.2 m long is reasonable, because it runs out and back. For the motor, buy a ready-made 2.5 m cable (the next size up) rather than splicing.</p>
+<figure>
+  <div class="sc"><svg id="weA" viewBox="0 0 700 220" role="img" aria-label="Result: chain with the slider at the start of the travel."></svg></div>
+  <div class="sc"><svg id="weB" viewBox="0 0 700 220" role="img" aria-label="Result: chain with the slider at the end of the travel."></svg></div>
+  <figcaption>The result at both ends of the travel (720 mm chain, R = 55 mm). The U-bend sits just past the fixed end, then just past the slider.</figcaption>
+</figure>
+
+<h3>Example 2 · Why can a motor wire disturb the encoder?</h3>
+<p><b>Given:</b> a motor wire and the encoder A wire tied together for 1 m. Both 24 AWG (copper radius \(a = 0.255\) mm), centres \(D = 2\) mm apart. The driver switches 24 V in about 100 ns (an assumption, for the order of size). AMT10 datasheet: CMOS output, 2 mA, output high at least \(V_{DD} - 0.8\) V. 74LVC245 input: HIGH above \(V_{IH} = 2.0\) V. <b>Find:</b> how big the noise spike is.</p>
+<div class="step"><div class="n">1</div><div><span class="why-n">Why: two parallel wires form a small capacitor.</span>\(C' = \dfrac{\pi \varepsilon_0}{\operatorname{arcosh}(D/2a)} = \dfrac{\pi \cdot 8.854\times10^{-12}}{\operatorname{arcosh}(3.92)} = \dfrac{2.78\times10^{-11}}{2.04} \approx 13.6\) pF per metre (in air; insulation makes it a little bigger).</div></div>
+<div class="step"><div class="n">2</div><div><span class="why-n">Why: current through a capacitor is i = C · dV/dt.</span>\(i = C\,\dfrac{dV}{dt} = 13.6\times10^{-12}\ \text{F} \cdot \dfrac{24\ \text{V}}{100\times10^{-9}\ \text{s}} \approx 3.3\) mA</div></div>
+<div class="step"><div class="n">3</div><div><span class="why-n">Why: we need to know how "stiff" the encoder output is.</span>It drops 0.8 V at 2 mA, so \(R_{\text{out}} \approx 0.8\ \text{V} / 2\ \text{mA} = 400\ \Omega\).</div></div>
+<div class="step"><div class="n">4</div><div><span class="why-n">Why: the pushed current flows through that resistance.</span>\(V_{\text{spike}} \approx i \cdot R_{\text{out}} = 3.3\ \text{mA} \cdot 400\ \Omega \approx 1.3\) V on top of a LOW signal.</div></div>
+<div class="step"><div class="n">5</div><div><span class="why-n">Why: compare with the chip's threshold.</span>A LOW can sit up to 0.8 V, so \(0.8 + 1.3 = 2.1\) V \(&gt; 2.0\) V: the 74LVC245 can read a false HIGH. With 2 m tied together the spike doubles.</div></div>
+<p><b>Check:</b> F × V/s = A ✓. The spike current (3.3 mA) is bigger than what the encoder output is made for (2 mA), so the result is believable. <b>Fixes:</b> separate the cables (less capacitance, and other grounded parts take some of the field), and use a grounded shield: it catches this current and sends it to GND. The firmware's 1.25 µs filter ignores one 100 ns spike, but not a burst.</p>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 640 170" role="img" aria-label="Encoder signal A with spikes at each motor switching edge; one spike on a LOW crosses the 2.0 volt threshold.">
+    <path class="ln" d="M50 20V140H620"/>
+    <text class="ts" x="44" y="24" text-anchor="end">3.3 V</text><text class="ts" x="44" y="140" text-anchor="end">0 V</text>
+    <path class="ln dash" d="M50 69H620" style="stroke:var(--bad)"/><text class="ts" x="616" y="64" text-anchor="end" style="fill:var(--bad)">V_IH = 2.0 V</text>
+    <path class="wsig" d="M50 125H200V30H380V125H620"/>
+    <path class="wmot" d="M110 125V71L114 125M150 125V71L154 125M440 125V65L444 125M520 125V71L524 125M300 30V10L304 30"/>
+    <circle class="bad-s" cx="442" cy="68" r="10"/>
+    <text class="ts" x="460" y="58">false HIGH</text>
+    <text class="t" x="335" y="162" text-anchor="middle">time → (encoder still; spikes at each driver switching edge)</text>
+  </svg>
+  </div>
+  <figcaption>Picture of the result (not to scale in time): each fast switching edge of the driver adds a spike of about 1.3 V. On a LOW of up to 0.8 V, a spike can cross 2.0 V.</figcaption>
+</figure>
+
+<!-- ================= CODE ================= -->
+<h2 id="code"><span class="tag">Practice</span>Code: cable planner</h2>
+<p>Python, standard library only. Change the numbers at the top to your measured travel and the chain you buy. Run it in the VS Code terminal with <code>python cable_plan.py</code>.</p>
+<div class="codebox"><button class="copy" type="button">Copy</button><pre># cable_plan.py - plan the moving cables of the jig (run: python cable_plan.py)
+import math
+
+S = 1000                # slider travel in mm (measure yours)
+R = 55                  # drag chain bend radius in mm (from the chain's data)
+T = 20                  # drag chain pitch = length of one link in mm
+FIXED_AT_MIDDLE = True  # is the chain's fixed end in the middle of the travel?
+X1 = 100                # box -> start of the travel, in mm
+INSIDE = 100            # cable inside the box, up to the board, in mm
+SLIDER = 200            # chain's moving end -> part on the slider, in mm
+LOOP = 100              # small spare loop at each end, in mm
+
+cables = {              # name: (outer diameter in mm, bend factor k)
+    "C4 motor 2": (4.5, 10),
+    "C5 encoder": (5.0, 10),
+}
+
+K = math.pi * R + 2 * T                  # add-on for the bend (igus)
+dM = 0 if FIXED_AT_MIDDLE else S / 2     # how far the fixed end is from the middle
+LK = S / 2 + dM + K                      # chain length
+links = math.ceil(LK / T)                # round up to whole links
+x_fixed = X1 + S / 2 if FIXED_AT_MIDDLE else X1
+print(f"Chain: K = {K:.0f} mm, LK = {LK:.0f} mm -> {links} links = {links * T} mm")
+
+for name, (d, k) in cables.items():
+    r_min = k * d                        # smallest bend radius this cable allows
+    ok = "OK" if R >= r_min else "TOO TIGHT - bigger chain or thinner cable"
+    cut = (INSIDE + x_fixed + links * T + SLIDER + 2 * LOOP) * 1.10  # +10 % spare
+    print(f"{name}: R_min = {r_min:.0f} mm -> {ok}; cut length = {cut / 1000:.2f} m")
+
+# 5 V drop on the encoder cable: 6 mA, 26 AWG = 0.134 ohm/m, out and back
+drop = 0.006 * 0.134 * 2 * cut / 1000
+print(f"Encoder 5 V drop: {drop * 1000:.1f} mV (tiny, the encoder needs only 3.6 V)")</pre></div>
+<p><b>Expected output</b> (tested):</p>
+<pre>Chain: K = 213 mm, LK = 713 mm -> 36 links = 720 mm
+C4 motor 2: R_min = 45 mm -> OK; cut length = 2.00 m
+C5 encoder: R_min = 50 mm -> OK; cut length = 2.00 m
+Encoder 5 V drop: 3.2 mV (tiny, the encoder needs only 3.6 V)</pre>
+<p>The last line shows something useful: over a 2 m cable the encoder's 5 V drops only 3 mV, because it draws about 6 mA. So wire thickness for the encoder is about strength, not voltage.</p>
+
+<!-- ================= TRAPS ================= -->
+<h2 id="traps"><span class="tag">Practice</span>Mistakes to avoid</h2>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 680 262" role="img" aria-label="Three wrong and right pairs: solder carried on the tip versus fed into the hot joint; heat shrink forgotten versus slid on first; cables twisted and tied inside the chain versus loose inside and tied at both ends.">
+    <text class="tb" x="10" y="18" style="fill:var(--bad)">✗ Solder carried on the tip</text>
+    <rect class="pad" x="60" y="66" width="60" height="4"/><rect class="lead" x="86" y="30" width="8" height="42"/>
+    <ellipse class="sdull" cx="90" cy="54" rx="13" ry="10"/>
+    <polygon class="lead" points="158,44 168,42 218,12 206,6"/><circle class="sold" cx="160" cy="46" r="5"/>
+    <path class="ln" d="M150 50L108 54" marker-end="url(#arr)"/>
+    <text class="t" x="230" y="62">dull ball, pad dry</text>
+    <text class="tb" x="350" y="18" style="fill:var(--ok)">✓ Feed solder into the hot joint</text>
+    <rect class="pad" x="400" y="66" width="60" height="4"/><rect class="lead" x="426" y="30" width="8" height="42"/>
+    <path class="sold" d="M400 66Q424 62 426 42L434 42Q436 62 460 66Z"/>
+    <polygon class="lead" points="436,66 446,64 498,16 486,8"/>
+    <path d="M362 26L420 62" style="stroke:var(--solder);stroke-width:5;stroke-linecap:round"/>
+    <text class="t" x="520" y="62">shiny cone</text>
+    <text class="tb" x="10" y="104" style="fill:var(--bad)">✗ Heat shrink forgotten</text>
+    <path class="wsig" d="M30 140H200" style="stroke-width:6"/><ellipse class="sold" cx="115" cy="140" rx="14" ry="6"/>
+    <rect x="232" y="128" width="50" height="12" rx="3" style="fill:var(--muted);opacity:.5"/><text class="tb" x="292" y="140">?</text>
+    <text class="tb" x="350" y="104" style="fill:var(--ok)">✓ Tube on first, slide it over after</text>
+    <path class="wsig" d="M370 140H560" style="stroke-width:6"/><ellipse class="sold" cx="430" cy="140" rx="14" ry="6"/>
+    <rect x="490" y="133" width="46" height="14" rx="3" style="fill:var(--muted);opacity:.5"/>
+    <path class="ln" d="M512 158H440" marker-end="url(#arr)"/>
+    <text class="tb" x="10" y="192" style="fill:var(--bad)">✗ Twisted and tied inside the chain</text>
+    <rect class="soft" x="30" y="210" width="240" height="34" rx="6"/>
+    <path class="wmot" d="M30 222C80 238 100 206 150 222S220 238 270 222"/><path class="wsig" d="M30 232C80 216 100 248 150 232S220 216 270 232"/>
+    <rect class="badf" x="118" y="210" width="5" height="34"/><rect class="badf" x="200" y="210" width="5" height="34"/>
+    <text class="tb" x="350" y="192" style="fill:var(--ok)">✓ Loose inside, tied at both ends</text>
+    <rect class="soft" x="390" y="210" width="230" height="34" rx="6"/>
+    <path class="wmot" d="M366 220H644"/><path class="wsig" d="M366 234H644"/>
+    <rect class="okf" x="378" y="208" width="6" height="38"/><rect class="okf" x="628" y="208" width="6" height="38"/>
+  </svg>
+  </div>
+</figure>
+<ol class="traps">
+  <li><b>Carrying solder on the tip to the joint.</b> The flux burns off on the way, and the pad never gets hot. <span class="spot">Spot it: a dull ball sitting on the leg. Fast check: the pad edge is still bare copper.</span></li>
+  <li><b>Moving the board while the solder freezes.</b> <span class="spot">Spot it: grainy, cracked surface. Fix: reheat with a little flux, keep still for 3 s.</span></li>
+  <li><b>Heat shrink forgotten.</b> After soldering, the tube cannot go over the joint anymore. <span class="spot">Fast check: before you heat anything, ask "is the tube on?"</span></li>
+  <li><b>Tinned stranded wire in a screw terminal.</b> It feels tight today and is loose in a month. <span class="spot">Fast check: after a week, if the screw turns further, the end was creeping. Use a ferrule.</span></li>
+  <li><b>Solid wire in a moving cable.</b> It breaks inside the insulation. <span class="spot">Spot it: the encoder skips only at some slider positions. Fast check: beep test while you move the slider.</span></li>
+  <li><b>Motor cable tied to the encoder cable.</b> <span class="spot">Spot it: <code>pos</code> lines while the encoder is still (T10 noise check).</span></li>
+  <li><b>Shield connected at both ends, or to 5 V.</b> <span class="spot">Fast check: beep test between the shield and GND at the encoder end must be silent with the box end disconnected.</span></li>
+  <li><b>Cables tied together inside the drag chain, or bent tight at the chain ends.</b> <span class="spot">Fast check: move the slider by hand; every cable should slide freely inside the chain.</span></li>
+  <li><b>24 V + and − far apart on the board.</b> <span class="spot">Spot it on the drawing: shade the area between them. Big area = big antenna.</span></li>
+  <li><b>A solder blob on the back of the double-sided board shorts a top pad.</b> <span class="spot">Fast check: look at the top after each back-side group; beep-test neighbours.</span></li>
+  <li><b>Cables cut exactly to length.</b> No spare to redo an end. <span class="spot">Fix: leave about 10 cm spare loops at both ends.</span></li>
+  <li><b>Unplugging a motor while 24 V is on.</b> The voltage spike kills the driver (SAFETY 4.1). <span class="spot">Rule: motor power off first, always.</span></li>
+</ol>
+
+<!-- ================= QUIZ ================= -->
+<h2 id="quiz"><span class="tag">Practice</span>Practice quiz</h2>
+<div class="quiz" id="quizbox"></div>
+<p class="score" id="scorebox" aria-live="polite">Score: 0 / 8</p>
+<p id="rereadbox" style="font-size:15px"></p>
+
+<!-- ================= SUMMARY ================= -->
+<h2 id="summary"><span class="tag">Review</span>Visual summary</h2>
+<figure>
+  <div class="sc">
+  <svg viewBox="0 0 760 400" role="img" aria-label="Summary: five rules on the board, six rules across the jig, and the drag chain formulas.">
+    <rect class="box" x="10" y="10" width="360" height="300" rx="10"/>
+    <text class="tb" x="26" y="38" style="font-size:18px">On the board</text>
+    <g class="t">
+      <rect x="26" y="58" width="8" height="8" style="fill:var(--copper)"/><text class="tb" x="42" y="66">Hot pad + hot leg, then feed solder</text><text class="t" x="42" y="84">2–4 s · solder away, then iron away</text>
+      <rect x="26" y="102" width="8" height="8" style="fill:var(--copper)"/><text class="tb" x="42" y="110">Solid wire on the board</text><text class="t" x="42" y="128">stranded for anything that leaves or moves</text>
+      <rect x="26" y="146" width="8" height="8" style="fill:var(--copper)"/><text class="tb" x="42" y="154">Sockets; low parts first, wires last</text><text class="t" x="42" y="172">beep-test each group</text>
+      <rect x="26" y="190" width="8" height="8" style="fill:var(--copper)"/><text class="tb" x="42" y="198">Logic area and 24 V area apart</text><text class="t" x="42" y="216">+ and − side by side · caps at the pins</text>
+      <rect x="26" y="234" width="8" height="8" style="fill:var(--copper)"/><text class="tb" x="42" y="242">Look → beep → ohms → power</text><text class="t" x="42" y="260">first power with the modules out</text>
+    </g>
+    <rect class="box" x="390" y="10" width="360" height="300" rx="10"/>
+    <text class="tb" x="406" y="38" style="font-size:18px">Across the jig</text>
+    <rect x="406" y="58" width="8" height="8" style="fill:var(--signal)"/><text class="tb" x="422" y="66">Map and label every cable (C1…C7)</text><text class="t" x="422" y="84">same ID at both ends and in the drawing</text>
+    <rect x="406" y="100" width="8" height="8" style="fill:var(--signal)"/><text class="tb" x="422" y="108">Motor cables away from the encoder</text><text class="t" x="422" y="126">never tied together · cross at 90°</text>
+    <rect x="406" y="142" width="8" height="8" style="fill:var(--signal)"/><text class="tb" x="422" y="150">Encoder cable shielded</text><text class="t" x="422" y="168">drain to GND at the box only</text>
+    <rect x="406" y="184" width="8" height="8" style="fill:var(--copper)"/><text class="tb" x="422" y="192">Moving cables: flexible, in a drag chain</text><text class="t" x="422" y="210">fixed end in the middle · R ≥ k·d</text>
+    <rect x="406" y="226" width="8" height="8" style="fill:var(--signal)"/><text class="tb" x="422" y="234">Ferrules in screw terminals</text><text class="t" x="422" y="252">never tinned ends · heat shrink on first</text>
+    <rect x="406" y="268" width="8" height="8" style="fill:var(--signal)"/><text class="tb" x="422" y="276">Tie each cable near every end</text><text class="t" x="422" y="294">small spare loop · no pull on joints</text>
+    <rect class="boxc" x="10" y="322" width="740" height="68" rx="10"/>
+    <text class="tb" x="30" y="350" style="font-size:15px">Drag chain:  L<tspan dy="4" style="font-size:11px">K</tspan><tspan dy="-4"> = S/2 + K,   K = πR + 2T,   fixed end in the middle</tspan></text>
+    <text class="tb" x="30" y="376" style="font-size:15px">Bend:  R ≥ k·d     Pair field:  B<tspan dy="4" style="font-size:11px">pair</tspan><tspan dy="-4"> / B</tspan><tspan dy="4" style="font-size:11px">one</tspan><tspan dy="-4"> ≈ s/r     Your jig: 720 mm chain, 2.0 m cables</tspan></text>
+  </svg>
+  </div>
+  <figcaption>The whole page on one screen. Copper squares mark the ideas that cost the most if you get them wrong.</figcaption>
+</figure>
+
+<!-- ================= CHECKLIST ================= -->
+<h2 id="checklist"><span class="tag">Review</span>Checklist</h2>
+<div class="check" id="checkbox">
+  <label><input type="checkbox" id="ck1"> I can make a shiny, cone-shaped joint in 2–4 seconds, and say why a joint is cold.</label>
+  <label><input type="checkbox" id="ck2"> I can choose solid or stranded wire for each job on this project.</label>
+  <label><input type="checkbox" id="ck3"> I can explain the two layers, the two zones, and why the 24 V + and − run side by side.</label>
+  <label><input type="checkbox" id="ck4"> I can do the five checks before the first power-up.</label>
+  <label><input type="checkbox" id="ck5"> I can name cables C1–C7, their family (power, motor, signal) and which ones move.</label>
+  <label><input type="checkbox" id="ck6"> I can route the encoder cable so the T10 noise check passes, and ground its shield correctly.</label>
+  <label><input type="checkbox" id="ck7"> I can compute a drag chain length and check R ≥ k·d.</label>
+  <label><input type="checkbox" id="ck8"> I know why a tinned wire must never go into a screw terminal.</label>
+</div>
+
+<!-- ================= CHOICES ================= -->
+<h2 id="choices"><span class="tag">Decide</span>Your choices</h2>
+<p>These four choices are yours. My pick is marked. Tell me your picks in chat; I will put them into the soldering plan and the assembly plan.</p>
+<div class="cards">
+  <div class="card"><h4>A · Moving cables</h4><p><b>A1 Drag chain</b><span class="rec">my pick</span><br>Controls the bend over 1 m of travel. About 720 mm of chain.</p><p><b>A2 Overhead arc</b><br>Cheaper, but needs a high support and may enter the camera view.</p><p style="margin:0"><b>A3 Free loop</b><br>Only for a short travel; snags and gets pinched.</p></div>
+  <div class="card"><h4>B · Screw-terminal ends</h4><p><b>B1 Ferrules + crimp tool</b><span class="rec">my pick</span><br>Tight for years. The tool is cheap.</p><p style="margin:0"><b>B2 Bare twisted strands</b><br>No tool needed; tighten again after a week. Never tinned.</p></div>
+  <div class="card"><h4>C · Encoder cable</h4><p><b>C1 Shielded, flexible cable</b><span class="rec">my pick</span><br>For example stranded S/FTP patch cable: signals paired with GND, shield to GND at the box.</p><p style="margin:0"><b>C2 Five loose wires</b><br>Not recommended over 2 m next to motor cables.</p></div>
+  <div class="card"><h4>D · Motor 2 cable</h4><p><b>D1 Longer ready-made cable</b><span class="rec">my pick</span><br>Same motor plug, 2.5 m. No joint in the moving part.</p><p style="margin:0"><b>D2 Extend the 1 m cable</b><br>A splice; it must sit in a part that never moves.</p></div>
+</div>
+<h3>Shopping list (suggestion)</h3>
+<div class="tbl"><table>
+<thead><tr><th>Item</th><th>For</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>Temperature-controlled iron + chisel tip</td><td>Part 1</td><td>50 W+ station if possible</td></tr>
+<tr><td>Rosin-core solder 0.6–0.8 mm, flux pen, wick, brass wool</td><td>Part 1</td><td>Ask the lab: leaded or lead-free</td></tr>
+<tr><td>Flush cutters, wire stripper, board holder, glasses, fan</td><td>Part 1</td><td>—</td></tr>
+<tr><td>Heat shrink set + heat gun</td><td>Both</td><td>—</td></tr>
+<tr><td>Ferrules (0.25 / 0.34 / 0.5 mm²) + ferrule crimper</td><td>Part 2</td><td>If you pick B1</td></tr>
+<tr><td>Drag chain, R ≥ 50 mm, about 0.75 m, with end brackets</td><td>Part 2</td><td>If you pick A1; check its R and T</td></tr>
+<tr><td>Shielded flexible cable for the encoder, ≈ 2.5 m</td><td>Part 2</td><td>If you pick C1</td></tr>
+<tr><td>Stepper cable with the same motor plug, 2.5 m</td><td>Part 2</td><td>If you pick D1</td></tr>
+<tr><td>Cable ties, adhesive tie mounts, grommets, labels</td><td>Part 2</td><td>—</td></tr>
+</tbody></table></div>
+
+<!-- ================= SOURCES ================= -->
+<h2 id="sources"><span class="tag">Check me</span>Sources</h2>
+<p>Facts about <b>your</b> jig come from your project files. General wiring rules come from the online sources below. Parts marked <span class="extra">Extra</span> go beyond what the project needs right now.</p>
+<h3>Your project files</h3>
+<ul class="src">
+  <li><code>docs/perfboard/index.html</code>: board layout, zones, buses, terminals, fuse spot, reserved area (Sections 4, 5).</li>
+  <li><code>docs/PIN_PLAN.md</code>, <code>docs/SAFETY.md</code>: pins, EN pull-up, power order, "never unplug a motor under power" (Sections 4, 5, 9).</li>
+  <li><code>tests/T10_all_together</code>: noise check steps, encoder filter <code>PCNT_FILTER = 100</code> (Sections 7, 12).</li>
+  <li><code>docs/SOURCES.md</code> (T5): slider travel about 1 m (Section 8, Example 1).</li>
+  <li><code>Stepper Motor/Stepper Motor Information.png</code> and photo: 4.1 Ω and 1 A per phase, 1 m cable, Dupont plug (Sections 3, 9).</li>
+  <li>Project description (<code>CLAUDE.md</code>): box position, motors on the fixed and sliding supports, encoder on the slider (Section 6).</li>
+</ul>
+<h3>Online</h3>
+<ul class="src">
+  <li>Adafruit, <a href="https://learn.adafruit.com/adafruit-guide-excellent-soldering" target="_blank" rel="noopener">Guide to Excellent Soldering</a>: iron power, keeping the joint still, fumes and lead, student advice (Sections 1, 2).</li>
+  <li>LCSC, <a href="https://www.lcsc.com/blog/solder-melting-point-guide/" target="_blank" rel="noopener">Solder melting point guide</a>: tip temperature ranges (Section 1; sources differ slightly).</li>
+  <li>Same Sky (CUI), <a href="https://www.sameskydevices.com/product/resource/amt10.pdf" target="_blank" rel="noopener">AMT10 datasheet</a>: CMOS output, 2 mA, output high ≥ V<sub>DD</sub> − 0.8 V, Molex 50-57-9405 plug (Section 9, Example 2).</li>
+  <li>Altech, <a href="https://datasheets.globalspec.com/ds/Altech/2776-0/b68971fe-f141-4ad8-8778-38d94fda948a" target="_blank" rel="noopener">ferrule datasheet</a>: tinned ends cold-flow in clamps; EN 60204-1 (Section 9).</li>
+  <li>RepRap wiki, <a href="https://reprap.org/wiki/Wire_termination_for_screw_terminals" target="_blank" rel="noopener">Wire termination for screw terminals</a> (Section 9).</li>
+  <li>US patent 4385341, <a href="https://patents.google.com/patent/US4385341" target="_blank" rel="noopener">strain relief for flat cables</a>: solder wicking makes a flex point at the wicking edge (Section 9).</li>
+  <li>EEVblog forum, <a href="https://www.eevblog.com/forum/manufacture/what-is-acceptable-ways-of-soldering-wires-directly-to-pcb/msg2496603/" target="_blank" rel="noopener">soldering wires directly to a PCB</a>, and <a href="https://forum.arcadecontrols.com/index.php/topic,3534.0.html" target="_blank" rel="noopener">BYOAC forum</a> (no glue over pads): strain relief methods (Section 10).</li>
+  <li>Wikipedia, <a href="https://en.wikipedia.org/wiki/Perfboard" target="_blank" rel="noopener">Perfboard</a>, and DigiKey Maker.io, <a href="https://www.digikey.com/en/maker/blogs/2022/start-building-cleaner-perfboard-projects-using-these-simple-tips" target="_blank" rel="noopener">cleaner perfboard projects</a>: planning, wire types, bare-wire buses (Section 4).</li>
+  <li>Epec, <a href="https://blog.epectec.com/what-is-the-difference-between-a-stranded-cable-and-solid-cable" target="_blank" rel="noopener">stranded vs solid cable</a>: fatigue from repeated bending (Sections 3, 8).</li>
+  <li>NASA Workmanship, <a href="https://workmanship.nasa.gov/lib/insp/2%20books/links/sections/401%20General%20Requirements.html" target="_blank" rel="noopener">cable and harness general requirements</a>: bend radius 6× minimum, 10× recommended long-term for multi-core cable; ties must not deform insulation (Sections 8, 10).</li>
+  <li>igus, <a href="https://www.igus.com/info/e-chain-designing-calculation" target="_blank" rel="noopener">e-chain length calculation</a> and <a href="https://www.igus.com/info/e-chain-designing-terms" target="_blank" rel="noopener">terms</a> (K = πR + 2T); <a href="https://blog.igus.co.uk/?p=12439" target="_blank" rel="noopener">bend factor</a> (Section 8, Example 1).</li>
+  <li>Analog Devices (Trinamic), <a href="https://ez.analog.com/other-products/a/documents/do23379/how-can-i-fix-reduced-trinamic-motor-performance-and-increased-motor-noise-and-vibration-when-using-long-cables" target="_blank" rel="noopener">long motor cables</a>: keep coil pairs apart; shielded twisted pairs or a GND wire between pairs (Section 7).</li>
+  <li>LinuxCNC forum, <a href="https://forum.linuxcnc.org/49-basic-configuration/45218-encoder-wiring" target="_blank" rel="noopener">encoder wiring</a>; CAD_CAM_EDM_DRO archive, <a href="https://buildbotics.com/archive/cad_cam_edm_dro/messages/49800.html" target="_blank" rel="noopener">motor and encoder cables</a>; PLCtalk, <a href="https://www.plctalk.net/threads/stepper-motor-cabling.119448/" target="_blank" rel="noopener">stepper motor cabling</a>: separate motor and encoder cables, shield at one end, one signal per pair (Section 7).</li>
+  <li>Computed for this page: AWG diameters and resistance (AWG formula, copper 1.724 × 10⁻⁸ Ω·m), the 24 V current, Example 1, Example 2 <span class="extra">Extra</span> and the pair-field formula <span class="extra">Extra</span>.</li>
+</ul>
+</main>
+</div>
+
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+<script>
+(function () {
+  'use strict';
+  function $(id) { return document.getElementById(id); }
+  function vis(el, on) { if (on) el.removeAttribute('hidden'); else el.setAttribute('hidden', ''); }
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- copy buttons ---------- */
+  function selectText(el) { var r = document.createRange(); r.selectNodeContents(el); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+  document.querySelectorAll('.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var pre = b.parentNode.querySelector('pre');
+      var done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(pre.textContent).then(done, function () { selectText(pre); });
+      } else { selectText(pre); }
+    });
+  });
+
+  /* ---------- joint stepper ---------- */
+  var JS = [
+    { iron: 0, drop: 1, wire: 0, glow: 0, fill: '', cut: 0, time: 'before you start', t: 'Clean the tip on the brass wool, then melt a tiny bit of solder on it. A shiny tip moves heat well. A dull, black tip does not.' },
+    { iron: 1, drop: 0, wire: 0, glow: 1, fill: '', cut: 0, time: 'about 1–2 s', t: 'Touch the tip to the pad AND the leg at the same time. Heat both. Solder only sticks to metal that is hot enough.' },
+    { iron: 1, drop: 0, wire: 1, glow: 1, fill: 'half', cut: 0, time: 'about 1 s', t: 'Feed the solder wire into the joint from the other side of the leg, not onto the tip. The hot pad and leg melt it, and it flows around the leg.' },
+    { iron: 1, drop: 0, wire: 0, glow: 1, fill: 'full', cut: 0, time: 'right away', t: 'When the pad is covered and the solder looks like a small cone, take the solder wire away first.' },
+    { iron: 0, drop: 0, wire: 0, glow: 0, fill: 'full', cut: 1, time: 'keep still about 3 s', t: 'Then take the iron away. Do not move the board while the solder freezes. Cut the extra leg later, just above the cone.' }
+  ];
+  var jsi = 0;
+  function jsShow() {
+    var s = JS[jsi];
+    $('jsIron').setAttribute('transform', s.iron ? 'translate(0,0)' : 'translate(60,-50)');
+    $('jsWire').setAttribute('transform', s.wire ? 'translate(0,0)' : 'translate(-40,-20)');
+    vis($('jsDrop'), s.drop); vis($('jsGlow'), s.glow);
+    vis($('jsHalf'), s.fill === 'half'); vis($('jsFull'), s.fill === 'full'); vis($('jsCut'), s.cut);
+    $('jsCnt').textContent = 'Step ' + (jsi + 1) + ' of 5 · ' + s.time;
+    $('jsTxt').textContent = s.t;
+    $('jsPrev').disabled = jsi === 0;
+    $('jsNext').textContent = jsi === 4 ? 'Start again' : 'Next step';
+  }
+  $('jsNext').addEventListener('click', function () { jsi = jsi === 4 ? 0 : jsi + 1; jsShow(); });
+  $('jsPrev').addEventListener('click', function () { if (jsi > 0) { jsi--; jsShow(); } });
+  jsShow();
+
+  /* ---------- joint drawings ---------- */
+  var JD = {
+    good: { name: 'Good', see: 'Shiny and smooth. A small cone that covers the whole pad and climbs the leg.', why: 'Pad and leg were both hot, so the solder wetted both.', fix: 'Nothing. This is the target.' },
+    cold: { name: 'Cold', see: 'Dull, grainy or lumpy. It may crack or move.', why: 'Not enough heat, or something moved while the solder froze.', fix: 'Add a little flux, heat until the solder flows again, keep still for 3 s.' },
+    much: { name: 'Too much', see: 'A ball that hides the pad edge. You cannot see if it wetted.', why: 'The solder wire was fed for too long.', fix: 'Remove the extra with solder wick, then heat again.' },
+    little: { name: 'Too little', see: 'The pad is not fully covered; only a thin ring.', why: 'The solder wire was taken away too early.', fix: 'Heat again and add a little more solder.' },
+    nowet: { name: 'Pad not wetted', see: 'A ball on the leg, but a gap at the pad.', why: 'The pad was not hot enough, or it was dirty.', fix: 'Clean with isopropyl alcohol, add flux, heat the pad and the leg, then feed solder.' },
+    bridge: { name: 'Bridge', see: 'Solder joins two pads that must stay apart.', why: 'Too much solder, or the tip was dragged across.', fix: 'Remove it with wick, or drag a clean hot tip between the pads. Then beep-test.' },
+    lifted: { name: 'Lifted pad', see: 'The copper pad came off the board.', why: 'Too much heat for too long, or the leg was pulled.', fix: 'Stop heating. Join the leg to its neighbour with a short wire. Next time: less heat, shorter time.' },
+    burnt: { name: 'Overheated', see: 'Brown or black burnt flux around the joint.', why: 'The iron was too hot or held too long.', fix: 'Lower the temperature (about 330 °C for leaded solder). Clean with isopropyl alcohol.' }
+  };
+  function joint(k) {
+    var s = '<svg viewBox="0 0 120 84" aria-hidden="true">';
+    if (k === 'bridge') {
+      s += '<rect class="fr4" x="0" y="58" width="120" height="16"/>' +
+        '<rect class="pad" x="6" y="54" width="44" height="4"/><rect class="pad" x="70" y="54" width="44" height="4"/>' +
+        '<rect class="lead" x="24" y="14" width="8" height="60"/><rect class="lead" x="88" y="14" width="8" height="60"/>' +
+        '<path class="sold" d="M6 54Q22 50 24 30L32 30Q36 46 60 46Q84 46 88 30L96 30Q98 50 114 54Z"/>';
+      return s + '</svg>';
+    }
+    s += '<rect class="fr4" x="0" y="58" width="120" height="16"/>';
+    if (k === 'lifted') {
+      s += '<g transform="rotate(-12 30 58)"><rect class="pad" x="30" y="54" width="60" height="4"/><path class="sold" d="M30 54Q53 50 56 26L64 26Q67 50 90 54Z"/></g>' +
+        '<rect class="lead" x="56" y="10" width="8" height="64"/><path class="bad-s" d="M84 58L88 66L84 74" style="stroke-width:1.5"/>';
+      return s + '</svg>';
+    }
+    if (k === 'burnt') s += '<ellipse class="burn" cx="60" cy="60" rx="52" ry="7" opacity=".35"/>';
+    s += '<rect class="pad" x="30" y="54" width="60" height="4"/><rect class="lead" x="56" y="10" width="8" height="64"/>';
+    if (k === 'good') s += '<path class="sold" d="M30 54Q53 50 56 24L64 24Q67 50 90 54Z"/><path class="hl" d="M38 52Q52 47 56 32"/>';
+    if (k === 'cold') s += '<path class="sdull" d="M36 54C30 44 40 30 50 34C52 26 60 24 64 30C74 26 88 40 84 54Z"/><circle cx="46" cy="44" r="1.5" class="mk" opacity=".5"/><circle cx="70" cy="40" r="1.5" class="mk" opacity=".5"/><circle cx="58" cy="48" r="1.5" class="mk" opacity=".5"/><circle cx="76" cy="50" r="1.5" class="mk" opacity=".5"/>';
+    if (k === 'much') s += '<ellipse class="sold" cx="60" cy="38" rx="33" ry="20"/><path class="hl" d="M40 30Q48 22 58 21"/>';
+    if (k === 'little') s += '<path class="sold" d="M46 54Q57 52 57 44L63 44Q63 52 74 54Z"/>';
+    if (k === 'nowet') s += '<ellipse class="sold" cx="60" cy="34" rx="15" ry="13"/><path class="bad-s" d="M42 51H78" style="stroke-width:1.5" stroke-dasharray="3 2"/>';
+    if (k === 'burnt') s += '<path class="sdull" d="M30 54Q53 50 56 24L64 24Q67 50 90 54Z"/><circle class="burn" cx="22" cy="56" r="4"/><circle class="burn" cx="98" cy="57" r="5"/><circle class="burn" cx="40" cy="62" r="3"/><circle class="burn" cx="84" cy="63" r="3"/>';
+    return s + '</svg>';
+  }
+  var grid = $('jgrid'), card = $('jcard'), jbtns = [];
+  function showJoint(k) {
+    var d = JD[k];
+    jbtns.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.k === k ? 'true' : 'false'); });
+    card.innerHTML = '<b>' + d.name + '</b><dl><dt>What you see</dt><dd>' + d.see + '</dd><dt>Why</dt><dd>' + d.why + '</dd><dt>Fix</dt><dd>' + d.fix + '</dd></dl>';
+  }
+  Object.keys(JD).forEach(function (k) {
+    var b = document.createElement('button'); b.type = 'button'; b.dataset.k = k;
+    b.innerHTML = joint(k) + '<span>' + JD[k].name + '</span>';
+    b.addEventListener('click', function () { showJoint(k); });
+    grid.appendChild(b); jbtns.push(b);
+  });
+  showJoint('cold');
+
+  /* ---------- perfboard toggles ---------- */
+  function tg(id, target, after) {
+    var b = $(id);
+    b.addEventListener('click', function () {
+      var on = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', on ? 'true' : 'false'); vis($(target), on);
+      if (after) after(on);
+    });
+  }
+  tg('tgZones', 'pbZones'); tg('tgSig', 'pbSig');
+  tg('tgSmall', 'pbSmall', function (on) { if (on) { $('tgBig').setAttribute('aria-pressed', 'false'); vis($('pbBig'), false); } });
+  tg('tgBig', 'pbBig', function (on) { if (on) { $('tgSmall').setAttribute('aria-pressed', 'false'); vis($('pbSmall'), false); } });
+
+  /* ---------- pair field ---------- */
+  function pf() {
+    var s = +$('pfS').value, r = +$('pfR').value;
+    var ratio = s * r / (r * r - s * s / 4);
+    var sp = 16 + s * 1.1, cy = 95, xP = 70 + r * 1.55;
+    $('pfA').setAttribute('cy', cy - sp / 2); $('pfAd').setAttribute('cy', cy - sp / 2);
+    $('pfB').setAttribute('transform', 'translate(0,' + (sp / 2 - 5) + ')');
+    $('pfLoop').setAttribute('y', cy - sp / 2); $('pfLoop').setAttribute('height', sp);
+    $('pfSl').setAttribute('y', Math.max(cy - sp / 2 - 12, 34)); $('pfSl').textContent = 's = ' + s + ' mm';
+    $('pfP').setAttribute('cx', xP); $('pfPl').setAttribute('x', Math.min(xP, 515));
+    $('pfDim').setAttribute('d', 'M70 168H' + xP); $('pfRl').setAttribute('x', (70 + xP) / 2); $('pfRl').textContent = 'r = ' + r + ' mm';
+    $('pfSv').textContent = s + ' mm'; $('pfRv').textContent = r + ' mm';
+    $('pfRatio').textContent = ratio >= 1 ? 'more than one wire' : (ratio * 100).toFixed(ratio < 0.1 ? 1 : 0) + ' %';
+    $('pfArea').textContent = (s * 1000 / 100).toFixed(0) + ' cm²';
+    var v = ratio < 0.05 ? 'small loop: good' : ratio < 0.25 ? 'medium: move closer' : 'big loop: antenna';
+    $('pfVerd').textContent = v;
+    $('pfO3').className = ratio < 0.05 ? 'good' : ratio < 0.25 ? '' : 'bad';
+  }
+  ['pfS', 'pfR'].forEach(function (id) { $(id).addEventListener('input', pf); });
+  pf();
+
+  /* ---------- jig cable map ---------- */
+  var CAB = {
+    C1: { n: 'C1 · USB to the Pi', fam: 'signal (quiet)', mv: 'no', w: 'USB cable: data + 5 V. The Pi powers the ESP32 through it.', len: 'As short as possible, 1 m or less.', ends: 'USB at the ESP32 and at the Pi.', tip: 'Tie it to the box within a few cm of the ESP32, so its USB socket never takes a pull. Keep it away from motor cables.' },
+    C2: { n: 'C2 · 24 V supply', fam: 'power', mv: 'no', w: '2 wires, stranded 20–22 AWG: red +, black −, side by side or twisted.', len: 'Supply to box; measure.', ends: 'Ferrules into the "24 V in" terminal.', tip: 'The supply switch is your emergency stop for now: keep it within reach.' },
+    C3: { n: 'C3 · Motor 1', fam: 'motor (loud)', mv: 'no', w: '4 wires = 2 coil pairs (black + green, red + blue).', len: 'Stock 1 m is enough; fold the extra neatly.', ends: 'Ferrules into "Motor 1"; JST plug at the motor.', tip: 'Keep it a few cm away from the encoder cable.' },
+    C4: { n: 'C4 · Motor 2', fam: 'motor (loud)', mv: 'YES, with the slider', w: '4 wires = 2 coil pairs, fine-stranded and flexible.', len: 'About 2.0 m (Example 1). Buy 2.5 m ready-made.', ends: 'Ferrules into "Motor 2"; JST plug at the motor.', tip: 'Runs in a duct to the chain’s fixed end, then in the drag chain on the side away from the encoder cable. No splice in the moving part.' },
+    C5: { n: 'C5 · Encoder', fam: 'signal (quiet)', mv: 'YES, with the slider', w: 'A, B, X, 5V, G + shield. Pair each signal with a GND wire.', len: 'About 2.0 m (Example 1).', ends: 'Plug on the board; Molex 5-pin (50-57-9405) at the encoder.', tip: 'Shield to GND at the box only. In the chain, opposite side from C4.' },
+    C6: { n: 'C6 · Motor 3 (later)', fam: 'motor (loud)', mv: 'with the camera, later', w: 'Depends on the camera-rail motor and its driver.', len: 'Along the camera rail.', ends: 'To be decided.', tip: 'Route it along the rail, away from the encoder cable.' },
+    C7: { n: 'C7 · E-stop (later)', fam: 'signal (safety)', mv: 'no', w: '2 wires to a button near the Pi.', len: 'Short.', ends: 'To be decided; it will cut the drivers’ EN.', tip: 'Reserved in PIN_PLAN (GPIO36).' }
+  };
+  var jm = $('jm'), jmBtns = $('jmBtns'), jmCard = $('jmCard'), cabs = jm.querySelectorAll('.cab');
+  function pick(id) {
+    jm.classList.add('sel');
+    cabs.forEach(function (g) { g.classList.toggle('on', g.dataset.c === id); });
+    $('jmChain').classList.toggle('on', id === 'C4' || id === 'C5');
+    jmBtns.querySelectorAll('button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.c === id ? 'true' : 'false'); });
+    var c = CAB[id];
+    jmCard.innerHTML = '<b>' + c.n + '</b><dl><dt>Family</dt><dd>' + c.fam + '</dd><dt>Moves?</dt><dd>' + c.mv + '</dd><dt>Wires</dt><dd>' + c.w + '</dd><dt>Length</dt><dd>' + c.len + '</dd><dt>Ends</dt><dd>' + c.ends + '</dd><dt>Rule</dt><dd>' + c.tip + '</dd></dl>';
+  }
+  Object.keys(CAB).forEach(function (id) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'tg'; b.dataset.c = id; b.textContent = id;
+    b.setAttribute('aria-pressed', 'false'); b.addEventListener('click', function () { pick(id); }); jmBtns.appendChild(b);
+  });
+  cabs.forEach(function (g) {
+    g.addEventListener('click', function () { pick(g.dataset.c); });
+    g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(g.dataset.c); } });
+  });
+  pick('C4');
+
+  /* ---------- drag chain ---------- */
+  function geom(p) {
+    var K = Math.PI * p.R + 2 * p.T, dM = p.mid ? 0 : p.S / 2, LK = p.S / 2 + dM + K, links = Math.ceil(LK / p.T - 1e-9);
+    return { K: K, LK: LK, links: links, Lr: links * p.T, xf: p.mid ? p.x1 + p.S / 2 : p.x1 };
+  }
+  function renderChain(svg, p, xm) {
+    var g = geom(p), E = p.x1 + p.S + p.T + p.R + 70, sc = 620 / E;
+    var X = function (v) { return 46 + v * sc; };
+    var yB = 196, yL = 182, Rp = Math.max(p.R * sc, 3), yU = yL - 2 * Rp;
+    var xb = (g.Lr - Math.PI * p.R + g.xf + xm) / 2, sx = X(xm), f = function (v) { return v.toFixed(1); };
+    var h = '';
+    h += '<path class="ln" d="M40 ' + yB + 'H690"/>';
+    h += '<rect class="boxc" x="8" y="120" width="32" height="76" rx="3"/><text class="t" x="24" y="112" text-anchor="middle">box</text>';
+    h += '<path class="ln" d="M' + f(X(p.x1)) + ' 22V34M' + f(X(p.x1 + p.S)) + ' 22V34M' + f(X(p.x1)) + ' 28H' + f(X(p.x1 + p.S)) + '"/>';
+    h += '<text class="t" x="' + f(X(p.x1 + p.S / 2)) + '" y="18" text-anchor="middle">travel S = ' + p.S + ' mm</text>';
+    h += '<path class="ln dash" d="M40 ' + (yL + 9) + 'H' + f(X(g.xf)) + '"/>';
+    h += '<rect class="box" x="' + f(sx - 30) + '" y="50" width="30" height="' + (yB - 50) + '" rx="3"/>';
+    h += '<rect class="soft" x="' + f(sx - 27) + '" y="56" width="24" height="20" rx="2"/><text class="tm" x="' + f(sx - 15) + '" y="70" text-anchor="middle">M2</text>';
+    h += '<text class="t" x="' + f(sx - 15) + '" y="44" text-anchor="middle">slider</text>';
+    var d = 'M' + f(X(g.xf)) + ' ' + yL + 'H' + f(X(xb)) + 'A' + f(Rp) + ' ' + f(Rp) + ' 0 0 0 ' + f(X(xb)) + ' ' + f(yU) + 'H' + f(sx);
+    h += '<path class="chain" d="' + d + '"/><path class="chain2" d="' + d + '"/>';
+    h += '<rect class="boxc" x="' + f(X(g.xf) - 5) + '" y="' + (yL - 5) + '" width="10" height="' + (yB - yL + 5) + '"/>';
+    h += '<text class="t" x="' + f(Math.min(Math.max(X(g.xf), 70), 640)) + '" y="214" text-anchor="middle">fixed end</text>';
+    svg.innerHTML = h;
+  }
+  var C = { playing: !reduce, phase: Math.PI * 2 / 3, last: 0 };
+  function params() {
+    return { S: +$('cS').value, R: +$('cR').value, T: +$('cT').value, mid: $('cMid').value === '1', x1: 100, d: +$('cD').value, k: +$('cK').value };
+  }
+  function outputs(p) {
+    var g = geom(p), rmin = p.k * p.d, ok = p.R >= rmin;
+    var cut = (100 + g.xf + g.Lr + 200 + 200) * 1.1;
+    $('oK').textContent = g.K.toFixed(1) + ' mm';
+    $('oL').textContent = g.LK.toFixed(1) + ' mm';
+    $('oB').textContent = g.links + ' links = ' + g.Lr + ' mm';
+    $('oR').textContent = rmin.toFixed(0) + ' mm → ' + (ok ? 'OK' : 'too tight');
+    $('oRb').className = ok ? 'good' : 'bad';
+    $('oC').textContent = (cut / 1000).toFixed(2) + ' m';
+    $('cSv').textContent = p.S + ' mm'; $('cRv').textContent = p.R + ' mm'; $('cTv').textContent = p.T + ' mm'; $('cDv').textContent = p.d + ' mm';
+  }
+  function drawNow() {
+    var p = params(), pos = +$('cPos').value / 100;
+    renderChain($('chSvg'), p, p.x1 + p.S * pos);
+    $('cPosv').textContent = Math.round(pos * 100) + ' %';
+  }
+  function tick(ts) {
+    if (C.playing) {
+      if (C.last) C.phase += (ts - C.last) / 1000 * (Math.PI * 2 / 7);
+      C.last = ts;
+      $('cPos').value = Math.round((0.5 - 0.5 * Math.cos(C.phase)) * 100);
+      var p = params();
+      renderChain($('chSvg'), p, p.x1 + p.S * (0.5 - 0.5 * Math.cos(C.phase)));
+      $('cPosv').textContent = $('cPos').value + ' %';
+      requestAnimationFrame(tick);
+    }
+  }
+  function setPlay(on) {
+    C.playing = on; C.last = 0; $('chPlay').textContent = on ? 'Pause' : 'Play';
+    if (on) { var v = +$('cPos').value / 100; C.phase = Math.acos(Math.min(1, Math.max(-1, 1 - 2 * v))); requestAnimationFrame(tick); } else drawNow();
+  }
+  $('chPlay').addEventListener('click', function () { setPlay(!C.playing); });
+  $('cPos').addEventListener('input', function () { if (C.playing) setPlay(false); drawNow(); });
+  ['cS', 'cR', 'cT', 'cD', 'cK', 'cMid'].forEach(function (id) {
+    $(id).addEventListener('input', function () { outputs(params()); if (!C.playing) drawNow(); });
+  });
+  outputs(params()); drawNow(); if (C.playing) requestAnimationFrame(tick); else $('chPlay').textContent = 'Play';
+  var EX = { S: 1000, R: 55, T: 20, mid: true, x1: 100 };
+  renderChain($('weA'), EX, EX.x1); renderChain($('weB'), EX, EX.x1 + EX.S);
+
+  /* ---------- quiz ---------- */
+  var routesImg = '<svg viewBox="0 0 600 112" aria-hidden="true">' +
+    '<text class="tb" x="10" y="18">A</text><path class="wmot" d="M10 44H190" style="stroke-width:4"/><path class="wsig" d="M10 51H190" style="stroke-width:4"/><rect class="soft" x="50" y="38" width="5" height="20"/><rect class="soft" x="100" y="38" width="5" height="20"/><rect class="soft" x="150" y="38" width="5" height="20"/>' +
+    '<text class="tb" x="210" y="18">B</text><path class="wmot" d="M210 34H390" style="stroke-width:4"/><path class="wsig" d="M210 84H390" style="stroke-width:4"/>' +
+    '<text class="tb" x="410" y="18">C</text><path class="wmot" d="M410 56H590" style="stroke-width:4"/><path class="wsig" d="M500 20V96" style="stroke-width:4"/>' +
+    '<text class="ts" x="300" y="108" text-anchor="middle">purple = motor cable · blue = encoder cable · both 1 m long</text></svg>';
+  var jointsImg = '<div class="row"><div>' + joint('cold') + 'A</div><div>' + joint('good') + 'B</div><div>' + joint('much') + 'C</div><div>' + joint('nowet') + 'D</div></div>';
+  var Q = [
+    { t: 'Which joint is good?', img: jointsImg, o: ['A', 'B', 'C', 'D'], a: 1, sec: 'joint', e: 'B is a smooth, shiny cone that covers the whole pad. A is dull and lumpy (cold). C hides the pad edge (too much). D sits on the leg but not on the pad (pad not wetted).' },
+    { t: 'You finish a joint. What do you take away first?', o: ['The iron, then the solder wire', 'The solder wire, then the iron', 'Both at the same time', 'It does not matter'], a: 1, sec: 'joint', e: 'Solder wire first, then the iron. If the iron leaves first, the solder wire freezes into the joint.' },
+    { t: 'You must join two stranded wires in the middle with solder. What is the very first step?', o: ['Twist and solder them', 'Slide a piece of heat shrink onto one wire', 'Tin both ends', 'Wrap them in tape'], a: 1, sec: 'ends', e: 'Slide the tube on first, away from the heat. After soldering it cannot go over the joint anymore. This is one of the most common mistakes.' },
+    { t: 'A stranded wire goes into a screw terminal. What do you do with the end?', o: ['Tin it with solder so it does not fray', 'Crimp a ferrule on it (or twist the bare strands)', 'Fold it double and tin it', 'Glue it'], a: 1, sec: 'ends', e: 'Solder slowly flows away under the screw pressure (cold flow), so a tinned end becomes loose and can get hot. A ferrule keeps the strands together and stays tight.' },
+    { t: 'Drag chain: travel S = 800 mm, fixed end in the middle, R = 40 mm, pitch T = 15 mm. What is the chain length L_K in mm (before rounding to links)?', num: 1, ans: 555.7, tol: 5, sec: 'moving', e: 'K = πR + 2T = 125.7 + 30 = 155.7 mm. L_K = S/2 + K = 400 + 155.7 = 555.7 mm (then round up: 38 links × 15 = 570 mm). The usual slip is to use S instead of S/2.' },
+    { t: 'A cable is 6 mm thick and its bend factor is 10. What is the smallest bend radius in mm?', num: 1, ans: 60, tol: 0.5, sec: 'moving', e: 'R_min = k · d = 10 × 6 mm = 60 mm. The chain radius must be at least this.' },
+    { t: 'Which route will most likely give false encoder counts?', img: routesImg, o: ['A', 'B', 'C', 'All the same'], a: 0, sec: 'noise', e: 'In A the cables are tied together for the whole metre, so the coupling is large. B keeps a gap; C crosses at 90°, so the shared length is tiny.' },
+    { t: 'Where do you connect the encoder cable’s shield (drain wire)?', o: ['At both ends', 'Only at the box end, to ESP32 GND', 'Only at the encoder end', 'To +5 V'], a: 1, sec: 'noise', e: 'One end only, at the box. Both ends make a loop where current can run in the shield. +5 V would turn the shield into a power wire.' }
+  ];
+  var SEC = { joint: 'Section 2 (one good joint)', ends: 'Section 9 (cable ends)', moving: 'Section 8 (moving cables)', noise: 'Section 7 (noise)' };
+  var box = $('quizbox'), res = new Array(Q.length);
+  function score() {
+    var right = res.filter(function (x) { return x === true; }).length, done = res.filter(function (x) { return x !== undefined; }).length;
+    $('scorebox').textContent = 'Score: ' + right + ' / ' + Q.length + (done < Q.length ? '  (' + (Q.length - done) + ' left)' : '');
+    var miss = {}; Q.forEach(function (q, i) { if (res[i] === false) miss[q.sec] = 1; });
+    var k = Object.keys(miss);
+    $('rereadbox').textContent = k.length ? 'Read again: ' + k.map(function (s) { return SEC[s]; }).join(', ') + '.' : '';
+  }
+  Q.forEach(function (q, i) {
+    var d = document.createElement('div'); d.className = 'q';
+    var t = document.createElement('div'); t.className = 'qt'; t.textContent = (i + 1) + '. ' + q.t; d.appendChild(t);
+    if (q.img) { var im = document.createElement('div'); im.className = 'qimg'; im.innerHTML = q.img; d.appendChild(im); }
+    var fb = document.createElement('div'); fb.setAttribute('aria-live', 'polite');
+    if (q.num) {
+      var row = document.createElement('div'); row.className = 'numrow';
+      var inp = document.createElement('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.id = 'qn' + i; inp.setAttribute('aria-label', 'Your answer in mm');
+      var lab = document.createElement('span'); lab.textContent = 'mm';
+      var go = document.createElement('button'); go.type = 'button'; go.className = 'btn'; go.textContent = 'Check';
+      go.addEventListener('click', function () {
+        if (res[i] !== undefined) return;
+        var v = parseFloat(String(inp.value).replace(',', '.'));
+        if (isNaN(v)) { fb.className = 'fb no'; fb.textContent = 'Type a number first, for example 120.'; return; }
+        var ok = Math.abs(v - q.ans) <= q.tol; res[i] = ok;
+        fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite: the answer is ' + q.ans + ' mm. ') + q.e; score();
+      });
+      row.appendChild(inp); row.appendChild(lab); row.appendChild(go); d.appendChild(row);
+    } else {
+      var o = document.createElement('div'); o.className = 'opts';
+      q.o.forEach(function (txt, j) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = txt;
+        b.addEventListener('click', function () {
+          if (res[i] !== undefined) return;
+          var ok = j === q.a; res[i] = ok;
+          b.classList.add(ok ? 'right' : 'wrong'); if (!ok) o.children[q.a].classList.add('right');
+          fb.className = 'fb ' + (ok ? 'ok' : 'no'); fb.textContent = (ok ? 'Correct. ' : 'Not quite. ') + q.e; score();
+        });
+        o.appendChild(b);
+      });
+      d.appendChild(o);
+    }
+    d.appendChild(fb); box.appendChild(d);
+  });
+  score();
+
+  /* ---------- checklist (per-viewer convenience) ---------- */
+  var KEY = 'wm-check';
+  var saved = {}; try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+  document.querySelectorAll('#checkbox input').forEach(function (c) {
+    if (saved[c.id]) c.checked = true;
+    c.addEventListener('change', function () { saved[c.id] = c.checked; try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} });
+  });
+})();
+</script>

@@ -100,7 +100,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   <h1>Cable Jig Wiring Atlas</h1>
   <p>One wiring drawing per test. Every connection is drawn as a real wire from pin to pin, or from a pin to a breadboard rail. <b>Hover or tap a row</b> in a wire list to light up that wire. Hover a wire to find its row.</p>
 
-  <div class="banner"><b>T1 and T3–T10 are ready to wire</b> (T2, the buck converter, is no longer needed).</div>
+  <div class="banner"><b>T1 and T3–T11 are ready to wire</b> (T2, the buck converter, is no longer needed).</div>
 
   <div class="legend" aria-label="Wire colour legend">
     <span><i class="sw" style="border-color:var(--n-gnd)"></i>GND (black)</span>
@@ -114,6 +114,8 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     <span><i class="sw" style="border-color:var(--n-step)"></i>STEP</span>
     <span><i class="sw" style="border-color:var(--n-dir)"></i>DIR</span>
     <span><i class="sw" style="border-color:var(--n-en)"></i>EN</span>
+    <span><i class="sw" style="border-color:#C94F9A"></i>Display CLK</span>
+    <span><i class="sw" style="border-color:#2A9D8F"></i>Display DIO</span>
   </div>
   <p style="font-size:14px;color:var(--muted)">A <b>thick bar</b> is one breadboard rail: everything that touches it is connected. A <b>dot</b> means wires are joined there. A small <b>arc</b> means one wire jumps over another without touching (only where crossing can't be avoided).</p>
 
@@ -153,6 +155,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     encA: ['var(--n-encA)', 'Blue'], encB: ['var(--n-encB)', 'Green'], encX: ['var(--n-encX)', 'Brown'],
     uart: ['var(--n-uart)', 'Purple'], step: ['var(--n-step)', 'Green'], dir: ['var(--n-dir)', 'Pink / white'], en: ['var(--n-en)', 'Grey'],
     usb: ['var(--n-usb)', 'USB cable'], probe: ['var(--n-probe)', 'Meter lead'],
+    dclk: ['#C94F9A', 'Pink'], ddio: ['#2A9D8F', 'Teal'],
     cg: ['var(--n-cg)', 'Motor green'], ck: ['var(--n-ck)', 'Motor black'], cr: ['var(--n-cr)', 'Motor red'], cb: ['var(--n-cb)', 'Motor blue']
   };
   var PITCH = 22, TOP = 34;
@@ -164,7 +167,7 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
   var motL = [['a2','Green (A−)'],['a1','Black (A+)'],['b1','Red (B+)'],['b2','Blue (B−)']];
 
   var STAGES = [
-  { id: 'ov', tab: 'Overview', title: 'Whole system (draft)', status: 'draft', statusText: 'Draft · big picture', overview: true,
+  { id: 'ov', tab: 'Overview', title: 'Whole system (final circuit)', status: 'go', statusText: 'Final · fixed 2026-10-23', overview: true,
     purpose: 'How the parts connect at the end. Each link is built and tested on its own first.',
     rows: [
       ['Raspberry Pi 5 USB (laptop during tests)', 'ESP32 USB-C', 'usb', 'Power for the ESP32 + data link (docs/PROTOCOL.md)'],
@@ -174,8 +177,9 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['ESP32 GPIO25/26 and 27/14', 'STEP / DIR of driver 1 and driver 2', 'step', ''],
       ['ESP32 GPIO13', 'EN of both drivers', 'en', 'One pin switches both drivers'],
       ['Supply 12–24 V → fuse', 'VM of both drivers', 'vm', 'Motor power never touches the ESP32'],
-      ['Buck converter 5 V', 'not used anymore', 'v5', 'The Pi powers the ESP32 over USB (decided 2026-10-14)']
-    ], checks: [], todo: ['E-stop, touchscreen and motor 3 have reserved pins (docs/PIN_PLAN.md) but no wiring yet.'] },
+      ['Buck converter 5 V', 'not used anymore', 'v5', 'The Pi powers the ESP32 over USB (decided 2026-10-14)'],
+      ['ESP32 GPIO21 / GPIO22', 'Number display CLK / DIO', 'dclk', 'TM1637, 6 digits, powered from 3.3 V (T11)']
+    ], checks: [], todo: [] },
 
   { id: 't1', tab: 'T1 Board', title: 'T1 · ESP32 board bring-up', status: 'go', statusText: 'Ready · wire now',
     purpose: 'Only the USB cable. Proves the board, cable, driver and PlatformIO work.', vb: [760, 150],
@@ -598,7 +602,32 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
       ['wm', 'A2 A1 B1 B2 (right, 3rd–6th)', 'Motor 2 green, black, red, blue', 'ck', 'Check the pairs first.']
     ],
     checks: ['Driver 2 MS1 on 3.3V (driver 1 MS1 is on GND).', 'Both 5th left pins (second PDN) empty.', 'All four ESP32 3.3V pins are now used: chip VCC, R2, 3V3 rail, driver 2 MS1.', 'Motors connected before motor power. Off: motor power first, then USB.'],
-    todo: [] }
+    todo: [] },
+
+  { id: 't11', tab: 'T11 Display', title: 'T11 · Number display (TM1637, 6 digits)', status: 'go', statusText: 'Ready · after T10',
+    purpose: 'Add the display to the T10 breadboard: four wires. CLK and DIO go to GPIO21 / 22; power comes from the T10 rails. VCC on 3.3 V only: the module has its own pull-up resistors to its VCC pin, so on 5 V it would push 5 V into the ESP32 pins.', vb: [760, 290],
+    bars: [
+      { id: 'r3', net: 'v33', x1: 200, x2: 556, y: 232, label: '3V3 rail (from T10)', lx: 420, ly: 222 },
+      { id: 'rg', net: 'gnd', x1: 200, x2: 720, y: 258, label: 'GND rail (from T10)' }
+    ],
+    comps: [
+      { id: 'esp', x: 20, y: 60, w: 200, title: 'ESP32 (on USB)', R: [['g21', 'GPIO21 (right row)'], ['g22', 'GPIO22 (right row)']] },
+      { id: 'dsp', x: 600, y: 60, w: 150, title: 'TM1637 display', sub: '6 digits · red', L: [['clk', 'CLK'], ['dio', 'DIO'], ['vcc', 'VCC'], ['gnd', 'GND']] }
+    ],
+    wires: [
+      { id: 'wclk', a: 'esp:g21', b: 'dsp:clk', net: 'dclk' },
+      { id: 'wdio', a: 'esp:g22', b: 'dsp:dio', net: 'ddio' },
+      { id: 'wvcc', a: 'dsp:vcc', b: [540, 232], net: 'v33', via: [[540, 138]] },
+      { id: 'wgnd', a: 'dsp:gnd', b: [570, 258], net: 'gnd', via: [[570, 160]] }
+    ],
+    rows: [
+      ['wclk', 'GPIO21 (right row)', 'Display CLK', 'dclk', 'Clock line.'],
+      ['wdio', 'GPIO22 (right row)', 'Display DIO', 'ddio', 'Data line (both ways).'],
+      ['wvcc', 'Display VCC', '3V3 rail', 'v33', '3.3 V only, never 5 V.'],
+      ['wgnd', 'Display GND', 'GND rail', 'gnd', '']
+    ],
+    checks: ['First solder the loose 4-pin header onto the display (short pins through the display board, solder on the back).', 'Read CLK / DIO / VCC / GND printed next to the display pins. The order on your module may differ from this drawing: follow the labels.', 'VCC to the 3V3 rail, never to 5V.', 'USB unplugged while wiring.'],
+    todo: ['The back of the module shows 4 small parts next to the chip, most likely its own 2 pull-up resistors + 2 capacitors. If the digits show garbage, we add 10 kΩ from CLK and DIO to 3.3 V.', 'Some 6-digit modules show the digits in a scrambled order (e.g. 321654). That is fixed in software in T11.'] }
   ];
   (function () {
     var t4 = STAGES.filter(function (s) { return s.id === 't4'; })[0], t = STAGES.filter(function (s) { return s.id === 't10a'; })[0];
@@ -749,7 +778,8 @@ svg .blkd{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
     box(820, 130, 100, 110, 'Motors', 'M1 + M2');
     box(400, 20, 170, 50, 'Raspberry Pi 5', 'USB: power + data');
     box(620, 20, 150, 50, 'Supply 12–24 V', 'through fuse F1');
-    box(400, 280, 370, 40, 'Reserved: E-stop · touchscreen · motor 3', '', true);
+    box(400, 280, 170, 44, 'Number display', 'TM1637 · 6 digits');
+    line('M500 240 V278', 'dclk'); line('M512 240 V278', 'ddio'); lbl(545, 262, 'CLK DIO');
     line('M160 172 H208', 'encA'); line('M160 185 H208', 'encB'); line('M160 198 H208', 'encX'); lbl(184, 162, 'A B X');
     line('M350 172 H398', 'encA'); line('M350 185 H398', 'encB'); line('M350 198 H398', 'encX'); lbl(374, 162, '3.3 V');
     line('M485 70 V128', 'usb', 'thick');
