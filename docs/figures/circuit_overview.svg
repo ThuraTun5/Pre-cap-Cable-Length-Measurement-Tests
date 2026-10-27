@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 L9 5 L1 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="1920" height="1080" fill="#ffffff"/>
+
+  <!-- title -->
+  <text x="80" y="86" font-size="44" font-weight="700" fill="#1d2420">Cable-length jig — circuit overview</text>
+  <text x="80" y="128" font-size="24" fill="#5d6760">ESP32 side: encoder for the length, two synchronised clamp-head motors, number display, USB link to the Raspberry Pi</text>
+
+  <!-- ===== blocks ===== -->
+  <!-- Raspberry Pi -->
+  <rect x="80" y="200" width="340" height="150" rx="16" fill="#eef3fb" stroke="#1e5fa8" stroke-width="3"/>
+  <text x="250" y="262" font-size="32" font-weight="700" fill="#0c447c" text-anchor="middle">Raspberry Pi 5</text>
+  <text x="250" y="302" font-size="22" fill="#185fa5" text-anchor="middle">web UI · database · camera</text>
+
+  <!-- ESP32 -->
+  <rect x="720" y="380" width="480" height="260" rx="18" fill="#1d2228" stroke="#0e1114" stroke-width="3"/>
+  <text x="960" y="440" font-size="40" font-weight="700" fill="#ffffff" text-anchor="middle">ESP32</text>
+  <text x="960" y="476" font-size="22" fill="#c9d1d9" text-anchor="middle">Freenove WROOM-32E</text>
+  <text x="960" y="530" font-size="22" fill="#e6ebe7" text-anchor="middle">counts the encoder (hardware counter)</text>
+  <text x="960" y="562" font-size="22" fill="#e6ebe7" text-anchor="middle">drives both motors in sync</text>
+  <text x="960" y="594" font-size="22" fill="#e6ebe7" text-anchor="middle">sends length + motor state to the Pi</text>
+  <text x="960" y="626" font-size="22" fill="#e6ebe7" text-anchor="middle">shows the length on the display</text>
+
+  <!-- Encoder -->
+  <rect x="80" y="480" width="300" height="150" rx="16" fill="#eaf6f1" stroke="#1d9e75" stroke-width="3"/>
+  <text x="230" y="540" font-size="30" font-weight="700" fill="#085041" text-anchor="middle">AMT102-V encoder</text>
+  <text x="230" y="578" font-size="22" fill="#0f6e56" text-anchor="middle">on the slider pulley · 5 V</text>
+  <text x="230" y="608" font-size="20" fill="#0f6e56" text-anchor="middle">8192 counts per 40 mm</text>
+
+  <!-- Level shifter -->
+  <rect x="440" y="495" width="220" height="120" rx="14" fill="#f4f1e6" stroke="#8a6a1a" stroke-width="3"/>
+  <text x="550" y="545" font-size="26" font-weight="700" fill="#5c4409" text-anchor="middle">74LVC245</text>
+  <text x="550" y="580" font-size="20" fill="#5c4409" text-anchor="middle">5 V → 3.3 V</text>
+
+  <!-- Display -->
+  <rect x="720" y="730" width="480" height="120" rx="16" fill="#111318" stroke="#0e1114" stroke-width="3"/>
+  <text x="960" y="782" font-size="46" font-weight="700" fill="#ff3b30" text-anchor="middle" font-family="Courier New, monospace">1003.4</text>
+  <text x="960" y="826" font-size="22" fill="#c9d1d9" text-anchor="middle">TM1637 6-digit display · length in mm · 3.3 V</text>
+
+  <!-- Drivers -->
+  <rect x="1330" y="380" width="240" height="130" rx="14" fill="#eef1f6" stroke="#3a4048" stroke-width="3"/>
+  <text x="1450" y="432" font-size="28" font-weight="700" fill="#1d2228" text-anchor="middle">TMC2209 #1</text>
+  <text x="1450" y="468" font-size="20" fill="#5f5e5a" text-anchor="middle">UART address 0</text>
+  <rect x="1330" y="550" width="240" height="130" rx="14" fill="#eef1f6" stroke="#3a4048" stroke-width="3"/>
+  <text x="1450" y="602" font-size="28" font-weight="700" fill="#1d2228" text-anchor="middle">TMC2209 #2</text>
+  <text x="1450" y="638" font-size="20" fill="#5f5e5a" text-anchor="middle">UART address 1</text>
+
+  <!-- Motors -->
+  <circle cx="1740" cy="445" r="62" fill="#f3f4f1" stroke="#3a4048" stroke-width="3"/>
+  <text x="1740" y="438" font-size="24" font-weight="700" fill="#1d2228" text-anchor="middle">Motor 1</text>
+  <text x="1740" y="466" font-size="18" fill="#5f5e5a" text-anchor="middle">clamp head</text>
+  <circle cx="1740" cy="615" r="62" fill="#f3f4f1" stroke="#3a4048" stroke-width="3"/>
+  <text x="1740" y="608" font-size="24" font-weight="700" fill="#1d2228" text-anchor="middle">Motor 2</text>
+  <text x="1740" y="636" font-size="18" fill="#5f5e5a" text-anchor="middle">clamp head</text>
+  <text x="1740" y="720" font-size="20" fill="#5f5e5a" text-anchor="middle">NEMA17 · 1 A/phase · in sync</text>
+
+  <!-- 24 V supply -->
+  <rect x="1330" y="200" width="240" height="110" rx="14" fill="#fdeeea" stroke="#d85a30" stroke-width="3"/>
+  <text x="1450" y="246" font-size="28" font-weight="700" fill="#712b13" text-anchor="middle">24 V supply</text>
+  <text x="1450" y="280" font-size="20" fill="#993c1d" text-anchor="middle">motors only</text>
+
+  <!-- ===== connections ===== -->
+  <!-- Pi -> ESP32 USB -->
+  <path d="M420 275 H860 V378" fill="none" stroke="#1e5fa8" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ar)"/>
+  <text x="460" y="255" font-size="22" font-weight="700" fill="#1e5fa8">USB cable: powers the ESP32 + data (JSON lines, 115200 baud)</text>
+
+  <!-- Encoder -> shifter -> ESP32 (A, B, X) -->
+  <path d="M380 530 H438" fill="none" stroke="#2F7FD8" stroke-width="5" marker-end="url(#ar)"/>
+  <path d="M380 555 H438" fill="none" stroke="#1FA58A" stroke-width="5" marker-end="url(#ar)"/>
+  <path d="M380 580 H438" fill="none" stroke="#B0632F" stroke-width="5" marker-end="url(#ar)"/>
+  <text x="410" y="606" font-size="18" fill="#5d6760" text-anchor="middle">A B X</text>
+  <path d="M660 530 H718" fill="none" stroke="#2F7FD8" stroke-width="5" marker-end="url(#ar)"/>
+  <path d="M660 555 H718" fill="none" stroke="#1FA58A" stroke-width="5" marker-end="url(#ar)"/>
+  <path d="M660 580 H718" fill="none" stroke="#B0632F" stroke-width="5" marker-end="url(#ar)"/>
+  <text x="690" y="606" font-size="18" fill="#5d6760" text-anchor="middle">3.3 V</text>
+  <!-- 5 V to encoder -->
+  <path d="M780 640 V690 H230 V632" fill="none" stroke="#E0403F" stroke-width="5" stroke-dasharray="14 9" marker-end="url(#ar)"/>
+  <text x="505" y="680" font-size="20" fill="#b32e2d" text-anchor="middle">5 V for the encoder (from the ESP32)</text>
+
+  <!-- ESP32 -> display -->
+  <path d="M900 640 V728" fill="none" stroke="#C94F9A" stroke-width="5" marker-end="url(#ar)"/>
+  <path d="M1020 640 V728" fill="none" stroke="#7B5BD6" stroke-width="5" marker-end="url(#ar)"/>
+  <text x="960" y="692" font-size="20" fill="#5d6760" text-anchor="middle">CLK · DIO</text>
+
+  <!-- ESP32 -> drivers -->
+  <path d="M1200 430 H1328" fill="none" stroke="#2c9a4b" stroke-width="5" marker-end="url(#ar)"/>
+  <path d="M1200 450 H1328" fill="none" stroke="#d04e9b" stroke-width="5" marker-end="url(#ar)"/>
+  <text x="1264" y="416" font-size="18" fill="#5d6760" text-anchor="middle">STEP · DIR</text>
+  <path d="M1200 600 H1328" fill="none" stroke="#2c9a4b" stroke-width="5" marker-end="url(#ar)"/>
+  <path d="M1200 620 H1328" fill="none" stroke="#d04e9b" stroke-width="5" marker-end="url(#ar)"/>
+  <text x="1264" y="646" font-size="18" fill="#5d6760" text-anchor="middle">STEP · DIR</text>
+  <!-- shared UART + EN -->
+  <path d="M1200 520 H1280 V480 H1328" fill="none" stroke="#8A63D2" stroke-width="5" marker-end="url(#ar)"/>
+  <path d="M1280 520 V650 H1328" fill="none" stroke="#8A63D2" stroke-width="5" marker-end="url(#ar)"/>
+  <text x="1240" y="556" font-size="17" fill="#8A63D2" text-anchor="middle">UART + EN</text>
+  <text x="1240" y="576" font-size="15" fill="#8A63D2" text-anchor="middle">shared</text>
+
+  <!-- drivers -> motors -->
+  <path d="M1570 445 H1676" fill="none" stroke="#3a4048" stroke-width="9" marker-end="url(#ar)"/>
+  <path d="M1570 615 H1676" fill="none" stroke="#3a4048" stroke-width="9" marker-end="url(#ar)"/>
+  <text x="1622" y="420" font-size="18" fill="#5d6760" text-anchor="middle">4 coil wires</text>
+  <text x="1622" y="590" font-size="18" fill="#5d6760" text-anchor="middle">4 coil wires</text>
+
+  <!-- 24 V -> driver 1 -> driver 2 -->
+  <path d="M1450 310 V378" fill="none" stroke="#d85a30" stroke-width="9" marker-end="url(#ar)"/>
+  <path d="M1450 510 V548" fill="none" stroke="#d85a30" stroke-width="9" marker-end="url(#ar)"/>
+  <text x="1590" y="350" font-size="18" fill="#993c1d">VM 24 V, shared</text>
+  <text x="1590" y="372" font-size="18" fill="#993c1d">by both drivers</text>
+
+  <!-- ===== notes ===== -->
+  <text x="80" y="900" font-size="24" font-weight="700" fill="#1d2420">Two separate power sources, grounds joined once</text>
+  <g font-size="20" fill="#5d6760">
+    <text x="80" y="938">• Logic side: the Pi powers the ESP32 over USB. The ESP32 gives 3.3 V to the level shifter, the drivers' logic and the display, and 5 V to the encoder.</text>
+    <text x="80" y="970">• Motor side: 24 V goes only to the driver power pins (fuse spot, 100 µF + 100 nF at each driver). It never touches the ESP32.</text>
+    <text x="80" y="1002">• Length = fixed offset + slider travel from the encoder. Target: ≤ 1 mm error per 1000 mm.</text>
+    <text x="80" y="1034">• Motor commands (start / stop / reverse / reset) come from the Pi; a 2 s watchdog stops the motors if the link drops.</text>
+  </g>
+</svg>
