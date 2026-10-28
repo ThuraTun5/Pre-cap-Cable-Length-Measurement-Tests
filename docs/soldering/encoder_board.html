@@ -1,0 +1,257 @@
+<title>Encoder Board Soldering</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: header, self-check banner, two big board drawings (component / solder side), numbered steps, meter checks, wire table. */
+:root{
+  --bg:#f4f4f1; --surface:#ffffff; --fg:#1b1f1d; --muted:#5b625d; --line:#d5d9d3;
+  --ok:#1f7a4d; --ok-soft:#dcefe4; --bad:#b3261e; --bad-soft:#f9dedc; --accent:#1f5fa8;
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif; --f-body:"Barlow",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#131614;--surface:#1b1f1d;--fg:#e8ece9;--muted:#9ba49e;--line:#2d3430;--ok:#5cc78f;--ok-soft:#1c3327;--bad:#f2867e;--bad-soft:#3a1d1b;--accent:#7fb0ea;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#131614;--surface:#1b1f1d;--fg:#e8ece9;--muted:#9ba49e;--line:#2d3430;--ok:#5cc78f;--ok-soft:#1c3327;--bad:#f2867e;--bad-soft:#3a1d1b;--accent:#7fb0ea;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:18px;line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:22px}
+h1{font-family:var(--f-display);font-weight:700;font-size:40px;margin:0;line-height:1.1;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:28px;margin:0 0 8px;text-wrap:balance}
+p{margin:0}
+.sub{color:var(--muted);max-width:72ch}
+.check{border-radius:10px;padding:14px 18px;font-size:18px;display:grid;gap:4px}
+.check.ok{background:var(--ok-soft);color:var(--ok)}
+.check.bad{background:var(--bad-soft);color:var(--bad)}
+.check b{font-family:var(--f-display);font-size:24px;font-weight:700}
+.sides{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.card h2 small{font-family:var(--f-body);font-size:16px;font-weight:500;color:var(--muted);margin-left:8px}
+.card svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:16px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{display:inline-block;width:30px;height:0;border-top:6px solid}
+ol.steps{margin:0;padding:0;list-style:none;display:grid;gap:12px;counter-reset:s}
+ol.steps li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 14px 64px;position:relative;min-width:0}
+ol.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:16px;top:12px;width:34px;height:34px;border-radius:50%;background:var(--fg);color:var(--bg);font:700 20px/34px var(--f-display);text-align:center}
+ol.steps li .t{font-family:var(--f-display);font-size:22px;font-weight:600;display:block;margin-bottom:2px}
+ol.steps label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+ol.steps input{width:22px;height:22px;margin-top:6px;flex:none;accent-color:var(--ok)}
+ol.steps li.done{opacity:.55}
+code,.h{font-family:var(--f-mono);font-weight:700;font-size:.92em;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:0 5px;white-space:nowrap}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:17px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:17px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+td.num{font:700 18px var(--f-display);width:44px}
+td.sw i{display:inline-block;width:26px;height:0;border-top:6px solid;vertical-align:middle;margin-right:8px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:18px}
+.pill{display:inline-block;font:600 14px var(--f-display);letter-spacing:.05em;text-transform:uppercase;border-radius:20px;padding:1px 10px}
+.pill.yes{background:var(--ok-soft);color:var(--ok)}
+.pill.no{background:var(--bad-soft);color:var(--bad)}
+input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pb text{font-family:var(--f-body)}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <h1>Encoder board: soldering test</h1>
+    <p class="sub">A small board with only the encoder plug and the 74LVC245. The ESP32 stays on the breadboard and connects with 6 jumper wires. Same wiring as your working T4/T10 breadboard. Needs a board of at least <b>12 holes wide × 14 holes tall</b>.</p>
+  </header>
+
+  <div class="check" id="check" role="status"></div>
+
+  <div class="sides">
+    <section class="card">
+      <h2>Component side <small>parts on top, as you place them</small></h2>
+      <svg class="pb" id="top" role="img" aria-label="Component side drawing"></svg>
+      <div class="legend"><span>Parts and hole labels only. All wires are on the other side.</span></div>
+    </section>
+    <section class="card">
+      <h2>Solder side <small>board turned over: left and right swap</small></h2>
+      <svg class="pb" id="bot" role="img" aria-label="Solder side drawing"></svg>
+      <div class="legend">
+        <span><i style="border-color:#d62828"></i>+ supply (5 V, 3.3 V)</span>
+        <span><i style="border-color:#111"></i>ground</span>
+        <span><i style="border-color:#2563c9"></i>signal</span>
+        <span><i style="border-color:#9aa0a6"></i>solder bridge</span>
+        <span>double line = insulated wire</span>
+      </div>
+    </section>
+  </div>
+
+  <section>
+    <h2>Solder in this order</h2>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>Meter check before the chip goes in</h2>
+      <p class="sub" style="margin-bottom:10px">Meter on the beep (continuity) setting. USB not connected. Touch the two holes' header pins or pads.</p>
+      <div class="tbl"><table><thead><tr><th>Touch</th><th>and</th><th>Should</th></tr></thead><tbody id="beep"></tbody></table></div>
+    </div>
+    <div>
+      <h2>Connect and test</h2>
+      <ol class="steps" id="final"></ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>Every connection</h2>
+    <div class="tbl"><table><thead><tr><th>#</th><th>Kind</th><th>Holes</th><th>What it joins</th></tr></thead><tbody id="rows"></tbody></table></div>
+  </section>
+
+  <p class="sub" style="font-size:15px">This page draws everything from one connection list and checks it every time it loads: each part pin must reach every other pin of its signal, and no two signals may touch. A bare wire counts as touching every hole it lies across. Pin order of the 74LVC245 from the TI SN74LVC245A datasheet; encoder pins B · 5V · A · X · G from the Same Sky AMT10 datasheet.</p>
+</div>
+
+<script>
+/* ======================= one source of truth ======================= */
+const COLS='ABCDEFGHIJKL', NROWS=14;
+const ci=c=>COLS.indexOf(c);
+const NET={V5:{name:'5 V',col:'#d62828'},V33:{name:'3.3 V',col:'#d62828'},GND:{name:'GND',col:'#111111'},
+  IN_A:{name:'encoder A',col:'#2563c9'},IN_B:{name:'encoder B',col:'#2563c9'},IN_X:{name:'encoder X',col:'#2563c9'},
+  OUT_A:{name:'A → GPIO34',col:'#2563c9'},OUT_B:{name:'B → GPIO35',col:'#2563c9'},OUT_X:{name:'X → GPIO32',col:'#2563c9'}};
+
+/* part pins: [hole, net or null, label] */
+const PINS=[];
+const chipNet={1:'V33',2:'IN_B',3:'IN_A',4:'IN_X',5:'GND',6:'GND',7:'GND',8:'GND',9:'GND',10:'GND',16:'OUT_X',17:'OUT_A',18:'OUT_B',19:'GND',20:'V33'};
+for(let n=1;n<=10;n++) PINS.push({part:'chip',hole:['E',2+n],net:chipNet[n]||null,label:'leg '+n});
+for(let n=20;n>=11;n--) PINS.push({part:'chip',hole:['H',2+(21-n)],net:chipNet[n]||null,label:'leg '+n});
+[['5V','V5'],['B','IN_B'],['A','IN_A'],['X','IN_X'],['G','GND']].forEach(([t,n],i)=>PINS.push({part:'enc',hole:['A',3+i],net:n,label:t}));
+[['5V','V5'],['3V3','V33'],['GND','GND'],['GPIO35','OUT_B'],['GPIO34','OUT_A'],['GPIO32','OUT_X']].forEach(([t,n],i)=>PINS.push({part:'out',hole:['L',2+i],net:n,label:t}));
+PINS.push({part:'cap',hole:['I',3],net:'V33',label:'100 nF'},{part:'cap',hole:['I',4],net:'GND',label:'100 nF'});
+
+/* connections on the solder side. bare + bridge touch every hole on the path; insulated only its two ends */
+const CONN=[
+ {n:1, kind:'bare', net:'V33', path:[['E',3],['L',3]], what:'3.3 V: leg 1 (DIR) → leg 20 (VCC) → capacitor → header 3V3'},
+ {n:2, kind:'bare', net:'GND', path:[['H',4],['L',4]], what:'GND: leg 19 (OE) → capacitor → header GND'},
+ {n:3, kind:'bare', net:'IN_B',path:[['A',4],['E',4]], what:'encoder B → leg 2'},
+ {n:4, kind:'bare', net:'IN_A',path:[['A',5],['E',5]], what:'encoder A → leg 3'},
+ {n:5, kind:'bare', net:'IN_X',path:[['A',6],['E',6]], what:'encoder X → leg 4'},
+ {n:6, kind:'bare', net:'GND', path:[['A',7],['E',7]], what:'encoder G → leg 5'},
+ {n:7, kind:'bridge',net:'GND',path:[['E',7],['E',12]], what:'legs 5, 6, 7, 8, 9, 10 joined with solder (all GND)'},
+ {n:8, kind:'bare', net:'OUT_B',path:[['H',5],['L',5]], what:'leg 18 → header GPIO35'},
+ {n:9, kind:'bare', net:'OUT_A',path:[['H',6],['L',6]], what:'leg 17 → header GPIO34'},
+ {n:10,kind:'bare', net:'OUT_X',path:[['H',7],['L',7]], what:'leg 16 → header GPIO32'},
+ {n:11,kind:'ins',  net:'GND', path:[['E',12],['F',12],['F',4],['H',4]], what:'GND link: leg 10 → leg 19 (runs between the two leg rows)'},
+ {n:12,kind:'ins',  net:'V5',  path:[['L',2],['A',2],['A',3]], what:'5 V: header 5V → encoder plug 5V'}
+];
+
+/* ======================= self-check ======================= */
+const key=h=>h[0]+h[1];
+function holesOn(path){const out=[];for(let i=0;i<path.length-1;i++){const [a,b]=[path[i],path[i+1]];
+  const c0=ci(a[0]),c1=ci(b[0]),r0=a[1],r1=b[1];
+  const dc=Math.sign(c1-c0),dr=Math.sign(r1-r0),len=Math.max(Math.abs(c1-c0),Math.abs(r1-r0));
+  for(let k=0;k<=len;k++)out.push([COLS[c0+dc*k],r0+dr*k]);}return out}
+const parent={};const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));const add=x=>{if(!(x in parent))parent[x]=x};
+const unite=(a,b)=>{add(a);add(b);parent[find(a)]=find(b)};
+PINS.forEach(p=>add(key(p.hole)));
+CONN.forEach(c=>{const hs=c.kind==='ins'?[c.path[0],c.path[c.path.length-1]]:holesOn(c.path);hs.forEach(h=>add(key(h)));for(let i=1;i<hs.length;i++)unite(key(hs[0]),key(hs[i]))});
+const problems=[];
+/* shorts: one group holding two nets */
+const groupNets={};PINS.forEach(p=>{if(!p.net)return;const g=find(key(p.hole));(groupNets[g]=groupNets[g]||new Set()).add(p.net)});
+Object.values(groupNets).forEach(s=>{if(s.size>1)problems.push('Short: '+[...s].map(n=>NET[n].name).join(' + ')+' touch each other')});
+/* unused pins must stay alone */
+PINS.filter(p=>!p.net).forEach(p=>{const g=find(key(p.hole));if(PINS.some(q=>q!==p&&find(key(q.hole))===g))problems.push('Short: chip '+p.label+' (unused) touches another pin')});
+/* opens: every net in one group */
+Object.keys(NET).forEach(n=>{const ps=PINS.filter(p=>p.net===n);const gs=new Set(ps.map(p=>find(key(p.hole))));if(gs.size>1)problems.push('Not connected: '+NET[n].name+' is split into '+gs.size+' parts')});
+/* bare wire / bridge cannot lie across a hole used by another net */
+CONN.filter(c=>c.kind!=='ins').forEach(c=>holesOn(c.path).forEach(h=>{const p=PINS.find(q=>key(q.hole)===key(h));if(p&&p.net&&p.net!==c.net)problems.push('Wire '+c.n+' lies across '+p.label+' ('+NET[p.net].name+')')}));
+const chk=document.getElementById('check');
+const nPins=PINS.filter(p=>p.net).length;
+if(problems.length){chk.className='check bad';chk.innerHTML='<b>Check failed: do not solder</b>'+problems.map(t=>'<span>'+t+'</span>').join('')}
+else{chk.className='check ok';chk.innerHTML='<b>Self-check passed</b><span>All '+nPins+' used pins reach their signal, '+Object.keys(NET).length+' signals, no two signals touch, 5 unused chip legs (11–15) stay free.</span>'}
+
+/* ======================= drawing ======================= */
+const NS='http://www.w3.org/2000/svg';
+function el(p,t,a,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e}
+const PP=46, ML=170, MR=170, MT=64, W=ML+12*PP+MR, H=MT+NROWS*PP+40;
+function draw(svg,solder){
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  el(svg,'rect',{x:0,y:0,width:W,height:H,rx:10,fill:'#f7f6f1'});
+  const cx=c=>ML+PP/2+(solder?11-ci(c):ci(c))*PP, cy=r=>MT+PP/2+(r-1)*PP;
+  el(svg,'rect',{x:ML-8,y:MT-8,width:12*PP+16,height:NROWS*PP+16,rx:12,fill:solder?'#c7d1b8':'#d9e3c8',stroke:'#7d8a6c','stroke-width':2});
+  /* hole labels */
+  for(let i=0;i<12;i++){const c=COLS[i];el(svg,'text',{x:cx(c),y:MT-20,'text-anchor':'middle','font-size':19,'font-weight':700,fill:'#3b4337','font-family':'JetBrains Mono, monospace'},c)}
+  for(let r=1;r<=NROWS;r++){el(svg,'text',{x:22,y:cy(r)+6,'text-anchor':'start','font-size':19,'font-weight':700,fill:'#3b4337','font-family':'JetBrains Mono, monospace'},r)}
+  for(let i=0;i<12;i++)for(let r=1;r<=NROWS;r++){el(svg,'circle',{cx:cx(COLS[i]),cy:cy(r),r:11,fill:'#b9a35a',opacity:.75});el(svg,'circle',{cx:cx(COLS[i]),cy:cy(r),r:4.5,fill:'#3a3a2e'})}
+  if(!solder){
+    /* socket */
+    const x0=Math.min(cx('E'),cx('H'))-22,y0=cy(3)-24;
+    el(svg,'rect',{x:x0,y:y0,width:Math.abs(cx('H')-cx('E'))+44,height:cy(12)-cy(3)+48,rx:6,fill:'#2b2b2b',opacity:.88});
+    el(svg,'path',{d:`M${(cx('E')+cx('H'))/2-14} ${y0} a14 14 0 0 0 28 0`,fill:'#d9e3c8'});
+    el(svg,'text',{x:(cx('E')+cx('H'))/2,y:cy(8)+6,'text-anchor':'middle','font-size':20,'font-weight':700,fill:'#fff',transform:`rotate(-90 ${(cx('E')+cx('H'))/2} ${cy(8)})`},'74LVC245');
+    el(svg,'text',{x:(cx('E')+cx('H'))/2,y:cy(3)+6,'text-anchor':'middle','font-size':14,'font-weight':700,fill:'#ffffff'},'notch');
+    /* headers */
+    el(svg,'rect',{x:cx('A')-17,y:cy(3)-17,width:34,height:cy(7)-cy(3)+34,rx:4,fill:'#111'});
+    el(svg,'rect',{x:cx('L')-17,y:cy(2)-17,width:34,height:cy(7)-cy(2)+34,rx:4,fill:'#111'});
+    el(svg,'text',{x:cx('A')-40,y:cy(8)+6,'text-anchor':'end','font-size':17,'font-weight':700,fill:'#1b1f1d'},'to encoder');
+    el(svg,'text',{x:cx('L')+40,y:cy(8)+6,'text-anchor':'start','font-size':17,'font-weight':700,fill:'#1b1f1d'},'to ESP32');
+    /* capacitor */
+    el(svg,'line',{x1:cx('I'),y1:cy(3),x2:cx('I'),y2:cy(4),stroke:'#8a6a1a','stroke-width':3});
+    el(svg,'ellipse',{cx:cx('I'),cy:(cy(3)+cy(4))/2,rx:13,ry:17,fill:'#e0a63a',stroke:'#8a6a1a','stroke-width':2});
+  }
+  /* wires (solder side only) */
+  if(solder){
+    CONN.forEach(c=>{const d='M'+c.path.map(h=>cx(h[0])+' '+cy(h[1])).join(' L');const col=NET[c.net].col;
+      if(c.kind==='bridge'){el(svg,'path',{d,fill:'none',stroke:'#9aa0a6','stroke-width':20,'stroke-linecap':'round'})}
+      else if(c.kind==='bare'){el(svg,'path',{d,fill:'none',stroke:'#ffffff','stroke-width':13,'stroke-linecap':'round','stroke-linejoin':'round',opacity:.9});el(svg,'path',{d,fill:'none',stroke:col,'stroke-width':8,'stroke-linecap':'round','stroke-linejoin':'round'})}
+      else{el(svg,'path',{d,fill:'none',stroke:col,'stroke-width':14,'stroke-linecap':'round','stroke-linejoin':'round'});el(svg,'path',{d,fill:'none',stroke:'#ffffff','stroke-width':5,'stroke-linecap':'round','stroke-linejoin':'round'})}
+    });
+  }
+  /* pins */
+  PINS.forEach(p=>{const x=cx(p.hole[0]),y=cy(p.hole[1]);
+    el(svg,'circle',{cx:x,cy:y,r:solder?10:8,fill:solder?'#e8e4d6':(p.part==='chip'?'#cfcfcf':'#d9b45a'),stroke:'#555','stroke-width':1.5})});
+  /* pin labels */
+  const lab=(x,y,t,anchor,size,col)=>el(svg,'text',{x,y,'text-anchor':anchor,'font-size':size||16,'font-weight':700,fill:col||'#1b1f1d'},t);
+  PINS.forEach(p=>{const x=cx(p.hole[0]),y=cy(p.hole[1])+6;
+    if(p.part==='enc'){const left=!solder;lab(left?x-40:x+40,y,p.label,left?'end':'start',17)}
+    if(p.part==='out'){const right=!solder;lab(right?x+40:x-40,y,p.label,right?'start':'end',17)}
+    if(p.part==='chip'&&!solder){const n=+p.label.slice(4);const inner=p.hole[0]==='E'?x+20:x-20;lab(inner,y-1,n,p.hole[0]==='E'?'start':'end',13,'#ffffff')}
+    if(p.part==='chip'&&solder){const n=+p.label.slice(4);lab(x+(p.hole[0]==='E'?(solder?14:-14):(solder?-14:14)),y-19,n,p.hole[0]==='E'?(solder?'start':'end'):(solder?'end':'start'),12,'#3b4337')}
+  });
+  if(!solder) lab(cx('I'),cy(2)-PP/2+6,'100 nF','middle',15);
+  /* connection numbers */
+  if(solder){CONN.forEach(c=>{let hx,hy;
+    if(c.kind==='bridge'){hx=cx('E')+(solder?-30:30);hy=(cy(7)+cy(12))/2}
+    else if(c.n===11){hx=cx('F');hy=cy(9)}
+    else if(c.n===12){hx=(cx('L')+cx('A'))/2;hy=cy(2)}
+    else{const a=c.path[0],b=c.path[1];hx=(cx(a[0])+cx(b[0]))/2;hy=cy(a[1])}
+    if(c.n===2){hx=cx('K')} if(c.n===1){hx=cx('G')}
+    el(svg,'circle',{cx:hx,cy:hy,r:15,fill:'#ffffff',stroke:'#1b1f1d','stroke-width':2.5});
+    el(svg,'text',{x:hx,y:hy+6,'text-anchor':'middle','font-size':17,'font-weight':800,fill:'#1b1f1d'},c.n)});}
+}
+draw(document.getElementById('top'),false);
+draw(document.getElementById('bot'),true);
+
+/* ======================= tables ======================= */
+const kindName={bare:'bare wire',bridge:'solder bridge',ins:'insulated wire'};
+document.getElementById('rows').innerHTML=CONN.map(c=>`<tr><td class="num">${c.n}</td><td class="sw"><i style="border-color:${c.kind==='bridge'?'#9aa0a6':NET[c.net].col}"></i>${kindName[c.kind]}</td><td>${c.kind==='ins'?'<span class="h">'+key(c.path[0])+'</span> → <span class="h">'+key(c.path[c.path.length-1])+'</span>':'<span class="h">'+key(c.path[0])+'</span> → <span class="h">'+key(c.path[c.path.length-1])+'</span>'}</td><td>${c.what}</td></tr>`).join('');
+
+const BEEP=[['L2','A3',1],['L3','E3',1],['L3','H3',1],['L4','H4',1],['L4','E12',1],['L4','A7',1],['A4','E4',1],['A5','E5',1],['A6','E6',1],['H5','L5',1],['H6','L6',1],['H7','L7',1],
+  ['L2','L3',0],['L3','L4',0],['L4','L5',0],['L5','L6',0],['L6','L7',0],['A3','A4',0],['A4','A5',0],['A5','A6',0],['A6','A7',0],['E3','E4',0],['H7','H8',0]];
+/* verify the meter table against the connection list too */
+BEEP.forEach(b=>{const same=find(b[0])===find(b[1]);if(same!==!!b[2]){chk.className='check bad';chk.innerHTML+='<span>Meter table mismatch at '+b[0]+'–'+b[1]+'</span>'}});
+document.getElementById('beep').innerHTML=BEEP.map(b=>`<tr><td><span class="h">${b[0]}</span></td><td><span class="h">${b[1]}</span></td><td>${b[2]?'<span class="pill yes">beep</span>':'<span class="pill no">no beep</span>'}</td></tr>`).join('');
+
+const STEPS=[
+ ['Mark the board','Hold it upright (14 holes tall). Write <b>A1</b> next to the top-left hole with a pen. Columns <span class="h">A</span>–<span class="h">L</span> go left to right, rows <span class="h">1</span>–<span class="h">14</span> top to bottom, as seen from the component side.'],
+ ['DIP-20 socket','Notch at the top. Legs in <span class="h">E3</span>–<span class="h">E12</span> and <span class="h">H3</span>–<span class="h">H12</span>. Turn over, solder two opposite corners first (<span class="h">E3</span>, <span class="h">H12</span>), check it sits flat, then solder the other 18. The chip is <b>not</b> inserted yet.'],
+ ['Two male headers','5-pin strip in <span class="h">A3</span>–<span class="h">A7</span> (left edge), 6-pin strip in <span class="h">L2</span>–<span class="h">L7</span> (right edge). Plastic on the component side, long pins up. Solder one pin, check straight, then the rest.'],
+ ['100 nF capacitor','Legs in <span class="h">I3</span> and <span class="h">I4</span> (bend the legs to fit). Solder, cut the legs short.'],
+ ['Bare wires 1–6 and 8–10','On the solder side. Use bare wire or cut-off legs, laid flat on the pads, soldered at both ends. Each one runs straight along one row (see the drawing).'],
+ ['Solder bridge 7','Join legs 5, 6, 7, 8, 9, 10 (<span class="h">E7</span>–<span class="h">E12</span>) with solder, or lay a bare wire along them. All six are GND, so touching is correct here.'],
+ ['Insulated wires 11 and 12','<b>11:</b> <span class="h">E12</span> → <span class="h">H4</span> (GND link, between the two leg rows). <b>12:</b> <span class="h">L2</span> → <span class="h">A3</span> (5 V). Strip 3 mm at each end and solder onto the pad.'],
+ ['Look for bridges','With good light, check that no solder blob joins two neighbouring rows by mistake (except bridge 7). Then do the meter table.']
+];
+const FINAL=[
+ ['Insert the chip','74LVC245 into the socket, <b>notch at the top</b>, same as the socket.'],
+ ['Encoder plug','Encoder wires to <span class="h">A3</span>–<span class="h">A7</span>: <b>5V, B, A, X, G</b> (read the labels on the encoder).'],
+ ['To the ESP32 (6 jumpers)','<span class="h">L2</span> 5V → ESP32 <b>5V</b> · <span class="h">L3</span> 3V3 → ESP32 <b>3V3</b> · <span class="h">L4</span> GND → ESP32 <b>GND</b> · <span class="h">L5</span> → <b>GPIO35</b> · <span class="h">L6</span> → <b>GPIO34</b> · <span class="h">L7</span> → <b>GPIO32</b>.'],
+ ['Power check','USB in, meter on DC volts, black probe on <span class="h">L4</span>: <span class="h">L3</span> = 3.3 V, <span class="h">L2</span> ≈ 5 V. Anything else: unplug USB and tell me.'],
+ ['Encoder test','Run the T10 test tool, send <b>z</b>, turn the encoder: <b>pos</b> lines appear and the length changes by 40 mm per turn.']
+];
+function fill(id,list,store){const ol=document.getElementById(id);
+  let saved={};try{saved=JSON.parse(localStorage.getItem(store)||'{}')}catch(e){}
+  ol.innerHTML=list.map((s,i)=>`<li class="${saved[i]?'done':''}"><label><input type="checkbox" id="${id}-${i}" ${saved[i]?'checked':''}><span><span class="t">${s[0]}</span>${s[1]}</span></label></li>`).join('');
+  ol.addEventListener('change',e=>{const i=+e.target.id.split('-')[1];saved[i]=e.target.checked;e.target.closest('li').classList.toggle('done',e.target.checked);try{localStorage.setItem(store,JSON.stringify(saved))}catch(err){}});}
+fill('steps',STEPS,'enc-steps');fill('final',FINAL,'enc-final');
+</script>

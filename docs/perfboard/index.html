@@ -172,7 +172,7 @@ ribbon('drv',[[57,6],[57,9.4],[57,27],[54,27],[54,31]],['#3b9e46','#1a1a1a','#d8
 /* view 4: power */
 wire('pwr',[[26,13],[57,13]],K.gnd,{w:8,back:true,halo:'rgba(255,255,255,.9)'});   /* GND bus, bare */
 wire('pwr',[[27,15],[57,15]],K.v33,{w:8,back:true,halo:false});                      /* 3V3 bus, bare */
-wire('pwr',[[8,17],[8,16.3],[26,16.3],[26,13]],K.gnd,Object.assign({back:true},gh)); /* ESP32 GND -> GND bus start */
+wire('pwr',[[9,17],[9,16.3],[26,16.3],[26,13]],K.gnd,Object.assign({back:true},gh)); /* ESP32 GND -> GND bus start */
 wire('pwr',[[22,17],[22,16.6],[27,16.6],[27,15]],K.v33,{back:true});                 /* ESP32 3V3 -> 3V3 bus start */
 wire('pwr',[[28,24],[28,16.6],[27,16.6]],K.v33,{back:true});                         /* display VCC joins the 3V3 feed */
 wire('pwr',[[29,24],[29,27.6],[22,27.6],[22,27]],K.gnd,Object.assign({back:true},gh)); /* display GND -> ESP32 GND pin */
@@ -225,7 +225,7 @@ el(esp,'text',{class:'lbl',x:X(6),y:Y(21.6),style:'font-size:24px'},'ESP32');
 el(esp,'text',{class:'tag',x:X(3),y:Y(23.1)},'USB-C to the Pi ←');
 el(esp,'text',{class:'pin dk',x:X(19.4),y:Y(22.4),'text-anchor':'middle',style:'font-size:13px'},'WROOM-32E');
 pins(esp,3,22,17);pins(esp,3,22,27);
-[[3,'5V'],[8,'GND'],[10,'13'],[11,'14'],[12,'27'],[13,'26'],[14,'25'],[16,'32'],[17,'35'],[18,'34'],[22,'3V3']].forEach(([c,t])=>el(esp,'text',{class:'pin',x:X(c),y:Y(18.1),'text-anchor':'middle'},t));
+[[3,'5V'],[8,'13'],[9,'GND'],[11,'14'],[12,'27'],[13,'26'],[14,'25'],[16,'32'],[17,'35'],[18,'34'],[22,'3V3']].forEach(([c,t])=>el(esp,'text',{class:'pin',x:X(c),y:Y(18.1),'text-anchor':'middle'},t));
 [[10,'4'],[12,'17'],[17,'21'],[20,'22'],[22,'GND']].forEach(([c,t])=>el(esp,'text',{class:'pin',x:X(c),y:Y(26.2),'text-anchor':'middle'},t));
 
 /* encoder plug */

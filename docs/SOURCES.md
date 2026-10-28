@@ -152,3 +152,14 @@ community discussions second.
 - Bare bus wire next to pad rows = short-circuit risk: <https://forum.allaboutcircuits.com/threads/how-much-current-can-a-tin-solder-track-handle.171525/post-1534393>
 → Layout v2 (docs/perfboard): ESP32 moved down, 4-row open wiring channel, buses in a clear lane right below the drivers,
   unavoidable crossings become two-hole hops to the back side (plated through-holes).
+
+## Encoder board soldering test (2026-10-28)
+- Official Freenove ESP32 WROOM pinout (pin order of both rows; rows are 10 holes = 25.4 mm apart, measured on the image):
+  <https://github.com/Freenove/Freenove_ESP32_WROOM_Board/blob/main/Freenove_ESP32_WROOM_Board_Pinout.png>.
+  Left row (antenna end first): 3V3, EN, VP, VN, 34, 35, 32, 33, 25, 26, 27, 14, 12, GND, 13, 3.3V, 3.3V, 3.3V, 5V, 5V.
+  Right row: GND, 23, 22, TX, RX, 21, GND, 19, 18, 5, 17, 16, 4, 0, 2, 15, GND, GND, GND, GND.
+  → fixed the concept page (docs/perfboard): GND and GPIO13 labels were swapped.
+- 9×15 cm prototype boards are 34 × 52 holes (Elecrow, Bits&Parts), not 35 × 59 as drawn on the concept page:
+  <https://www.bitsandparts.nl/en/prototyping-board-pcb-fiberglass-(34x52-holes-9x15cm)-p118241>. Fix in the real soldering plan.
+- Encoder test board (docs/soldering/encoder_board.html): same nets as the T4/T10 breadboard (B → A1 → B1 → GPIO35,
+  A → A2 → B2 → GPIO34, X → A3 → B3 → GPIO32; DIR + VCC = 3.3 V; OE + 5–10 = GND; 100 nF at pins 19/20).
